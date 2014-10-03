@@ -1,0 +1,340 @@
+#!/bin/bash
+
+m4_include(lib/common.sh)
+get_profiles(){
+    local prof= temp=
+    for p in $(ls ${profiledir}/*.set);do
+	temp=${p##*/}
+	prof=${prof:-}${prof:+|}${temp%.set}
+    done
+    echo $prof
+}
+
+get_user(){
+    echo $(ls ${chrootdir} | cut -d' ' -f1 | grep -v root | grep -v lock)
+}
+
+chroot_clean(){
+    for copy in "${chrootdir}"/*; do
+	[[ -d "${copy}" ]] || continue
+	msg2 "Deleting chroot copy '$(basename "${copy}")'..."
+
+	exec 9>"${copy}.lock"
+	if ! flock -n 9; then
+	    stat_busy "Locking chroot copy '${copy}'"
+	    flock 9
+	    stat_done
+	fi
+
+	if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
+	    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
+	fi
+	rm -rf --one-file-system "${copy}"
+    done
+    exec 9>&-
+
+    rm -rf --one-file-system "${chrootdir}"
+}
+
+chroot_create(){
+    mkdir -p "${chrootdir}"
+    setarch ${arch} \
+	mkmanjaroroot ${mkmanjaroroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
+}
+
+chroot_update(){
+    setarch "${arch}" \
+	mkmanjaroroot ${mkmanjaroroot_args[*]} -u ${chrootdir}/$(get_user) || abort
+}
+
+chroot_init(){
+      if [[ ! -d "${chrootdir}" ]]; then
+	  msg "Creating chroot for [${branch}] (${arch})..."
+	  chroot_create
+      elif ${clean_first};then
+	  msg "Creating chroot for [${branch}] (${arch})..."
+	  chroot_clean
+	  chroot_create
+      else
+	  msg "Updating chroot for [${branch}] (${arch})..."
+	  chroot_update
+      fi
+}
+
+chroot_build_set(){
+    chroot_init
+    msg "Start building profile: [${profile}]"
+    for pkg in $(cat ${profiledir}/${profile}.set); do
+	cd $pkg
+	setarch ${arch} \
+	    makechrootpkg ${makechrootpkg_args[*]} -- "${makepkg_args[*]}" || break
+	if [[ $pkg == 'eudev' ]]; then
+	    local blacklist=('libsystemd')
+	    pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
+	    local temp
+	    if [[ -z $PKGDEST ]];then
+		temp=$pkg
+	    else
+		temp=$pkgdir/$pkg
+	    fi
+	    pacman -U $temp*${ARCH}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+	fi
+	cd ..
+    done
+    msg "Finished building profile: [${profile}]"
+}
+
+chroot_build(){
+    cd ${profile}
+    chroot_init
+    setarch ${arch} \
+	makechrootpkg ${makechrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
+    cd ..
+}
+
+display_build_set(){
+    msg "SETS:"
+    msg2 "profiles: $profiles"
+    msg2 "profile: $profile"
+    msg2 "is_profile: ${is_profile}"
+    if ${is_profile};then
+	msg "These packages will be built:"
+	local temp=$(cat ${profiledir}/${profile}.set)
+	for p in ${temp[@]}; do
+	    msg2 "$p"
+	done
+    else
+	msg "This package will be built:"
+	msg2 "${profile}"
+    fi
+}
+
+run_pretend(){
+    eval "case ${profile} in
+	$profiles) is_profile=true ;;
+	*) is_profile=false ;;
+    esac"
+    display_build_set
+    exit 0
+}
+
+run(){
+    eval "case ${profile} in
+	$profiles) is_profile=true; display_build_set && chroot_build_set ;;
+	*) display_build_set && chroot_build ;;
+    esac"
+}
+
+#################################MAIN##########################################
+
+export LC_MESSAGES=C
+
+shopt -s nullglob
+
+version=20141003
+
+arch=$(uname -m)
+pacman_conf_arch='default'
+
+devtools_conf='@sysconfdir@/devtools.conf'
+
+if [[ -f ${devtools_conf} ]]; then
+    . ${devtools_conf}
+fi
+
+if [[ -n ${branch} ]];then
+    branch=${branch}
+else
+    branch='stable'
+fi
+
+if [[ -n ${profile} ]];then
+    profile=${profile}
+else
+    profile='default'
+fi
+
+if [[ -n ${chroots} ]];then
+    chroots=${chroots}
+else
+    chroots='/srv/manjarobuild'
+fi
+
+if [[ -n ${profiledir} ]];then
+    profiledir=${profiledir}
+else
+    profiledir='@sysconfdir@/sets'
+fi
+
+if [[ -f ~/.makepkg.conf ]];then
+    . ~/.makepkg.conf
+else
+    if [[ -r /etc/makepkg.conf ]]; then
+	. /etc/makepkg.conf
+    fi
+fi
+
+if [[ -n ${pkgdir} ]];then
+    pkgdir=${pkgdir}
+else
+    pkgdir=$(pwd)/packages
+fi
+
+clean_first=false
+namcap=false
+sign=false
+verbose=false
+nosystemd=false
+pretend=false
+is_profile=false
+clean_rundir=false
+repo=false
+
+base_packages=('base-devel')
+
+mkmanjaroroot_args=()
+makechrootpkg_args=()
+makepkg_args=()
+misc_args=()
+
+profiles=$(get_profiles)
+
+usage() {
+    echo "Usage: ${0##*/} [options] -- [makepkg_args]"
+    echo "    -p <profile>       Set profile or pkg [default ${profile}]"
+    echo "    -a <arch>          Set arch  [default ${arch}]"
+    echo "    -b <branch>        Set branch [default ${branch}]"
+    echo "    -r <dir>           Chroots directory [default ${chroots}]"
+    echo "    -c                 Clean chroot [default ${clean_first}]"
+    echo "    -n                 Run namcap check [default ${namcap}]"
+    echo '    -s                 Sign packages'
+    echo '    -v                 Verbose'
+    echo "    -x                 Use classic chroot instead of systemd-nspawn [default ${nosystemd}]"
+    echo '                       Useful for testing if systemd is running to bypass autodetection'
+    echo "    -q                 Pretend build [default ${pretend}]"
+    echo '    -w                 Wipe clean pkgbuild directory'
+    echo '    -y                 Add package to repo'
+    echo '    -h                 This help'
+    echo ''
+    echo ''
+    exit 1
+}
+
+opts='p:a:b:r:cnsvxqwyh'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+	p) profile="$OPTARG" ;;
+	a) arch="$OPTARG" ;;
+	b) branch="$OPTARG" ;;
+	r) chroots="$OPTARG" ;;
+	c) clean_first=true ;;
+	n) namcap=true;;
+	s) sign=true ;;
+	v) verbose=true ;;
+	x) nosystemd=true ;;
+	q) pretend=true; verbose=true ;;
+	w) clean_rundir=true ;;
+	y) repo=true ;;
+	h) usage ;;
+    esac
+done
+
+if [[ "$arch" == 'multilib' ]]; then
+    pacman_conf_arch='multilib'
+    arch='x86_64'
+    branch="${branch}-multilib"
+    base_packages+=('multilib-devel')
+fi
+
+pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
+makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
+
+chrootdir=${chroots}/${branch}-${arch}
+
+if ${nosystemd};then
+    mkmanjaroroot_args+=(-x)
+fi
+
+if ${namcap};then
+    makechrootpkg_args+=(-n)
+fi
+
+# if ${repo};then
+#     makechrootpkg_args+=(-d)
+# fi
+
+mkmanjaroroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -b ${branch})
+
+makechrootpkg_args+=(-b ${branch} -r ${chrootdir})
+
+makepkg_args+=("${*:$OPTIND}")
+
+if ${verbose};then
+    msg "OPTARGS:"
+    msg2 "arch: $arch"
+    msg2 "branch: $branch"
+    msg2 "chroots: $chroots"
+
+    msg "PATHS:"
+    msg2 "chrootdir: $chrootdir"
+    msg2 "profiledir: $profiledir"
+    msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "makepkg_conf: $makepkg_conf"
+
+    msg "mkmanjaroroot:"
+    msg2 "args: ${mkmanjaroroot_args[*]}"
+    msg "makechrootpkg:"
+    msg2 "args: ${makechrootpkg_args[*]}"
+    msg "makepkg:"
+    msg2 "args: ${makepkg_args[*]}"
+
+    msg "FLAGS:"
+    msg2 "clean_first: $clean_first"
+    msg2 "namcap: ${namcap}"
+    msg2 "sign: $sign"
+    msg2 "nosystemd: $nosystemd"
+    msg2 "clean_rundir: $clean_rundir"
+    msg2 "repo: ${repo}"
+
+    msg "PKG:"
+    msg2 "base_packages: ${base_packages[*]}"
+    msg2 "pkgdir: ${pkgdir}"
+    msg2 "PKGDEST: ${PKGDEST}"
+
+    misc_args+=(-v)
+
+fi
+
+if ${clean_rundir}; then
+    if ${pretend};then
+	msg "Files to be cleaned ${rundir} ..."
+	git clean -dfxn
+    else
+	msg "Cleaning ${rundir} ..."
+	if ${verbose};then
+	    git clean -dfx
+	else
+	    git clean -dfxq
+	fi
+    fi
+fi
+
+if [[ -n $PKGDEST ]];then
+    pkgdir=$PKGDEST
+else
+    pkgdir=${pkgdir}/${arch}
+    mkdir -p ${misc_args[*]} ${pkgdir}
+fi
+
+if [[ $EUID !=  0 ]]; then
+    die 'This script must be run as root.'
+else
+    if ${pretend};then
+	run_pretend $@
+    else
+	run $@
+    fi
+fi
+
+. build-set-helper

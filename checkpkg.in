@@ -1,0 +1,83 @@
+#!/bin/bash
+
+m4_include(lib/common.sh)
+
+# Source makepkg.conf; fail if it is not found
+if [[ -r '/etc/makepkg.conf' ]]; then
+	source '/etc/makepkg.conf'
+else
+	die '/etc/makepkg.conf not found!'
+fi
+
+# Source user-specific makepkg.conf overrides
+if [[ -r ~/.makepkg.conf ]]; then
+	source ~/.makepkg.conf
+fi
+
+if [[ ! -f PKGBUILD ]]; then
+	die 'This must be run in the directory of a built package.'
+fi
+
+. PKGBUILD
+if [[ $arch == 'any' ]]; then
+	CARCH='any'
+fi
+
+STARTDIR=$(pwd)
+TEMPDIR=$(mktemp -d --tmpdir checkpkg-script.XXXX)
+cd "$TEMPDIR"
+
+for _pkgname in "${pkgname[@]}"; do
+	pkgfile=${_pkgname}-$(get_full_version $_pkgname)-${CARCH}${PKGEXT}
+
+	if [[ -f "$STARTDIR/$pkgfile" ]]; then
+		ln -s "$STARTDIR/$pkgfile" "$pkgfile"
+	elif [[ -f "$PKGDEST/$pkgfile" ]]; then
+		ln -s "$PKGDEST/$pkgfile" "$pkgfile"
+	else
+		die "File \"$pkgfile\" doesn't exist"
+	fi
+
+	pkgurl=$(pacman -Spdd --print-format '%l' --noconfirm "$_pkgname")
+
+	if [[ $? -ne 0 ]]; then
+		die "Couldn't download previous package for $_pkgname."
+	fi
+
+	oldpkg=${pkgurl##*://*/}
+
+	if [[ ${oldpkg##*/} = ${pkgfile##*/} ]]; then
+		die "The built package ($_pkgname) is the one in the repo right now!"
+	fi
+
+	if [[ ! -f $oldpkg ]]; then
+		if [[ $pkgurl = file://* ]]; then
+			ln -s "${pkgurl#file://}" "${pkgurl##file://*/}"
+		elif [[ -f "$PKGDEST/$oldpkg" ]]; then
+			ln -s "$PKGDEST/$oldpkg" "$oldpkg"
+		elif [[ -f "$STARTDIR/$oldpkg" ]]; then
+			ln -s "$STARTDIR/$oldpkg" "$oldpkg"
+		else
+		        curl -fsLC - --retry 3 --retry-delay 3 -o "$oldpkg" "$pkgurl"
+		fi
+	fi
+
+	bsdtar tf "$oldpkg" | sort > "filelist-$_pkgname-old"
+	bsdtar tf "$pkgfile" | sort > "filelist-$_pkgname"
+
+	sdiff -s "filelist-$_pkgname-old" "filelist-$_pkgname"
+
+	if diff "filelist-$_pkgname-old" "filelist-$_pkgname" | grep '\.so' > /dev/null 2>&1; then
+		mkdir -p pkg
+		cd pkg
+		bsdtar xf ../"$pkgfile" > /dev/null
+		diff "../filelist-$_pkgname-old" "../filelist-$_pkgname" | awk '/>.*\.so/{$1 = ""; print $0}' | while read i; do
+			echo "${i}: " "$(objdump -p "$i" | grep SONAME)"
+		done
+		cd ..
+	else
+		msg "No soname differences for $_pkgname."
+	fi
+done
+
+msg "Files saved to $TEMPDIR"

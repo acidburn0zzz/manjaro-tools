@@ -3,7 +3,9 @@
 # lddd - find broken library links on your machine
 #
 
-m4_include(lib/common.sh)
+# m4_include(lib/common.sh)
+
+source @libdir@/shared_lib.sh
 
 ifs=$IFS
 IFS="${IFS}:"

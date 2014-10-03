@@ -3,7 +3,9 @@
 # finddeps - find packages that depend on a given depname
 #
 
-m4_include(lib/common.sh)
+# m4_include(lib/common.sh)
+
+source @libdir@/shared_lib.sh
 
 match=$1
 

@@ -8,7 +8,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-m4_include(lib/common.sh)
+# m4_include(lib/common.sh)
+
+source @libdir@/shared_lib.sh
 
 shopt -s nullglob
 

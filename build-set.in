@@ -1,6 +1,9 @@
 #!/bin/bash
 
-m4_include(lib/common.sh)
+# m4_include(lib/common.sh)
+
+source @libdir@/shared_lib.sh
+
 get_profiles(){
     local prof= temp=
     for p in $(ls ${profiledir}/*.set);do

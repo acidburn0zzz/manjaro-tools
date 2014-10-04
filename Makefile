@@ -3,20 +3,20 @@ V=20141001
 PREFIX = /usr/local
 
 BINPROGS = \
-	checkpkg \
-	manjarobuild \
-	lddd \
-	finddeps \
-	find-libdeps \
-	signpkg \
-	signpkgs \
-	mkmanjaroroot \
-	makechrootpkg \
-	build-set \
-	build-set-helper
+	bin/checkpkg \
+	bin/manjarobuild \
+	bin/lddd \
+	bin/finddeps \
+	bin/find-libdeps \
+	bin/signpkg \
+	bin/signpkgs \
+	bin/mkmanjaroroot \
+	bin/makechrootpkg \
+	bin/build-set \
+	bin/build-set-helper
 
 SYSCONFIGFILES = \
-	devtools.conf
+	conf/devtools.conf
 
 SETS = \
 	sets/default.set \
@@ -26,30 +26,18 @@ SETS = \
 	sets/openrc-nodeps.set
 
 CONFIGFILES = \
-	makepkg-i686.conf \
-	makepkg-x86_64.conf \
-	pacman-default.conf \
-	pacman-mirrors.conf \
-	pacman-multilib.conf
-
-MANJAROBUILD_LINKS = \
-	stable-i686-build \
-	stable-x86_64-build \
-	stable-multilib-build \
-	testing-i686-build \
-	testing-x86_64-build \
-	testing-multilib-build \
-	unstable-i686-build \
-	unstable-x86_64-build \
-	unstable-multilib-build
-
+	conf/makepkg-i686.conf \
+	conf/makepkg-x86_64.conf \
+	conf/pacman-default.conf \
+	conf/pacman-mirrors.conf \
+	conf/pacman-multilib.conf
 
 all: $(BINPROGS)
 
 edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/devtools|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/devtools|g"
 
-%: %.in Makefile lib/common.sh
+%: bin/%.in Makefile lib/common.sh
 	@echo "GEN $@"
 	@$(RM) "$@"
 	@m4 -P $@.in | $(edit) >$@
@@ -68,7 +56,6 @@ install:
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/devtools
 	install -m0755 ${BINPROGS} $(DESTDIR)$(PREFIX)/bin
 	install -m0644 ${CONFIGFILES} $(DESTDIR)$(PREFIX)/share/devtools
-	for l in ${MANJAROBUILD_LINKS}; do ln -sf manjarobuild $(DESTDIR)$(PREFIX)/bin/$$l; done
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
 uninstall:
@@ -76,7 +63,6 @@ uninstall:
 	for f in ${SETS}; do rm -f $(DESTDIR)$(SYSCONFDIR)/devtools/sets/$$f; done
 	for f in ${BINPROGS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	for f in ${CONFIGFILES}; do rm -f $(DESTDIR)$(PREFIX)/share/devtools/$$f; done
-	for l in ${MANJAROBUILD_LINKS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
 dist:

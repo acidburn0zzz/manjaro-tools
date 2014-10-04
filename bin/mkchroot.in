@@ -8,9 +8,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# m4_include(lib/common.sh)
-
-source @libdir@/functions.sh
+if [[ -r @libdir@/functions.sh ]];then
+    source @libdir@/functions.sh
+fi
 
 CHROOT_VERSION='v3'
 
@@ -76,8 +76,6 @@ fi
 
 working_dir="$(readlink -f ${1})"
 shift 1
-
-#WORKDIR=${working_dir}
 
 [[ -z $working_dir ]] && die 'Please specify a working directory.'
 
@@ -146,39 +144,6 @@ chroot_lock () {
 		stat_done
 	fi
 }
-
-# track_mount() {
-# 	if [[ -z $CHROOT_ACTIVE_MOUNTS ]]; then
-# 	  CHROOT_ACTIVE_MOUNTS=()
-# 	  trap 'chroot_umount' EXIT
-# 	fi
-#
-# 	mount "$@" && CHROOT_ACTIVE_MOUNTS=("$2" "${CHROOT_ACTIVE_MOUNTS[@]}")
-# }
-#
-# mount_conditionally() {
-# 	local cond=$1; shift
-# 	if eval "$cond"; then
-# 	  track_mount "$@"
-# 	fi
-# }
-#
-# api_fs_mount_build() {
-# 	mount_conditionally "! mountpoint -q '$1'" "$1" "$1" --bind &&
-# 	track_mount proc "$1/proc" -t proc -o nosuid,noexec,nodev &&
-# 	track_mount sys "$1/sys" -t sysfs -o nosuid,noexec,nodev,ro &&
-# 	track_mount udev "$1/dev" -t devtmpfs -o mode=0755,nosuid &&
-# 	track_mount devpts "$1/dev/pts" -t devpts -o mode=0620,gid=5,nosuid,noexec &&
-# 	track_mount shm "$1/dev/shm" -t tmpfs -o mode=1777,nosuid,nodev &&
-# 	track_mount run "$1/run" -t tmpfs -o nosuid,nodev,mode=0755 &&
-# 	track_mount tmp "$1/tmp" -t tmpfs -o mode=1777,strictatime,nodev,nosuid
-# 	track_mount /etc/resolv.conf "$1/etc/resolv.conf" --bind
-# 	track_mount ${cache_dirs[0]} "$1/${cache_dirs[0]}" --bind
-# }
-#
-# chroot_umount() {
-# 	umount "${CHROOT_ACTIVE_MOUNTS[@]}"
-# }
 
 chroot_run() {
 	local dir=$1

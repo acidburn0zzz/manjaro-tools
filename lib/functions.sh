@@ -1,6 +1,12 @@
 #!/bin/bash
-
-#shopt -s extglob
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 export LANG=C
 
@@ -300,3 +306,143 @@ get_full_version() {
 		fi
 	fi
 }
+
+process_sofile() {
+	# extract the library name: libfoo.so
+	soname="${sofile%.so?(+(.+([0-9])))}".so
+	# extract the major version: 1
+	soversion="${sofile##*\.so\.}"
+	if [[ "$soversion" = "$sofile" ]] && (($IGNORE_INTERNAL)); then
+		continue
+	fi
+	if ! in_array "${soname}=${soversion}-${soarch}" ${soobjects[@]}; then
+		# libfoo.so=1-64
+		echo "${soname}=${soversion}-${soarch}"
+		soobjects=(${soobjects[@]} "${soname}=${soversion}-${soarch}")
+	fi
+}
+
+get_profiles(){
+    local prof= temp=
+    for p in $(ls ${profiledir}/*.set);do
+	temp=${p##*/}
+	prof=${prof:-}${prof:+|}${temp%.set}
+    done
+    echo $prof
+}
+
+get_user(){
+    echo $(ls ${chrootdir} | cut -d' ' -f1 | grep -v root | grep -v lock)
+}
+
+chroot_clean(){
+    for copy in "${chrootdir}"/*; do
+	[[ -d "${copy}" ]] || continue
+	msg2 "Deleting chroot copy '$(basename "${copy}")'..."
+
+	exec 9>"${copy}.lock"
+	if ! flock -n 9; then
+	    stat_busy "Locking chroot copy '${copy}'"
+	    flock 9
+	    stat_done
+	fi
+
+	if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
+	    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
+	fi
+	rm -rf --one-file-system "${copy}"
+    done
+    exec 9>&-
+
+    rm -rf --one-file-system "${chrootdir}"
+}
+
+chroot_create(){
+    mkdir -p "${chrootdir}"
+    setarch ${arch} \
+	mkchroot ${mkmanjaroroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
+}
+
+chroot_update(){
+    setarch "${arch}" \
+	mkchroot ${mkmanjaroroot_args[*]} -u ${chrootdir}/$(get_user) || abort
+}
+
+chroot_init(){
+      if [[ ! -d "${chrootdir}" ]]; then
+	  msg "Creating chroot for [${branch}] (${arch})..."
+	  chroot_create
+      elif ${clean_first};then
+	  msg "Creating chroot for [${branch}] (${arch})..."
+	  chroot_clean
+	  chroot_create
+      else
+	  msg "Updating chroot for [${branch}] (${arch})..."
+	  chroot_update
+      fi
+}
+
+chroot_build_set(){
+    chroot_init
+    msg "Start building profile: [${profile}]"
+    for pkg in $(cat ${profiledir}/${profile}.set); do
+	cd $pkg
+	setarch ${arch} \
+	    mkchrootpkg ${makechrootpkg_args[*]} -- "${makepkg_args[*]}" || break
+	if [[ $pkg == 'eudev' ]]; then
+	    local blacklist=('libsystemd')
+	    pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
+	    local temp
+	    if [[ -z $PKGDEST ]];then
+		temp=$pkg
+	    else
+		temp=$pkgdir/$pkg
+	    fi
+	    pacman -U $temp*${ARCH}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+	fi
+	cd ..
+    done
+    msg "Finished building profile: [${profile}]"
+}
+
+chroot_build(){
+    cd ${profile}
+    chroot_init
+    setarch ${arch} \
+	mkchrootpkg ${makechrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
+    cd ..
+}
+
+display_build_set(){
+    msg "SETS:"
+    msg2 "profiles: $profiles"
+    msg2 "profile: $profile"
+    msg2 "is_profile: ${is_profile}"
+    if ${is_profile};then
+	msg "These packages will be built:"
+	local temp=$(cat ${profiledir}/${profile}.set)
+	for p in ${temp[@]}; do
+	    msg2 "$p"
+	done
+    else
+	msg "This package will be built:"
+	msg2 "${profile}"
+    fi
+}
+
+run_pretend(){
+    eval "case ${profile} in
+	$profiles) is_profile=true ;;
+	*) is_profile=false ;;
+    esac"
+    display_build_set
+    exit 1
+}
+
+run(){
+    eval "case ${profile} in
+	$profiles) is_profile=true; display_build_set && chroot_build_set ;;
+	*) display_build_set && chroot_build ;;
+    esac"
+}
+

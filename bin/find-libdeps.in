@@ -1,8 +1,16 @@
 #!/bin/bash
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-#m4_include(lib/common.sh)
-
-source @libdir@/functions.sh
+if [[ -r @libdir@/functions.sh ]];then
+    source @libdir@/functions.sh
+fi
 
 set -e
 shopt -s extglob
@@ -40,21 +48,6 @@ else
 
 	pushd $WORKDIR >/dev/null
 fi
-
-process_sofile() {
-	# extract the library name: libfoo.so
-	soname="${sofile%.so?(+(.+([0-9])))}".so
-	# extract the major version: 1
-	soversion="${sofile##*\.so\.}"
-	if [[ "$soversion" = "$sofile" ]] && (($IGNORE_INTERNAL)); then
-		continue
-	fi
-	if ! in_array "${soname}=${soversion}-${soarch}" ${soobjects[@]}; then
-		# libfoo.so=1-64
-		echo "${soname}=${soversion}-${soarch}"
-		soobjects=(${soobjects[@]} "${soname}=${soversion}-${soarch}")
-	fi
-}
 
 case $script_mode in
 	deps) find_args="-perm -u+x";;

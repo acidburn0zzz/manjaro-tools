@@ -8,9 +8,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# m4_include(lib/common.sh)
-
-source @libdir@/functions.sh
+if [[ -r @libdir@/functions.sh ]];then
+    source @libdir@/functions.sh
+fi
 
 shopt -s nullglob
 
@@ -85,7 +85,6 @@ done
 
 # Canonicalize chrootdir, getting rid of trailing /
 chrootdir=$(readlink -e "$passeddir")
-#WORKDIR=${chrootdir}
 
 if [[ ${copy:0:1} = / ]]; then
 	copydir=$copy

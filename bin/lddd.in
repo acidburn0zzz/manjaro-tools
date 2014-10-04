@@ -1,11 +1,16 @@
 #!/bin/bash
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
 #
-# lddd - find broken library links on your machine
-#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-# m4_include(lib/common.sh)
-
-source @libdir@/functions.sh
+if [[ -r @libdir@/functions.sh ]];then
+    source @libdir@/functions.sh
+fi
 
 ifs=$IFS
 IFS="${IFS}:"
@@ -13,8 +18,7 @@ IFS="${IFS}:"
 libdirs="/lib /usr/lib /usr/local/lib $(cat /etc/ld.so.conf.d/*)"
 extras=
 
-#TEMPDIR=$(mktemp -d --tmpdir lddd-script.XXXX)
-WORKDIR=$(setup_workdir)
+TEMPDIR=$(mktemp -d --tmpdir lddd-script.XXXX)
 
 msg 'Go out and drink some tea, this will take a while :) ...'
 #  Check ELF binaries in the PATH and specified dir trees.
@@ -34,18 +38,18 @@ for tree in $PATH $libdirs $extras; do
 			#  Is an ELF binary.
 			if (( $(ldd $i 2>/dev/null | grep -c 'not found') != 0 )); then
 				#  Missing lib.
-				echo "$i:" >> $WORKDIR/raw.txt
-				ldd $i 2>/dev/null | grep 'not found' >> $WORKDIR/raw.txt
+				echo "$i:" >> $TEMPDIR/raw.txt
+				ldd $i 2>/dev/null | grep 'not found' >> $TEMPDIR/raw.txt
 			fi
 		fi
 	done
 done
-grep '^/' $WORKDIR/raw.txt | sed -e 's/://g' >> $WORKDIR/affected-files.txt
+grep '^/' $TEMPDIR/raw.txt | sed -e 's/://g' >> $TEMPDIR/affected-files.txt
 # invoke pacman
-for i in $(cat $WORKDIR/affected-files.txt); do
-	pacman -Qo $i | awk '{print $4,$5}' >> $WORKDIR/pacman.txt
+for i in $(cat $TEMPDIR/affected-files.txt); do
+	pacman -Qo $i | awk '{print $4,$5}' >> $TEMPDIR/pacman.txt
 done
 # clean list
-sort -u $WORKDIR/pacman.txt >> $WORKDIR/possible-rebuilds.txt
+sort -u $TEMPDIR/pacman.txt >> $TEMPDIR/possible-rebuilds.txt
 
-msg "Files saved to $WORKDIR"
+msg "Files saved to $TEMPDIR"

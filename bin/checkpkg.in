@@ -1,8 +1,16 @@
 #!/bin/bash
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-#m4_include(lib/common.sh)
-
-source @libdir@/functions.sh
+if [[ -r @libdir@/functions.sh ]];then
+    source @libdir@/functions.sh
+fi
 
 # Source makepkg.conf; fail if it is not found
 if [[ -r '/etc/makepkg.conf' ]]; then
@@ -26,9 +34,10 @@ if [[ $arch == 'any' ]]; then
 fi
 
 STARTDIR=$(pwd)
-#TEMPDIR=$(mktemp -d --tmpdir checkpkg-script.XXXX)
-WORKDIR=$(setup_workdir)
-cd "$WORKDIR"
+
+TEMPDIR=$(mktemp -d --tmpdir checkpkg-script.XXXX)
+
+cd "$TEMPDIR"
 
 for _pkgname in "${pkgname[@]}"; do
 	pkgfile=${_pkgname}-$(get_full_version $_pkgname)-${CARCH}${PKGEXT}
@@ -83,4 +92,4 @@ for _pkgname in "${pkgname[@]}"; do
 	fi
 done
 
-msg "Files saved to $WORKDIR"
+msg "Files saved to $TEMPDIR"

@@ -15,9 +15,8 @@ BINPROGS = \
 	bin/build-set-helper \
 	bin/basestrap \
 	bin/manjaro-chroot \
-	bin/fstabgen \
-	bin/signpkg
-
+	bin/fstabgen
+	
 SYSCONFIGFILES = \
 	conf/manjaro-tools.conf
 

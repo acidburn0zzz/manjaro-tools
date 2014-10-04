@@ -42,11 +42,11 @@ else
 	setup_workdir
 
 	case ${script_mode} in
-		deps) bsdtar -C $WORKDIR -xf "$1";;
-		provides) bsdtar -C $WORKDIR -xf "$1" --include="*.so*";;
+		deps) bsdtar -C $TMPDIR -xf "$1";;
+		provides) bsdtar -C $TMPDIR -xf "$1" --include="*.so*";;
 	esac
 
-	pushd $WORKDIR >/dev/null
+	pushd $TMPDIR >/dev/null
 fi
 
 case $script_mode in
@@ -70,11 +70,11 @@ find . -type f $find_args | while read filename; do
 		# get the string binaries link to: libfoo.so.1.2 -> libfoo.so.1
 		sofile=$(LC_ALL=C readelf -d "$filename" 2>/dev/null | sed -n 's/.*Library soname: \[\(.*\)\].*/\1/p')
 		[[ -z $sofile ]] && sofile="${filename##*/}"
-		process_sofile
+		process_sofile "${sofile}" "${soarch}"
 	elif [[ $script_mode = "deps" ]]; then
 		# process all libraries needed by the binary
 		for sofile in $(LC_ALL=C readelf -d "$filename" 2>/dev/null | sed -nr 's/.*Shared library: \[(.*)\].*/\1/p'); do
-			process_sofile
+			process_sofile "${sofile}" "${soarch}"
 		done
 	fi
 done

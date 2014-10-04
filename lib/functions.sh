@@ -10,54 +10,13 @@
 
 export LANG=C
 
-declare -A pseudofs_types=([anon_inodefs]=1
-                           [autofs]=1
-                           [bdev]=1
-                           [binfmt_misc]=1
-                           [cgroup]=1
-                           [configfs]=1
-                           [cpuset]=1
-                           [debugfs]=1
-                           [devfs]=1
-                           [devpts]=1
-                           [devtmpfs]=1
-                           [dlmfs]=1
-                           [fuse.gvfs-fuse-daemon]=1
-                           [fusectl]=1
-                           [hugetlbfs]=1
-                           [mqueue]=1
-                           [nfsd]=1
-                           [none]=1
-                           [pipefs]=1
-                           [proc]=1
-                           [pstore]=1
-                           [ramfs]=1
-                           [rootfs]=1
-                           [rpc_pipefs]=1
-                           [securityfs]=1
-                           [sockfs]=1
-                           [spufs]=1
-                           [sysfs]=1
-                           [tmpfs]=1)
-
-declare -A fsck_types=([cramfs]=1
-                       [exfat]=1
-                       [ext2]=1
-                       [ext3]=1
-                       [ext4]=1
-                       [ext4dev]=1
-                       [jfs]=1
-                       [minix]=1
-                       [msdos]=1
-                       [reiserfs]=1
-                       [vfat]=1
-                       [xfs]=1)
-
 # out() { printf "$1 $2\n" "${@:3}"; }
 # error() { out "==> ERROR:" "$@"; } >&2
 # msg() { out "==>" "$@"; }
 # msg2() { out "  ->" "$@";}
 # die() { error "$@"; exit 1; }
+
+###############################################messages##########################################################
 
 # check if messages are to be printed using color
 unset ALL_OFF BOLD BLUE GREEN RED YELLOW
@@ -147,12 +106,108 @@ die() {
 trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
 
-
+###############################################misc############################################################
 
 ignore_error() {
 	"$@" 2>/dev/null
 	return 0
 }
+
+# in_array() {
+#   local i
+#   for i in "${@:2}"; do
+#     [[ $1 = "$i" ]] && return
+#   done
+# }
+
+##
+#  usage : in_array( $needle, $haystack )
+# return : 0 - found
+#          1 - not found
+##
+in_array() {
+	local needle=$1; shift
+	local item
+	for item in "$@"; do
+		[[ $item = $needle ]] && return 0 # Found
+	done
+	return 1 # Not Found
+}
+
+###############################################checkpkg##########################################################
+
+##
+#  usage : get_full_version( [$pkgname] )
+# return : full version spec, including epoch (if necessary), pkgver, pkgrel
+##
+get_full_version() {
+	# set defaults if they weren't specified in buildfile
+	pkgbase=${pkgbase:-${pkgname[0]}}
+	epoch=${epoch:-0}
+	if [[ -z $1 ]]; then
+		if [[ $epoch ]] && (( ! $epoch )); then
+			echo $pkgver-$pkgrel
+		else
+			echo $epoch:$pkgver-$pkgrel
+		fi
+	else
+		for i in pkgver pkgrel epoch; do
+			local indirect="${i}_override"
+			eval $(declare -f package_$1 | sed -n "s/\(^[[:space:]]*$i=\)/${i}_override=/p")
+			[[ -z ${!indirect} ]] && eval ${indirect}=\"${!i}\"
+		done
+		if (( ! $epoch_override )); then
+			echo $pkgver_override-$pkgrel_override
+		else
+			echo $epoch_override:$pkgver_override-$pkgrel_override
+		fi
+	fi
+}
+
+###############################################mounting##########################################################
+
+declare -A pseudofs_types=([anon_inodefs]=1
+                           [autofs]=1
+                           [bdev]=1
+                           [binfmt_misc]=1
+                           [cgroup]=1
+                           [configfs]=1
+                           [cpuset]=1
+                           [debugfs]=1
+                           [devfs]=1
+                           [devpts]=1
+                           [devtmpfs]=1
+                           [dlmfs]=1
+                           [fuse.gvfs-fuse-daemon]=1
+                           [fusectl]=1
+                           [hugetlbfs]=1
+                           [mqueue]=1
+                           [nfsd]=1
+                           [none]=1
+                           [pipefs]=1
+                           [proc]=1
+                           [pstore]=1
+                           [ramfs]=1
+                           [rootfs]=1
+                           [rpc_pipefs]=1
+                           [securityfs]=1
+                           [sockfs]=1
+                           [spufs]=1
+                           [sysfs]=1
+                           [tmpfs]=1)
+
+declare -A fsck_types=([cramfs]=1
+                       [exfat]=1
+                       [ext2]=1
+                       [ext3]=1
+                       [ext4]=1
+                       [ext4dev]=1
+                       [jfs]=1
+                       [minix]=1
+                       [msdos]=1
+                       [reiserfs]=1
+                       [vfat]=1
+                       [xfs]=1)
 
 track_mount() {
 	if [[ -z $CHROOT_ACTIVE_MOUNTS ]]; then
@@ -193,27 +248,6 @@ fstype_is_pseudofs() {
 
 fstype_has_fsck() {
 	(( fsck_types["$1"] ))
-}
-
-# in_array() {
-#   local i
-#   for i in "${@:2}"; do
-#     [[ $1 = "$i" ]] && return
-#   done
-# }
-
-##
-#  usage : in_array( $needle, $haystack )
-# return : 0 - found
-#          1 - not found
-##
-in_array() {
-	local needle=$1; shift
-	local item
-	for item in "$@"; do
-		[[ $item = $needle ]] && return 0 # Found
-	done
-	return 1 # Not Found
 }
 
 valid_number_of_base() {
@@ -279,48 +313,26 @@ dm_name_for_devnode() {
 	fi
 }
 
-##
-#  usage : get_full_version( [$pkgname] )
-# return : full version spec, including epoch (if necessary), pkgver, pkgrel
-##
-get_full_version() {
-	# set defaults if they weren't specified in buildfile
-	pkgbase=${pkgbase:-${pkgname[0]}}
-	epoch=${epoch:-0}
-	if [[ -z $1 ]]; then
-		if [[ $epoch ]] && (( ! $epoch )); then
-			echo $pkgver-$pkgrel
-		else
-			echo $epoch:$pkgver-$pkgrel
-		fi
-	else
-		for i in pkgver pkgrel epoch; do
-			local indirect="${i}_override"
-			eval $(declare -f package_$1 | sed -n "s/\(^[[:space:]]*$i=\)/${i}_override=/p")
-			[[ -z ${!indirect} ]] && eval ${indirect}=\"${!i}\"
-		done
-		if (( ! $epoch_override )); then
-			echo $pkgver_override-$pkgrel_override
-		else
-			echo $epoch_override:$pkgver_override-$pkgrel_override
-		fi
+###############################################find-libdeps#######################################################
+
+# $1: sofile
+# $2: soarch
+process_sofile() {
+	# extract the library name: libfoo.so
+	local soname="${1%.so?(+(.+([0-9])))}".so
+	# extract the major version: 1
+	soversion="${1##*\.so\.}"
+	if [[ "$soversion" = "$1" ]] && (($IGNORE_INTERNAL)); then
+		continue
+	fi
+	if ! in_array "${soname}=${soversion}-$2" ${soobjects[@]}; then
+		# libfoo.so=1-64
+		msg "${soname}=${soversion}-$2"
+		soobjects=(${soobjects[@]} "${soname}=${soversion}-$2")
 	fi
 }
 
-process_sofile() {
-	# extract the library name: libfoo.so
-	soname="${sofile%.so?(+(.+([0-9])))}".so
-	# extract the major version: 1
-	soversion="${sofile##*\.so\.}"
-	if [[ "$soversion" = "$sofile" ]] && (($IGNORE_INTERNAL)); then
-		continue
-	fi
-	if ! in_array "${soname}=${soversion}-${soarch}" ${soobjects[@]}; then
-		# libfoo.so=1-64
-		echo "${soname}=${soversion}-${soarch}"
-		soobjects=(${soobjects[@]} "${soname}=${soversion}-${soarch}")
-	fi
-}
+###############################################build-set##########################################################
 
 get_profiles(){
     local prof= temp=
@@ -398,7 +410,7 @@ chroot_build_set(){
 	    else
 		temp=$pkgdir/$pkg
 	    fi
-	    pacman -U $temp*${ARCH}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+	    pacman -U $temp*${arch}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
 	fi
 	cd ..
     done

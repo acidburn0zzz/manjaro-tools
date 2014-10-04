@@ -2,7 +2,7 @@
 
 #m4_include(lib/common.sh)
 
-source @libdir@/shared_lib.sh
+source @libdir@/functions.sh
 
 # Source makepkg.conf; fail if it is not found
 if [[ -r '/etc/makepkg.conf' ]]; then

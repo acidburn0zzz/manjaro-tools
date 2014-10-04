@@ -10,7 +10,7 @@
 
 # m4_include(lib/common.sh)
 
-source @libdir@/shared_lib.sh
+source @libdir@/functions.sh
 
 shopt -s nullglob
 
@@ -167,7 +167,7 @@ if [[ -n "${install_pkgs[*]}" ]]; then
 		pkgname="${install_pkg##*/}"
 		cp "$install_pkg" "$copydir/$pkgname"
 
-		mkmanjaroroot -b "${branch}" -r "pacman -U /$pkgname --noconfirm" "$copydir"
+		mkchroot -b "${branch}" -r "pacman -U /$pkgname --noconfirm" "$copydir"
 		(( ret += !! $? ))
 
 		rm "$copydir/$pkgname"
@@ -177,7 +177,7 @@ if [[ -n "${install_pkgs[*]}" ]]; then
 	[[ -f PKGBUILD ]] || exit $ret
 fi
 
-$update_first && mkmanjaroroot -b "${branch}" -u "$copydir"
+$update_first && mkchroot -b "${branch}" -u "$copydir"
 
 mkdir -p "$copydir/build"
 
@@ -293,7 +293,7 @@ exit 0
 EOF
 chmod +x "$copydir/chrootbuild"
 
-if mkmanjaroroot -b "${branch}" -r "/chrootbuild" "$copydir"; then
+if mkchroot -b "${branch}" -r "/chrootbuild" "$copydir"; then
 	for pkgfile in "$copydir"/pkgdest/*.pkg.tar.?z; do
 		if $add_to_db; then
 			mkdir -p "$copydir/repo"

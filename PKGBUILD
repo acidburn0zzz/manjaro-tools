@@ -3,15 +3,15 @@
 pkgname=manjaro-tools
 pkgver=20141004
 pkgrel=1
-pkgdesc='Tools for Manjaro Linux package maintainers'
+pkgdesc='Tools for Manjaro Linux'
 arch=('any')
 license=('GPL')
-url='http://git.manjaro.org/core/devtools/'
+url='https://github.com/udeved/manjaro-tools'
 depends=('namcap' 'openssh' 'subversion' 'rsync')
 provides=('devtools')
 conflicts=('devtools')
 replaces=('devtools')
-backup=('etc/devtools/devtools.conf')
+backup=('etc/devtools/manjaro-tools.conf')
 source=("git+https://github.com/udeved/manjaro-tools.git")
 sha256sums=('SKIP')
 

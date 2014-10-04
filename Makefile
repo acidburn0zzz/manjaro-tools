@@ -13,9 +13,9 @@ BINPROGS = \
 	bin/mkchrootpkg \
 	bin/build-set \
 	bin/build-set-helper \
-	basestrap \
-	manjaro-chroot \
-	fstabgen
+	bin/basestrap \
+	bin/manjaro-chroot \
+	bin/fstabgen
 
 SYSCONFIGFILES = \
 	conf/manjaro-tools.conf

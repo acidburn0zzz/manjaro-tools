@@ -21,10 +21,10 @@ version=20141003
 arch=$(uname -m)
 pacman_conf_arch='default'
 
-devtools_conf='@sysconfdir@/devtools.conf'
+manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
 
-if [[ -f ${devtools_conf} ]]; then
-    . ${devtools_conf}
+if [[ -f ${manjaro_tools_conf} ]]; then
+    . ${manjaro_tools_conf}
 fi
 
 if [[ -n ${branch} ]];then

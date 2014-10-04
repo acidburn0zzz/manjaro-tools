@@ -11,7 +11,7 @@ depends=('namcap' 'openssh' 'subversion' 'rsync')
 provides=('devtools')
 conflicts=('devtools')
 replaces=('devtools')
-backup=('etc/devtools/manjaro-tools.conf')
+backup=('etc/manjaro-tools/manjaro-tools.conf')
 source=("git+https://github.com/udeved/manjaro-tools.git")
 sha256sums=('SKIP')
 

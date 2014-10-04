@@ -235,7 +235,7 @@ else
 		pacargs+=("--config=${pac_conf}")
 	fi
 
-	if ! pacstrap -GMcd "${working_dir}" "${pacargs[@]}" "$@"; then
+	if ! basestrap -GMcd "${working_dir}" "${pacargs[@]}" "$@"; then
 		die 'Failed to install all packages'
 	fi
 

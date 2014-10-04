@@ -1,4 +1,4 @@
-# Maintainer: Roland Singer <roland@manjaro.org>
+# Maintainer: artoo <flower_of_life@gmx.net>
 
 pkgname=manjaro-tools-git
 pkgver=r16.8f66c7f

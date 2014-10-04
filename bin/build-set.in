@@ -2,7 +2,7 @@
 
 # m4_include(lib/common.sh)
 
-source @libdir@/shared_lib.sh
+source @libdir@/functions.sh
 
 get_profiles(){
     local prof= temp=

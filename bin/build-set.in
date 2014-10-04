@@ -254,6 +254,8 @@ pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 
 chrootdir=${chroots}/${branch}-${arch}
+#WORKDIR=${chrootdir}
+
 
 if ${nosystemd};then
     mkmanjaroroot_args+=(-x)

@@ -1,8 +1,9 @@
 #!/bin/bash
 
-shopt -s extglob
+#shopt -s extglob
 
-# generated from util-linux source: libmount/src/utils.c
+export LANG=C
+
 declare -A pseudofs_types=([anon_inodefs]=1
                            [autofs]=1
                            [bdev]=1
@@ -33,7 +34,6 @@ declare -A pseudofs_types=([anon_inodefs]=1
                            [sysfs]=1
                            [tmpfs]=1)
 
-# generated from: pkgfile -vbr '/fsck\..+' | awk -F. '{ print $NF }' | sort
 declare -A fsck_types=([cramfs]=1
                        [exfat]=1
                        [ext2]=1
@@ -52,9 +52,6 @@ declare -A fsck_types=([cramfs]=1
 # msg() { out "==>" "$@"; }
 # msg2() { out "  ->" "$@";}
 # die() { error "$@"; exit 1; }
-
-# Avoid any encoding problems
-export LANG=C
 
 # check if messages are to be printed using color
 unset ALL_OFF BOLD BLUE GREEN RED YELLOW
@@ -147,62 +144,49 @@ trap 'trap_exit' EXIT
 
 
 ignore_error() {
-  "$@" 2>/dev/null
-  return 0
+	"$@" 2>/dev/null
+	return 0
 }
 
 track_mount() {
-  if [[ -z $CHROOT_ACTIVE_MOUNTS ]]; then
-    CHROOT_ACTIVE_MOUNTS=()
-    trap 'chroot_umount' EXIT
-  fi
+	if [[ -z $CHROOT_ACTIVE_MOUNTS ]]; then
+	  CHROOT_ACTIVE_MOUNTS=()
+	  trap 'chroot_umount' EXIT
+	fi
 
-  mount "$@" && CHROOT_ACTIVE_MOUNTS=("$2" "${CHROOT_ACTIVE_MOUNTS[@]}")
+	mount "$@" && CHROOT_ACTIVE_MOUNTS=("$2" "${CHROOT_ACTIVE_MOUNTS[@]}")
 }
 
 mount_conditionally() {
-  local cond=$1; shift
-  if eval "$cond"; then
-    track_mount "$@"
-  fi
+	local cond=$1; shift
+	if eval "$cond"; then
+	  track_mount "$@"
+	fi
 }
 
 api_fs_mount() {
-  mount_conditionally "! mountpoint -q '$1'" "$1" "$1" --bind &&
-  track_mount proc "$1/proc" -t proc -o nosuid,noexec,nodev &&
-  track_mount sys "$1/sys" -t sysfs -o nosuid,noexec,nodev,ro &&
-  ignore_error mount_conditionally "[[ -d '$1/sys/firmware/efi/efivars' ]]" \
-      efivarfs "$1/sys/firmware/efi/efivars" -t efivarfs -o nosuid,noexec,nodev &&
-  track_mount udev "$1/dev" -t devtmpfs -o mode=0755,nosuid &&
-  track_mount devpts "$1/dev/pts" -t devpts -o mode=0620,gid=5,nosuid,noexec &&
-  track_mount shm "$1/dev/shm" -t tmpfs -o mode=1777,nosuid,nodev &&
-  track_mount run "$1/run" -t tmpfs -o nosuid,nodev,mode=0755 &&
-  track_mount tmp "$1/tmp" -t tmpfs -o mode=1777,strictatime,nodev,nosuid
-}
-
-api_fs_mount2() {
 	mount_conditionally "! mountpoint -q '$1'" "$1" "$1" --bind &&
 	track_mount proc "$1/proc" -t proc -o nosuid,noexec,nodev &&
 	track_mount sys "$1/sys" -t sysfs -o nosuid,noexec,nodev,ro &&
+	ignore_error mount_conditionally "[[ -d '$1/sys/firmware/efi/efivars' ]]" \
+	    efivarfs "$1/sys/firmware/efi/efivars" -t efivarfs -o nosuid,noexec,nodev &&
 	track_mount udev "$1/dev" -t devtmpfs -o mode=0755,nosuid &&
 	track_mount devpts "$1/dev/pts" -t devpts -o mode=0620,gid=5,nosuid,noexec &&
 	track_mount shm "$1/dev/shm" -t tmpfs -o mode=1777,nosuid,nodev &&
 	track_mount run "$1/run" -t tmpfs -o nosuid,nodev,mode=0755 &&
 	track_mount tmp "$1/tmp" -t tmpfs -o mode=1777,strictatime,nodev,nosuid
-	track_mount /etc/resolv.conf "$1/etc/resolv.conf" --bind
-	track_mount ${cache_dirs[0]} "$1/${cache_dirs[0]}" --bind
 }
 
 chroot_umount() {
-  umount "${CHROOT_ACTIVE_MOUNTS[@]}"
+	umount "${CHROOT_ACTIVE_MOUNTS[@]}"
 }
 
 fstype_is_pseudofs() {
-  (( pseudofs_types["$1"] ))
+	(( pseudofs_types["$1"] ))
 }
 
 fstype_has_fsck() {
-  (( fsck_types["$1"] ))
+	(( fsck_types["$1"] ))
 }
 
 # in_array() {
@@ -211,6 +195,7 @@ fstype_has_fsck() {
 #     [[ $1 = "$i" ]] && return
 #   done
 # }
+
 ##
 #  usage : in_array( $needle, $haystack )
 # return : 0 - found
@@ -226,66 +211,66 @@ in_array() {
 }
 
 valid_number_of_base() {
-  local base=$1 len=${#2} i=
+	local base=$1 len=${#2} i=
 
-  for (( i = 0; i < len; i++ )); do
-    { _=$(( $base#${2:i:1} )) || return 1; } 2>/dev/null
-  done
+	for (( i = 0; i < len; i++ )); do
+	  { _=$(( $base#${2:i:1} )) || return 1; } 2>/dev/null
+	done
 
-  return 0
+	return 0
 }
 
 mangle() {
-  local i= chr= out=
+	local i= chr= out=
 
-  unset {a..f} {A..F}
+	unset {a..f} {A..F}
 
-  for (( i = 0; i < ${#1}; i++ )); do
-    chr=${1:i:1}
-    case $chr in
-      [[:space:]\\])
-        printf -v chr '%03o' "'$chr"
-        out+=\\
-        ;;
-    esac
-    out+=$chr
-  done
+	for (( i = 0; i < ${#1}; i++ )); do
+	  chr=${1:i:1}
+	  case $chr in
+	    [[:space:]\\])
+	      printf -v chr '%03o' "'$chr"
+	      out+=\\
+	      ;;
+	  esac
+	  out+=$chr
+	done
 
-  printf '%s' "$out"
+	printf '%s' "$out"
 }
 
 unmangle() {
-  local i= chr= out= len=$(( ${#1} - 4 ))
+	local i= chr= out= len=$(( ${#1} - 4 ))
 
-  unset {a..f} {A..F}
+	unset {a..f} {A..F}
 
-  for (( i = 0; i < len; i++ )); do
-    chr=${1:i:1}
-    case $chr in
-      \\)
-        if valid_number_of_base 8 "${1:i+1:3}" ||
-            valid_number_of_base 16 "${1:i+1:3}"; then
-          printf -v chr '%b' "${1:i:4}"
-          (( i += 3 ))
-        fi
-        ;;
-    esac
-    out+=$chr
-  done
+	for (( i = 0; i < len; i++ )); do
+	  chr=${1:i:1}
+	  case $chr in
+	    \\)
+	      if valid_number_of_base 8 "${1:i+1:3}" ||
+		  valid_number_of_base 16 "${1:i+1:3}"; then
+		printf -v chr '%b' "${1:i:4}"
+		(( i += 3 ))
+	      fi
+	      ;;
+	  esac
+	  out+=$chr
+	done
 
-  printf '%s' "$out${1:i}"
+	printf '%s' "$out${1:i}"
 }
 
 dm_name_for_devnode() {
-  read dm_name <"/sys/class/block/${1#/dev/}/dm/name"
-  if [[ $dm_name ]]; then
-    printf '/dev/mapper/%s' "$dm_name"
-  else
-    # don't leave the caller hanging, just print the original name
-    # along with the failure.
-    print '%s' "$1"
-    error 'Failed to resolve device mapper name for: %s' "$1"
-  fi
+	read dm_name <"/sys/class/block/${1#/dev/}/dm/name"
+	if [[ $dm_name ]]; then
+	  printf '/dev/mapper/%s' "$dm_name"
+	else
+	  # don't leave the caller hanging, just print the original name
+	  # along with the failure.
+	  print '%s' "$1"
+	  error 'Failed to resolve device mapper name for: %s' "$1"
+	fi
 }
 
 ##

@@ -172,6 +172,8 @@ shopt -s extglob
 
 source @libdir@/functions.sh
 
+#WORKDIR=${chrootdir}
+
 usage() {
   cat <<EOF
 usage: ${0##*/} chroot-dir [command]

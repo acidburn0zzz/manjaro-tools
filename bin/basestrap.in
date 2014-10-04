@@ -180,6 +180,8 @@ shopt -s extglob
 source @libdir@/functions.sh
 
 newroot=/mnt
+#WORKDIR=${newroot}
+
 hostcache=0
 copykeyring=1
 copymirrorlist=1

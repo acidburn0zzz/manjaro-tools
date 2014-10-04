@@ -77,6 +77,8 @@ fi
 working_dir="$(readlink -f ${1})"
 shift 1
 
+#WORKDIR=${working_dir}
+
 [[ -z $working_dir ]] && die 'Please specify a working directory.'
 
 if [[ -z $cache_dir ]]; then
@@ -161,7 +163,7 @@ chroot_lock () {
 # 	fi
 # }
 #
-# api_fs_mount2() {
+# api_fs_mount_build() {
 # 	mount_conditionally "! mountpoint -q '$1'" "$1" "$1" --bind &&
 # 	track_mount proc "$1/proc" -t proc -o nosuid,noexec,nodev &&
 # 	track_mount sys "$1/sys" -t sysfs -o nosuid,noexec,nodev,ro &&
@@ -203,7 +205,9 @@ if [[ -n $RUN ]]; then
 
 	chroot_lock
 	if ${nosystemd};then
-		api_fs_mount2 "${working_dir}"
+		api_fs_mount "${working_dir}"
+		track_mount /etc/resolv.conf "${working_dir}/etc/resolv.conf" --bind
+		track_mount ${cache_dirs[0]} "${working_dir}/${cache_dirs[0]}" --bind
 	else
 		build_mount_args
 	fi

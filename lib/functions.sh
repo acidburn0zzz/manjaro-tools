@@ -16,6 +16,22 @@ export LANG=C
 # msg2() { out "  ->" "$@";}
 # die() { error "$@"; exit 1; }
 
+# err() {
+#     ALL_OFF="\e[1;0m"
+#     BOLD="\e[1;1m"
+#     RED="${BOLD}\e[1;31m"
+# 	local mesg=$1; shift
+# 	printf "${RED}==>${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+# }
+#
+# msg() {
+#     ALL_OFF="\e[1;0m"
+#     BOLD="\e[1;1m"
+#     GREEN="${BOLD}\e[1;32m"
+# 	local mesg=$1; shift
+# 	printf "${GREEN}==>${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+# }
+
 ###############################################messages##########################################################
 
 # check if messages are to be printed using color

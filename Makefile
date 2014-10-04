@@ -15,7 +15,8 @@ BINPROGS = \
 	bin/build-set-helper \
 	bin/basestrap \
 	bin/manjaro-chroot \
-	bin/fstabgen
+	bin/fstabgen \
+	bin/signpkg
 
 SYSCONFIGFILES = \
 	conf/manjaro-tools.conf
@@ -42,13 +43,6 @@ all: $(BINPROGS)
 edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/manjaro-tools|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/manjaro-tools|g" \
 	-e "s|@libdir[@]|$(DESTDIR)$(PREFIX)/lib/manjaro-tools|g"
-
-# %: bin/%.in Makefile lib/common.sh
-# 	@echo "GEN $@"
-# 	@$(RM) "$@"
-# 	@m4 -P $@.in | $(edit) >$@
-# 	@chmod a-w "$@"
-# 	@chmod +x "$@"
 
 %: %.in Makefile
 	@echo "GEN $@"

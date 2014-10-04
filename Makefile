@@ -1,4 +1,4 @@
-V=20141004
+V=20141005
 
 PREFIX = /usr/local
 
@@ -12,11 +12,10 @@ BINPROGS = \
 	bin/mkchroot \
 	bin/mkchrootpkg \
 	bin/build-set \
-	bin/build-set-helper \
 	bin/basestrap \
 	bin/manjaro-chroot \
 	bin/fstabgen
-	
+
 SYSCONFIGFILES = \
 	conf/manjaro-tools.conf
 
@@ -34,7 +33,8 @@ CONFIGFILES = \
 	conf/pacman-mirrors.conf \
 	conf/pacman-multilib.conf
 LIBS = \
-	lib/functions.sh
+	lib/functions.sh \
+	lib/build-set-helper.sh
 
 
 all: $(BINPROGS)

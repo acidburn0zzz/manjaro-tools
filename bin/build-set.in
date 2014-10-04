@@ -16,7 +16,7 @@ export LC_MESSAGES=C
 
 shopt -s nullglob
 
-version=20141003
+version=20141005
 
 arch=$(uname -m)
 pacman_conf_arch='default'
@@ -51,18 +51,19 @@ else
     profiledir='@sysconfdir@/sets'
 fi
 
-if [[ -f ~/.makepkg.conf ]];then
-    . ~/.makepkg.conf
-else
-    if [[ -r /etc/makepkg.conf ]]; then
-	. /etc/makepkg.conf
-    fi
+if [[ -r /etc/makepkg.conf ]]; then
+    . /etc/makepkg.conf
 fi
 
 if [[ -n ${pkgdir} ]];then
     pkgdir=${pkgdir}
+elif [[ -n $PKGDEST ]];then
+    pkgdir=$PKGDEST
 else
-    pkgdir=$(pwd)/packages
+    pkgdir=/var/cache/manjaro-tools/pkg
+    if ! [[ -d ${pkgdir} ]];then
+	mkdir -p ${pkgdir}
+    fi
 fi
 
 clean_first=false
@@ -80,7 +81,6 @@ base_packages=('base-devel')
 mkmanjaroroot_args=()
 makechrootpkg_args=()
 makepkg_args=()
-misc_args=()
 
 profiles=$(get_profiles)
 
@@ -187,8 +187,6 @@ if ${verbose};then
     msg2 "pkgdir: ${pkgdir}"
     msg2 "PKGDEST: ${PKGDEST}"
 
-    misc_args+=(-v)
-
 fi
 
 if ${clean_rundir}; then
@@ -205,13 +203,6 @@ if ${clean_rundir}; then
     fi
 fi
 
-if [[ -n $PKGDEST ]];then
-    pkgdir=$PKGDEST
-else
-    pkgdir=${pkgdir}/${arch}
-    mkdir -p ${misc_args[*]} ${pkgdir}
-fi
-
 if [[ $EUID !=  0 ]]; then
     die 'This script must be run as root.'
 else
@@ -222,4 +213,6 @@ else
     fi
 fi
 
-. build-set-helper
+if [[ -r @libdir@/build-set-helper.sh ]];then
+    source @libdir@/build-set-helper.sh
+fi

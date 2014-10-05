@@ -1,7 +1,7 @@
 # Maintainer: artoo <flower_of_life@gmx.net>
 
 pkgname=manjaro-tools-git
-pkgver=r19.ee2ca5c
+pkgver=r23.79b97f3
 pkgrel=1
 pkgdesc='Tools for Manjaro Linux'
 arch=('any')
@@ -22,7 +22,7 @@ pkgver() {
 
 build() {
 	cd ${srcdir}/manjaro-tools
-	make PREFIX=/usr SYSCONFDIR=/etc
+	make SYSCONFDIR=/etc PREFIX=/usr
 }
 
 package() {

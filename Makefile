@@ -33,9 +33,7 @@ CONFIGFILES = \
 	conf/pacman-mirrors.conf \
 	conf/pacman-multilib.conf
 LIBS = \
-	lib/functions.sh \
-	lib/build-set-helper.sh
-
+	lib/functions.sh
 
 all: $(BINPROGS)
 

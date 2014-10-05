@@ -388,12 +388,12 @@ chroot_clean(){
 chroot_create(){
     mkdir -p "${chrootdir}"
     setarch ${arch} \
-	mkchroot ${mkmanjaroroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
+	mkchroot ${mkchroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
 }
 
 chroot_update(){
     setarch "${arch}" \
-	mkchroot ${mkmanjaroroot_args[*]} -u ${chrootdir}/$(get_user) || abort
+	mkchroot ${mkchroot_args[*]} -u ${chrootdir}/$(get_user) || abort
 }
 
 chroot_init(){
@@ -416,7 +416,7 @@ chroot_build_set(){
     for pkg in $(cat ${profiledir}/${profile}.set); do
 	cd $pkg
 	setarch ${arch} \
-	    mkchrootpkg ${makechrootpkg_args[*]} -- "${makepkg_args[*]}" || break
+	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
 	if [[ $pkg == 'eudev' ]]; then
 	    local blacklist=('libsystemd')
 	    pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
@@ -437,7 +437,7 @@ chroot_build(){
     cd ${profile}
     chroot_init
     setarch ${arch} \
-	mkchrootpkg ${makechrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
+	mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
     cd ..
 }
 

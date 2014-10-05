@@ -51,6 +51,12 @@ else
     profiledir='@sysconfdir@/sets'
 fi
 
+if [[ -n ${repodir} ]];then
+    repodir=${repodir}
+else
+    repodir='/opt'
+fi
+
 if [[ -r /etc/makepkg.conf ]]; then
     . /etc/makepkg.conf
 fi
@@ -78,8 +84,8 @@ repo=false
 
 base_packages=('base-devel')
 
-mkmanjaroroot_args=()
-makechrootpkg_args=()
+mkchroot_args=()
+mkchrootpkg_args=()
 makepkg_args=()
 
 profiles=$(get_profiles)
@@ -138,20 +144,16 @@ makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 chrootdir=${chroots}/${branch}-${arch}
 
 if ${nosystemd};then
-    mkmanjaroroot_args+=(-x)
+    mkchroot_args+=(-x)
 fi
 
 if ${namcap};then
-    makechrootpkg_args+=(-n)
+    mkchrootpkg_args+=(-n)
 fi
 
-# if ${repo};then
-#     makechrootpkg_args+=(-d)
-# fi
+mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -b ${branch})
 
-mkmanjaroroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -b ${branch})
-
-makechrootpkg_args+=(-b ${branch} -r ${chrootdir})
+mkchrootpkg_args+=(-b ${branch} -r ${chrootdir})
 
 makepkg_args+=("${*:$OPTIND}")
 
@@ -167,10 +169,10 @@ if ${verbose};then
     msg2 "pacman_conf: ${pacman_conf}"
     msg2 "makepkg_conf: $makepkg_conf"
 
-    msg "mkmanjaroroot:"
-    msg2 "args: ${mkmanjaroroot_args[*]}"
+    msg "mkchroot:"
+    msg2 "args: ${mkchroot_args[*]}"
     msg "makechrootpkg:"
-    msg2 "args: ${makechrootpkg_args[*]}"
+    msg2 "args: ${mkchrootpkg_args[*]}"
     msg "makepkg:"
     msg2 "args: ${makepkg_args[*]}"
 
@@ -186,6 +188,7 @@ if ${verbose};then
     msg2 "base_packages: ${base_packages[*]}"
     msg2 "pkgdir: ${pkgdir}"
     msg2 "PKGDEST: ${PKGDEST}"
+    msg2 "repodir: ${repodir}"
 
 fi
 

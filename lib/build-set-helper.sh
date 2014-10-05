@@ -8,48 +8,50 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# cp_profile_pkgs(){
-#     for pkg in $(cat ${profiledir}/$1.set); do
-# 	cp_pkg $pkg
-#     done
-# }
-#
-# cp_pkg(){
-#     msg2 "Copying $1 to ${pkgdir}"
-#     cd $1
-#     cp ${misc_args[*]} *.pkg.tar.xz ${pkgdir}
-#     cd ..
-# }
-#
-# cp_pkgs(){
-#     msg "Copying packages ..."
-#     eval "case ${profile} in
-# 	$profiles)
-# 	    cp_profile_pkgs ${profile}
-# 	;;
-# 	*)
-# 	    cp_pkg ${profile}
-# 	;;
-#     esac"
-#     msg "Finished copying"
-# }
+mv_profile_pkgs(){
+    for pkg in $(cat ${profiledir}/$1.set); do
+	mv_pkg $pkg
+    done
+}
 
-repo_create(){
-    cd ${pkgdir}
-    repo-add ${pkgdir##*/}.db.tar.xz *.pkg.tar.xz
+mv_pkg(){
+    msg2 "Copying $1 to ${pkgdir}"
+    cd $1
+    mv -v *.pkg.tar.xz ${pkgdir}
     cd ..
 }
 
-#cp_pkgs ${profile}
+mv_pkgs(){
+    msg "Copying packages ..."
+    if ${is_profile};then
+	mv_profile_pkgs ${profile}
+    else
+	mv_pkg ${profile}
+    fi
+    msg "Finished copying"
+}
 
-if ${repo}; then
-    cd ${pkgdir}
-    repo_create
-    cd ..
-fi
+repo_create(){
+    for p in ${pkgdir}/*.pkg.tar.xz; do
+	ln -sv $p ${repodir}/$p
+    done
+    repo-add ${repodir##*/}.db.tar.xz *.pkg.tar.xz
+}
 
-if ${sign}; then
-    cd ${pkgdir}
-    signpkgs
-    cd ..
+if ! ${pretend};then
+
+    mv_pkgs ${profile}
+
+    if ${repo}; then
+	cd ${pkgdir}
+	repo_create
+	cd ..
+    fi
+
+    if ${sign}; then
+	cd ${pkgdir}
+	signpkgs
+	cd ..
+    fi
+
 fi

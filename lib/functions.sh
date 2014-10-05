@@ -388,8 +388,8 @@ chroot_clean(){
 }
 
 clean_pkg_cache(){
-    cd $1
-    rm *.${ext}
+    msg2 "Cleaning pkg cache $1 ..."
+    rm $1/*.${ext}
 }
 
 chroot_create(){

@@ -443,8 +443,8 @@ chroot_build_set(){
 }
 
 chroot_build(){
-    cd ${profile}
     chroot_init
+    cd ${profile}
     setarch ${arch} \
 	mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
     mv_pkg ${profile}
@@ -495,9 +495,9 @@ repo_create(){
 	mkdir -p ${repodir}/${arch}
     fi
     for p in ${pkgdir}/*.${ext}; do
-	cp -v $p ${repodir}/${arch}/
+	cp $p ${repodir}/${arch}/
     done
     cd ${repodir}/${arch}
     repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
-    msg "Finished repo."
+    msg "Done repo"
 }

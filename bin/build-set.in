@@ -92,19 +92,18 @@ profiles=$(get_profiles)
 
 usage() {
     echo "Usage: ${0##*/} [options] -- [makepkg_args]"
-    echo "    -p <profile>       Set profile or pkg [default ${profile}]"
-    echo "    -a <arch>          Set arch  [default ${arch}]"
-    echo "    -b <branch>        Set branch [default ${branch}]"
-    echo "    -r <dir>           Chroots directory [default ${chroots}]"
-    echo "    -c                 Clean chroot [default ${clean_first}]"
-    echo "    -n                 Run namcap check [default ${namcap}]"
-#     echo '    -s                 Sign packages'
-    echo '    -v                 Verbose'
-    echo "    -x                 Use classic chroot instead of systemd-nspawn [default ${nosystemd}]"
-    echo '                       Useful for testing if systemd is running to bypass autodetection'
-    echo "    -q                 Pretend build [default ${pretend}]"
+    echo "    -p <profile>       Set profile or pkg [default: ${profile}]"
+    echo "    -a <arch>          Set arch  [default: ${arch}]"
+    echo "    -b <branch>        Set branch [default: ${branch}]"
+    echo "    -r <dir>           Chroots directory [default: ${chroots}]"
+    echo '    -c                 Clean chroot and pkg cache'
+    echo '    -n                 Run namcap check'
+    echo '    -q                 Pretend build'
     echo '    -w                 Wipe clean pkgbuild directory'
-    echo '    -y                 Add package to repo'
+    echo '    -y                 Add packages to repo'
+    echo '    -v                 Verbose'
+    echo '    -x                 Use classic chroot instead of systemd-nspawn'
+    echo '                       Useful for testing if systemd is running to bypass autodetection'
     echo '    -h                 This help'
     echo ''
     echo ''
@@ -121,7 +120,6 @@ while getopts "${opts}" arg; do
 	r) chroots="$OPTARG" ;;
 	c) clean_first=true ;;
 	n) namcap=true;;
-# 	s) sign=true ;;
 	v) verbose=true ;;
 	x) nosystemd=true ;;
 	q) pretend=true; verbose=true ;;
@@ -179,7 +177,6 @@ if ${verbose};then
     msg "FLAGS:"
     msg2 "clean_first: $clean_first"
     msg2 "namcap: ${namcap}"
-#     msg2 "sign: $sign"
     msg2 "nosystemd: $nosystemd"
     msg2 "clean_rundir: $clean_rundir"
     msg2 "repo: ${repo}"
@@ -215,19 +212,7 @@ else
 	run $@
 
 	if ${repo}; then
-	    cd ${pkgdir}
 	    repo_create
 	fi
-
     fi
 fi
-
-# if ! ${pretend};then
-#
-#     if ${sign}; then
-# 	cd ${pkgdir}
-# 	. signpkgs
-# 	cd ..
-#     fi
-#
-# fi

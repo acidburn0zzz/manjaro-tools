@@ -98,7 +98,7 @@ usage() {
     echo "    -r <dir>           Chroots directory [default ${chroots}]"
     echo "    -c                 Clean chroot [default ${clean_first}]"
     echo "    -n                 Run namcap check [default ${namcap}]"
-    echo '    -s                 Sign packages'
+#     echo '    -s                 Sign packages'
     echo '    -v                 Verbose'
     echo "    -x                 Use classic chroot instead of systemd-nspawn [default ${nosystemd}]"
     echo '                       Useful for testing if systemd is running to bypass autodetection'
@@ -111,7 +111,7 @@ usage() {
     exit 1
 }
 
-opts='p:a:b:r:cnsvxqwyh'
+opts='p:a:b:r:cnvxqwyh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -121,7 +121,7 @@ while getopts "${opts}" arg; do
 	r) chroots="$OPTARG" ;;
 	c) clean_first=true ;;
 	n) namcap=true;;
-	s) sign=true ;;
+# 	s) sign=true ;;
 	v) verbose=true ;;
 	x) nosystemd=true ;;
 	q) pretend=true; verbose=true ;;
@@ -179,7 +179,7 @@ if ${verbose};then
     msg "FLAGS:"
     msg2 "clean_first: $clean_first"
     msg2 "namcap: ${namcap}"
-    msg2 "sign: $sign"
+#     msg2 "sign: $sign"
     msg2 "nosystemd: $nosystemd"
     msg2 "clean_rundir: $clean_rundir"
     msg2 "repo: ${repo}"
@@ -213,21 +213,21 @@ else
 	run_pretend $@
     else
 	run $@
+
+	if ${repo}; then
+	    cd ${pkgdir}
+	    repo_create
+	fi
+
     fi
 fi
 
-if ! ${pretend};then
-
-    if ${repo}; then
-	cd ${pkgdir}
-	repo_create
-	cd ..
-    fi
-
+# if ! ${pretend};then
+#
 #     if ${sign}; then
 # 	cd ${pkgdir}
-# 	signpkgs
+# 	. signpkgs
 # 	cd ..
 #     fi
-
-fi
+#
+# fi

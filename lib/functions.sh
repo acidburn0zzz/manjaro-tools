@@ -477,10 +477,8 @@ run(){
 }
 
 mv_pkg(){
-    msg2 "Copying $1 to ${pkgdir}"
-    cd $1
+    msg2 "Moving ${profile} to ${pkgdir}"
     mv -v *.pkg.tar.xz ${pkgdir}
-    cd ..
 }
 
 repo_create(){

@@ -216,6 +216,18 @@ else
     fi
 fi
 
-if [[ -r @libdir@/build-set-helper.sh ]];then
-    source @libdir@/build-set-helper.sh
+if ! ${pretend};then
+
+#     if ${sign}; then
+# 	cd ${pkgdir}
+# 	signpkgs
+# 	cd ..
+#     fi
+
+    if ${repo}; then
+	cd ${pkgdir}
+	repo_create
+	cd ..
+    fi
+
 fi

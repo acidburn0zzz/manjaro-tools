@@ -428,6 +428,7 @@ chroot_build_set(){
 	    fi
 	    pacman -U $temp*${arch}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
 	fi
+	mv_pkg ${profile}
 	cd ..
     done
     msg "Finished building profile: [${profile}]"
@@ -438,6 +439,7 @@ chroot_build(){
     chroot_init
     setarch ${arch} \
 	mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
+    mv_pkg ${profile}
     cd ..
 }
 
@@ -474,3 +476,22 @@ run(){
     esac"
 }
 
+mv_pkg(){
+    msg2 "Copying $1 to ${pkgdir}"
+    cd $1
+    mv -v *.pkg.tar.xz ${pkgdir}
+    cd ..
+}
+
+repo_create(){
+    msg "Creating repo ${repodir} ..."
+    if ! [[ -d ${repodir}/${arch} ]];then
+	mkdir -p ${repodir}/${arch}
+    fi
+    for p in ${pkgdir}/*.pkg.tar.xz; do
+	cp -v $p ${repodir}/${arch}/${p##/*}
+    done
+    cd ${repodir}/${arch}
+    repo-add ${repodir}/${arch}/${repodir##/*}.db.tar.xz *.pkg.tar.xz
+    msg "Finished repo"
+}

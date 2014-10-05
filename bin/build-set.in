@@ -218,16 +218,16 @@ fi
 
 if ! ${pretend};then
 
-#     if ${sign}; then
-# 	cd ${pkgdir}
-# 	signpkgs
-# 	cd ..
-#     fi
-
     if ${repo}; then
 	cd ${pkgdir}
 	repo_create
 	cd ..
     fi
+
+#     if ${sign}; then
+# 	cd ${pkgdir}
+# 	signpkgs
+# 	cd ..
+#     fi
 
 fi

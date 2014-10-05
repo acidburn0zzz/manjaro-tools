@@ -10,6 +10,8 @@
 
 export LANG=C
 
+ext='pkg.tar.xz'
+
 # out() { printf "$1 $2\n" "${@:3}"; }
 # error() { out "==> ERROR:" "$@"; } >&2
 # msg() { out "==>" "$@"; }
@@ -385,6 +387,11 @@ chroot_clean(){
     rm -rf --one-file-system "${chrootdir}"
 }
 
+clean_pkg_cache(){
+    cd $1
+    rm *.${ext}
+}
+
 chroot_create(){
     mkdir -p "${chrootdir}"
     setarch ${arch} \
@@ -403,6 +410,7 @@ chroot_init(){
       elif ${clean_first};then
 	  msg "Creating chroot for [${branch}] (${arch})..."
 	  chroot_clean
+	  clean_pkg_cache ${pkgdir}
 	  chroot_create
       else
 	  msg "Updating chroot for [${branch}] (${arch})..."
@@ -478,7 +486,7 @@ run(){
 
 mv_pkg(){
     msg2 "Moving ${profile} to ${pkgdir}"
-    mv -v *.pkg.tar.xz ${pkgdir}
+    mv ${profile}*.${ext} ${pkgdir}
 }
 
 repo_create(){
@@ -486,10 +494,10 @@ repo_create(){
     if ! [[ -d ${repodir}/${arch} ]];then
 	mkdir -p ${repodir}/${arch}
     fi
-    for p in ${pkgdir}/*.pkg.tar.xz; do
-	cp -v $p ${repodir}/${arch}/${p##/*}
+    for p in ${pkgdir}/*.${ext}; do
+	cp -v $p ${repodir}/${arch}/
     done
     cd ${repodir}/${arch}
-    repo-add ${repodir}/${arch}/${repodir##/*}.db.tar.xz *.pkg.tar.xz
-    msg "Finished repo"
+    repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
+    msg "Finished repo."
 }

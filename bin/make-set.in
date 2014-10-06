@@ -1,0 +1,41 @@
+#!/bin/bash
+
+manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
+
+if [[ -f ${manjaro_tools_conf} ]]; then
+    . ${manjaro_tools_conf}
+fi
+
+if [[ -n ${profiledir} ]];then
+    profiledir=${profiledir}
+else
+    profiledir='@sysconfdir@/sets'
+fi
+
+name='default'
+
+usage() {
+    echo "Usage: ${0##*/} [options]"
+    echo "    -n <name>          Set name without extension"
+    echo '    -h                 This help'
+    echo ''
+    echo ''
+    exit 1
+}
+
+opts='n:h'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+	n) name="$OPTARG" ;;
+	h) usage ;;
+    esac
+done
+
+if [[ $EUID !=  0 ]]; then
+    die 'This script must be run as root.'
+else
+    for n in $(ls -d $(pwd)/*);do
+	echo ${n##*/} | sort > ${profiledir}/$1.set
+    done
+fi

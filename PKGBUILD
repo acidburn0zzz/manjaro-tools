@@ -1,7 +1,7 @@
 # Maintainer: artoo <flower_of_life@gmx.net>
 
 pkgname=manjaro-tools-git
-pkgver=r43.e76c341
+pkgver=r45.fcb7b3e
 pkgrel=1
 pkgdesc='Tools for Manjaro Linux'
 arch=('any')
@@ -13,7 +13,7 @@ provides=('devtools')
 conflicts=('devtools' 'arch-install-scripts' 'manjaro-tools')
 replaces=('devtools' 'manjaro-tools')
 backup=('etc/manjaro-tools/manjaro-tools.conf')
-source=("git+https://github.com/udeved/manjaro-tools.git")
+source=("git+$url.git")
 sha256sums=('SKIP')
 
 pkgver() {

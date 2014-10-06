@@ -10,8 +10,6 @@
 
 export LANG=C
 
-ext='pkg.tar.xz'
-
 # out() { printf "$1 $2\n" "${@:3}"; }
 # error() { out "==> ERROR:" "$@"; } >&2
 # msg() { out "==>" "$@"; }
@@ -354,18 +352,20 @@ process_sofile() {
 
 mv_pkg(){
     msg2 "Moving $1 to ${pkgdir}"
+    local ext='pkg.tar.xz'
     mv *.${ext} ${pkgdir}/
 }
 
 repo_create(){
     msg "Creating repo ${repodir} ..."
     prepare_dir "${repodir}/${arch}"
+    local ext='pkg.tar.xz'
     for p in ${pkgdir}/*.${ext}; do
 	cp $p ${repodir}/${arch}/
     done
     cd ${repodir}/${arch}
     repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
-    msg "Done repo"
+    msg "Done repo ${repodir}"
 }
 
 get_profiles(){
@@ -415,17 +415,8 @@ clean_dir(){
 }
 
 git_clean(){
-    if ${pretend};then
-	msg "Files to be cleaned ${rundir} ..."
-	git clean -dfxn
-    else
-	msg "Cleaning ${rundir} ..."
-	if ${verbose};then
-	    git clean -dfx
-	else
-	    git clean -dfxq
-	fi
-    fi
+    msg "Cleaning ${rundir} ..."
+    git clean -dfx$1
 }
 
 chroot_create(){
@@ -435,7 +426,7 @@ chroot_create(){
 }
 
 chroot_update(){
-    setarch "${arch}" \
+    setarch ${arch} \
 	mkchroot ${mkchroot_args[*]} -u ${chrootdir}/$(get_user) || abort
 }
 

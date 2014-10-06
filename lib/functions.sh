@@ -442,7 +442,6 @@ chroot_init(){
 }
 
 chroot_build(){
-    chroot_init
     if ${is_profile};then
 	msg "Start building profile: [${profile}]"
 	for pkg in $(cat ${profiledir}/${profile}.set); do

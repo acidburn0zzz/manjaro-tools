@@ -22,7 +22,11 @@ run(){
 	exit 1
     else
 	display_settings
+	chroot_init
 	chroot_build
+	if ${repo}; then
+	    repo_create
+	fi
     fi
 }
 
@@ -171,8 +175,4 @@ if [[ $EUID !=  0 ]]; then
     die 'This script must be run as root.'
 else
     run $@
-
-    if ${repo}; then
-	repo_create
-    fi
 fi

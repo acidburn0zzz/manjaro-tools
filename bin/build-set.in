@@ -33,6 +33,9 @@ run(){
 	if ${repo}; then
 	    repo_create
 	fi
+	if ${sign}; then
+	    sign_pkgs
+	fi
     fi
 }
 
@@ -78,20 +81,11 @@ fi
 if [[ -n ${repodir} ]];then
     repodir=${repodir}
 else
-    repodir='/opt'
+    repodir='/opt/build-repo'
 fi
 
 if [[ -r /etc/makepkg.conf ]]; then
     . /etc/makepkg.conf
-fi
-
-if [[ -n ${pkgdir} ]];then
-    pkgdir=${pkgdir}
-elif [[ -n $PKGDEST ]];then
-    pkgdir=$PKGDEST
-else
-    pkgdir='/var/cache/manjaro-tools/pkg'
-    prepare_dir "${pkgdir}"
 fi
 
 clean_first=false
@@ -101,6 +95,7 @@ nosystemd=false
 pretend=false
 is_profile=false
 repo=false
+sign=false
 
 base_packages=('base-devel')
 
@@ -120,6 +115,7 @@ usage() {
     echo '    -n                 Run namcap check'
     echo '    -w                 Wipe clean pkgbuild directory'
     echo '    -y                 Add packages to repo'
+    echo '    -s                 Sign packages'
     echo '    -q                 Query settings and pretend build'
     echo '    -x                 Use classic chroot instead of systemd-nspawn'
     echo '                       Useful for testing if systemd is running to bypass autodetection'
@@ -129,7 +125,7 @@ usage() {
     exit 1
 }
 
-opts='p:a:b:r:cnxqwyh'
+opts='p:a:b:r:cnwysqxh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -143,6 +139,7 @@ while getopts "${opts}" arg; do
 	q) pretend=true ;;
 	w) clean_rundir=true ;;
 	y) repo=true ;;
+	s) sign=true ;;
 	h) usage ;;
     esac
 done
@@ -158,6 +155,8 @@ pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 
 chrootdir=${chroots}/${branch}-${arch}
+
+set_pkgdir
 
 if ${nosystemd};then
     mkchroot_args+=(-x)

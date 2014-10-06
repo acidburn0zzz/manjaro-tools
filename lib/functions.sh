@@ -356,6 +356,10 @@ mv_pkg(){
     mv *.${ext} ${pkgdir}/
 }
 
+ch_owner(){
+    chown -R "$(get_user):users" "$1"
+}
+
 repo_create(){
     msg "Creating repo ${repodir} ..."
     prepare_dir "${repodir}/${arch}"
@@ -365,7 +369,27 @@ repo_create(){
     done
     cd ${repodir}/${arch}
     repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
+    ch_owner "${repodir}"
     msg "Done repo ${repodir}"
+}
+
+set_pkgdir(){
+    if [[ -n ${pkgdir} ]];then
+	pkgdir=${pkgdir}
+    elif [[ -n $PKGDEST ]];then
+	pkgdir=$PKGDEST
+    else
+	pkgdir='/var/cache/manjaro-tools/pkg'
+	prepare_dir "${pkgdir}"
+    fi
+}
+
+sign_pkgs(){
+    ch_owner "${pkgdir}"
+    cd $pkgdir
+    su $(get_user) <<'EOF'
+signpkgs
+EOF
 }
 
 get_profiles(){
@@ -385,6 +409,7 @@ prepare_dir(){
     if ! [[ -d $1 ]];then
 	mkdir -p $1
     fi
+    ch_owner "$1"
 }
 
 chroot_clean(){

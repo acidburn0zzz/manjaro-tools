@@ -73,13 +73,11 @@ else
 fi
 
 clean_first=false
+clean_rundir=false
 namcap=false
-sign=false
-verbose=false
 nosystemd=false
 pretend=false
 is_profile=false
-clean_rundir=false
 repo=false
 
 base_packages=('base-devel')
@@ -98,10 +96,9 @@ usage() {
     echo "    -r <dir>           Chroots directory [default: ${chroots}]"
     echo '    -c                 Clean chroot and pkg cache'
     echo '    -n                 Run namcap check'
-    echo '    -q                 Pretend build'
     echo '    -w                 Wipe clean pkgbuild directory'
     echo '    -y                 Add packages to repo'
-    echo '    -v                 Verbose'
+    echo '    -q                 Query settings and pretend build'
     echo '    -x                 Use classic chroot instead of systemd-nspawn'
     echo '                       Useful for testing if systemd is running to bypass autodetection'
     echo '    -h                 This help'
@@ -110,7 +107,7 @@ usage() {
     exit 1
 }
 
-opts='p:a:b:r:cnvxqwyh'
+opts='p:a:b:r:cnxqwyh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -120,9 +117,8 @@ while getopts "${opts}" arg; do
 	r) chroots="$OPTARG" ;;
 	c) clean_first=true ;;
 	n) namcap=true;;
-	v) verbose=true ;;
 	x) nosystemd=true ;;
-	q) pretend=true; verbose=true ;;
+	q) pretend=true ;;
 	w) clean_rundir=true ;;
 	y) repo=true ;;
 	h) usage ;;
@@ -155,64 +151,16 @@ mkchrootpkg_args+=(-b ${branch} -r ${chrootdir})
 
 makepkg_args+=("${*:$OPTIND}")
 
-if ${verbose};then
-    msg "OPTARGS:"
-    msg2 "arch: $arch"
-    msg2 "branch: $branch"
-    msg2 "chroots: $chroots"
-
-    msg "PATHS:"
-    msg2 "chrootdir: $chrootdir"
-    msg2 "profiledir: $profiledir"
-    msg2 "pacman_conf: ${pacman_conf}"
-    msg2 "makepkg_conf: $makepkg_conf"
-
-    msg "mkchroot:"
-    msg2 "args: ${mkchroot_args[*]}"
-    msg "makechrootpkg:"
-    msg2 "args: ${mkchrootpkg_args[*]}"
-    msg "makepkg:"
-    msg2 "args: ${makepkg_args[*]}"
-
-    msg "FLAGS:"
-    msg2 "clean_first: $clean_first"
-    msg2 "namcap: ${namcap}"
-    msg2 "nosystemd: $nosystemd"
-    msg2 "clean_rundir: $clean_rundir"
-    msg2 "repo: ${repo}"
-
-    msg "PKG:"
-    msg2 "base_packages: ${base_packages[*]}"
-    msg2 "pkgdir: ${pkgdir}"
-    msg2 "PKGDEST: ${PKGDEST}"
-    msg2 "repodir: ${repodir}"
-
-fi
-
 if ${clean_rundir}; then
-    if ${pretend};then
-	msg "Files to be cleaned ${rundir} ..."
-	git clean -dfxn
-    else
-	msg "Cleaning ${rundir} ..."
-	if ${verbose};then
-	    git clean -dfx
-	else
-	    git clean -dfxq
-	fi
-    fi
+    git_clean
 fi
 
 if [[ $EUID !=  0 ]]; then
     die 'This script must be run as root.'
 else
-    if ${pretend};then
-	run_pretend $@
-    else
-	run $@
+    run $@
 
-	if ${repo}; then
-	    repo_create
-	fi
+    if ${repo}; then
+	repo_create
     fi
 fi

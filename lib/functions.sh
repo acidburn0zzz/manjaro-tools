@@ -392,6 +392,20 @@ clean_pkg_cache(){
     rm $1/*.${ext}
 }
 
+git_clean(){
+    if ${pretend};then
+	msg "Files to be cleaned ${rundir} ..."
+	git clean -dfxn
+    else
+	msg "Cleaning ${rundir} ..."
+	if ${verbose};then
+	    git clean -dfx
+	else
+	    git clean -dfxq
+	fi
+    fi
+}
+
 chroot_create(){
     mkdir -p "${chrootdir}"
     setarch ${arch} \
@@ -436,7 +450,7 @@ chroot_build_set(){
 	    fi
 	    pacman -U $temp*${arch}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
 	fi
-	mv_pkg ${profile}
+	mv_pkg $pkg
 	cd ..
     done
     msg "Finished building profile: [${profile}]"
@@ -451,11 +465,31 @@ chroot_build(){
     cd ..
 }
 
-display_build_set(){
+display_settings(){
+    msg "OPTARGS:"
+    msg2 "arch: $arch"
+    msg2 "branch: $branch"
+    msg2 "chroots: $chroots"
+
+    msg "PATHS:"
+    msg2 "chrootdir: $chrootdir"
+    msg2 "profiledir: $profiledir"
+    msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "makepkg_conf: $makepkg_conf"
+    msg2 "pkgdir: ${pkgdir}"
+    msg2 "PKGDEST: ${PKGDEST}"
+    msg2 "repodir: ${repodir}"
+
+    if ${clean_first};then
+	msg "PKG:"
+	msg2 "base_packages: ${base_packages[*]}"
+    fi
+
     msg "SETS:"
-    msg2 "profiles: $profiles"
-    msg2 "profile: $profile"
+    msg2 "profiles: ${profiles}"
+    msg2 "profile: ${profile}"
     msg2 "is_profile: ${is_profile}"
+
     if ${is_profile};then
 	msg "These packages will be built:"
 	local temp=$(cat ${profiledir}/${profile}.set)
@@ -468,25 +502,33 @@ display_build_set(){
     fi
 }
 
-run_pretend(){
-    eval "case ${profile} in
-	$profiles) is_profile=true ;;
-	*) is_profile=false ;;
-    esac"
-    display_build_set
-    exit 1
-}
-
 run(){
     eval "case ${profile} in
-	$profiles) is_profile=true; display_build_set && chroot_build_set ;;
-	*) display_build_set && chroot_build ;;
+	$profiles)
+	    is_profile=true
+	    if ${pretend}; then
+		display_settings
+		exit 1
+	    else
+		display_settings
+		chroot_build_set
+	    fi
+	;;
+	*)
+	    if ${pretend}; then
+		display_settings
+		exit 1
+	    else
+		display_settings
+		chroot_build
+	    fi
+	;;
     esac"
 }
 
 mv_pkg(){
-    msg2 "Moving ${profile} to ${pkgdir}"
-    mv ${profile}*.${ext} ${pkgdir}
+    msg2 "Moving $1 to ${pkgdir}"
+    mv *.${ext} ${pkgdir}/
 }
 
 repo_create(){

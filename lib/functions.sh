@@ -352,6 +352,22 @@ process_sofile() {
 
 ###############################################build-set##########################################################
 
+mv_pkg(){
+    msg2 "Moving $1 to ${pkgdir}"
+    mv *.${ext} ${pkgdir}/
+}
+
+repo_create(){
+    msg "Creating repo ${repodir} ..."
+    prepare_dir "${repodir}/${arch}"
+    for p in ${pkgdir}/*.${ext}; do
+	cp $p ${repodir}/${arch}/
+    done
+    cd ${repodir}/${arch}
+    repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
+    msg "Done repo"
+}
+
 get_profiles(){
     local prof= temp=
     for p in $(ls ${profiledir}/*.set);do
@@ -507,20 +523,4 @@ display_settings(){
 	msg "This package will be built:"
 	msg2 "${profile}"
     fi
-}
-
-mv_pkg(){
-    msg2 "Moving $1 to ${pkgdir}"
-    mv *.${ext} ${pkgdir}/
-}
-
-repo_create(){
-    msg "Creating repo ${repodir} ..."
-    prepare_dir "${repodir}/${arch}"
-    for p in ${pkgdir}/*.${ext}; do
-	cp $p ${repodir}/${arch}/
-    done
-    cd ${repodir}/${arch}
-    repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
-    msg "Done repo"
 }

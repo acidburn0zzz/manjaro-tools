@@ -365,6 +365,12 @@ get_user(){
     echo $(ls ${chrootdir} | cut -d' ' -f1 | grep -v root | grep -v lock)
 }
 
+prepare_dir(){
+    if ! [[ -d $1 ]];then
+	mkdir -p $1
+    fi
+}
+
 chroot_clean(){
     for copy in "${chrootdir}"/*; do
 	[[ -d "${copy}" ]] || continue
@@ -387,9 +393,9 @@ chroot_clean(){
     rm -rf --one-file-system "${chrootdir}"
 }
 
-clean_pkg_cache(){
-    msg2 "Cleaning pkg cache $1 ..."
-    rm $1/*.${ext}
+clean_dir(){
+    msg2 "Cleaning $1 ..."
+    rm $1/*
 }
 
 git_clean(){
@@ -424,7 +430,10 @@ chroot_init(){
       elif ${clean_first};then
 	  msg "Creating chroot for [${branch}] (${arch})..."
 	  chroot_clean
-	  clean_pkg_cache ${pkgdir}
+	  clean_dir ${pkgdir}
+# 	  if ${repo};then
+# 	      clean_dir ${repodir}
+# 	  fi
 	  chroot_create
       else
 	  msg "Updating chroot for [${branch}] (${arch})..."
@@ -508,9 +517,7 @@ mv_pkg(){
 
 repo_create(){
     msg "Creating repo ${repodir} ..."
-    if ! [[ -d ${repodir}/${arch} ]];then
-	mkdir -p ${repodir}/${arch}
-    fi
+    prepare_dir "${repodir}/${arch}"
     for p in ${pkgdir}/*.${ext}; do
 	cp $p ${repodir}/${arch}/
     done

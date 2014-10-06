@@ -80,10 +80,8 @@ if [[ -n ${pkgdir} ]];then
 elif [[ -n $PKGDEST ]];then
     pkgdir=$PKGDEST
 else
-    pkgdir=/var/cache/manjaro-tools/pkg
-    if ! [[ -d ${pkgdir} ]];then
-	mkdir -p ${pkgdir}
-    fi
+    pkgdir='/var/cache/manjaro-tools/pkg'
+    prepare_dir "${pkgdir}"
 fi
 
 clean_first=false

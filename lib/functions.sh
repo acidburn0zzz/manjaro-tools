@@ -502,30 +502,6 @@ display_settings(){
     fi
 }
 
-run(){
-    eval "case ${profile} in
-	$profiles)
-	    is_profile=true
-	    if ${pretend}; then
-		display_settings
-		exit 1
-	    else
-		display_settings
-		chroot_build_set
-	    fi
-	;;
-	*)
-	    if ${pretend}; then
-		display_settings
-		exit 1
-	    else
-		display_settings
-		chroot_build
-	    fi
-	;;
-    esac"
-}
-
 mv_pkg(){
     msg2 "Moving $1 to ${pkgdir}"
     mv *.${ext} ${pkgdir}/

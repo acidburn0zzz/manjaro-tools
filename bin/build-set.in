@@ -12,11 +12,35 @@ if [[ -r @libdir@/functions.sh ]];then
     source @libdir@/functions.sh
 fi
 
+run(){
+    eval "case ${profile} in
+	$profiles)
+	    is_profile=true
+	    if ${pretend}; then
+		display_settings
+		exit 1
+	    else
+		display_settings
+		chroot_build_set
+	    fi
+	;;
+	*)
+	    if ${pretend}; then
+		display_settings
+		exit 1
+	    else
+		display_settings
+		chroot_build
+	    fi
+	;;
+    esac"
+}
+
 export LC_MESSAGES=C
 
 shopt -s nullglob
 
-version=20141005
+version=20141006
 
 arch=$(uname -m)
 pacman_conf_arch='default'

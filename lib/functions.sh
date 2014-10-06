@@ -432,37 +432,36 @@ chroot_init(){
       fi
 }
 
-chroot_build_set(){
-    chroot_init
-    msg "Start building profile: [${profile}]"
-    for pkg in $(cat ${profiledir}/${profile}.set); do
-	cd $pkg
-	setarch ${arch} \
-	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
-	if [[ $pkg == 'eudev' ]]; then
-	    local blacklist=('libsystemd')
-	    pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
-	    local temp
-	    if [[ -z $PKGDEST ]];then
-		temp=$pkg
-	    else
-		temp=$pkgdir/$pkg
-	    fi
-	    pacman -U $temp*${arch}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
-	fi
-	mv_pkg $pkg
-	cd ..
-    done
-    msg "Finished building profile: [${profile}]"
-}
-
 chroot_build(){
     chroot_init
-    cd ${profile}
-    setarch ${arch} \
-	mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
-    mv_pkg ${profile}
-    cd ..
+    if ${is_profile};then
+	msg "Start building profile: [${profile}]"
+	for pkg in $(cat ${profiledir}/${profile}.set); do
+	    cd $pkg
+	    setarch ${arch} \
+		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
+	    if [[ $pkg == 'eudev' ]]; then
+		local blacklist=('libsystemd')
+		pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
+		local temp
+		if [[ -z $PKGDEST ]];then
+		    temp=$pkg
+		else
+		    temp=$pkgdir/$pkg
+		fi
+		pacman -U $temp*${arch}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+	    fi
+	    mv_pkg "${pkg}"
+	    cd ..
+	done
+	msg "Finished building profile: [${profile}]"
+    else
+	cd ${profile}
+	setarch ${arch} \
+	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
+	mv_pkg ${profile}
+	cd ..
+    fi
 }
 
 display_settings(){

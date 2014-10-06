@@ -173,10 +173,6 @@ mkchrootpkg_args+=(-b ${branch} -r ${chrootdir})
 
 makepkg_args+=("${*:$OPTIND}")
 
-if ${clean_rundir}; then
-    git_clean
-fi
-
 if [[ $EUID !=  0 ]]; then
     die 'This script must be run as root.'
 else

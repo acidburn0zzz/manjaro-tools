@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for n in $(ls -d $(pwd)/*);do
+    echo ${n##*/} | sort > $1.set
+done

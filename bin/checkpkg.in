@@ -35,8 +35,7 @@ fi
 
 STARTDIR=$(pwd)
 
-#TMPDIR=$(mktemp -d --tmpdir checkpkg-script.XXXX)
-setup_workdir
+TMPDIR=$(mktemp -d --tmpdir checkpkg-script.XXXX)
 
 cd "$TMPDIR"
 

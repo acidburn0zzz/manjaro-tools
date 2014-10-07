@@ -8,8 +8,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-if [[ -r @libdir@/functions.sh ]];then
-    source @libdir@/functions.sh
+if [[ -r @libdir@/messages.sh ]];then
+    source @libdir@/messages.sh
 fi
 
 ifs=$IFS

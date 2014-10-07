@@ -1,7 +1,11 @@
 #!/bin/bash
 
-if [[ -r @libdir@/functions.sh ]];then
-    source @libdir@/functions.sh
+if [[ -r @libdir@/messages.sh ]];then
+    source @libdir@/messages.sh
+fi
+
+if [[ -r @libdir@/build-api.sh ]];then
+    source @libdir@/build-api.sh
 fi
 
 manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
@@ -22,36 +26,6 @@ create=false
 remove=false
 display=false
 name='default'
-
-create_set(){
-    msg "Creating [${profiledir}/${name}.set] ..."
-    local list=$(find * -maxdepth 0 -type d | sort)
-    if [[ -f ${profiledir}/${name}.set ]];then
-	msg2 "Backing up ${profiledir}/${name}.set.orig"
-	mv "${profiledir}/${name}.set" "${profiledir}/${name}.set.orig"
-    fi
-    for item in ${list[@]};do
-	cd $item
-	if [[ -f PKGBUILD ]];then
-	    msg2 "Adding ${item##*/}"
-	    echo ${item##*/} >> ${profiledir}/${name}.set || break
-	fi
-	cd ..
-    done
-}
-
-remove_set(){
-    msg "Removing [${profiledir}/${name}.set] ..."
-    rm ${profiledir}/${name}.set
-}
-
-display_set(){
-    local list=$(cat ${profiledir}/${name}.set)
-    msg "Content of [${profiledir}/${name}.set] ..."
-    for item in ${list[@]}; do
-	msg2 $item
-    done
-}
 
 usage() {
     echo "Usage: ${0##*/} [options]"

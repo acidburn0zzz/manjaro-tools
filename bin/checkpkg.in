@@ -8,8 +8,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-if [[ -r @libdir@/functions.sh ]];then
-    source @libdir@/functions.sh
+if [[ -r @libdir@/messages.sh ]];then
+    source @libdir@/messages.sh
+fi
+
+if [[ -r @libdir@/util.sh ]];then
+    source @libdir@/util.sh
 fi
 
 # Source makepkg.conf; fail if it is not found

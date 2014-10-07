@@ -10,8 +10,12 @@
 
 shopt -s extglob
 
-if [[ -r @libdir@/functions.sh ]];then
-    source @libdir@/functions.sh
+if [[ -r @libdir@/messages.sh ]];then
+    source @libdir@/messages.sh
+fi
+
+if [[ -r @libdir@/mount-api.sh ]];then
+    source @libdir@/mount-api.sh
 fi
 
 newroot=/mnt

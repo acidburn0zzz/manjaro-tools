@@ -18,23 +18,36 @@ fi
 
 profiles=$(get_profiles)
 query=false
+create=false
+remove=false
 name='default'
 
-write_set(){
+create_set(){
+    msg "Creating [${profiledir}/${name}.set] ..."
     local list=$(find * -maxdepth 0 -type d | sort)
-    if [[ -f ${profiledir}/$name.set ]];then
-	rm ${profiledir}/$name.set
+    if [[ -f ${profiledir}/${name}.set ]];then
+	msg2 "Backing up ${profiledir}/${name}.set.orig"
+	mv "${profiledir}/${name}.set" "${profiledir}/${name}.set.orig"
     fi
-    msg "Creating [${profiledir}/$name.set] ..."
     for item in ${list[@]};do
-	msg2 "Adding ${item##*/}"
-	echo ${item##*/} >> ${profiledir}/$name.set || abort
+	cd $item
+	if [[ -f PKGBUILD ]];then
+	    msg2 "Adding ${item##*/}"
+	    echo ${item##*/} >> ${profiledir}/${name}.set || break
+	fi
+	cd ..
     done
+}
+
+remove_set(){
+    msg "Removing [${profiledir}/${name}.set] ..."
+    rm ${profiledir}/${name}.set
 }
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -c <name>   Create set"
+    echo "    -r <name>   Remove set"
     echo "    -q          Query sets"
     echo '    -h          This help'
     echo ''
@@ -42,25 +55,28 @@ usage() {
     exit 1
 }
 
-opts='c:qh'
+opts='c:r:qh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-	c) name="$OPTARG" ;;
+	c) name="$OPTARG"; create=true ;;
+	r) name="$OPTARG"; remove=true ;;
 	q) query=true ;;
 	h) usage ;;
     esac
 done
 
-shift $(($OPTIND-1))
+shift $(($OPTIND - 1))
 
 if [[ $EUID !=  0 ]]; then
     die 'This script must be run as root.'
 fi
 
-if ${query};then
+if ${create};then
+    create_set
+elif ${remove};then
+    remove_set
+else
     msg "Sets: ${profiles}"
     exit 1
-else
-    write_set
 fi

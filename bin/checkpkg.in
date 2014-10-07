@@ -35,9 +35,10 @@ fi
 
 STARTDIR=$(pwd)
 
-TEMPDIR=$(mktemp -d --tmpdir checkpkg-script.XXXX)
+#TMPDIR=$(mktemp -d --tmpdir checkpkg-script.XXXX)
+setup_workdir
 
-cd "$TEMPDIR"
+cd "$TMPDIR"
 
 for _pkgname in "${pkgname[@]}"; do
 	pkgfile=${_pkgname}-$(get_full_version $_pkgname)-${CARCH}${PKGEXT}
@@ -92,4 +93,4 @@ for _pkgname in "${pkgname[@]}"; do
 	fi
 done
 
-msg "Files saved to $TEMPDIR"
+msg "Files saved to $TMPDIR"

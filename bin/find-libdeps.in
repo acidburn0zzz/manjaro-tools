@@ -42,11 +42,11 @@ else
 	setup_workdir
 
 	case ${script_mode} in
-		deps) bsdtar -C $TMPDIR -xf "$1";;
-		provides) bsdtar -C $TMPDIR -xf "$1" --include="*.so*";;
+		deps) bsdtar -C $WORKDIR -xf "$1";;
+		provides) bsdtar -C $WORKDIR -xf "$1" --include="*.so*";;
 	esac
 
-	pushd $TMPDIR >/dev/null
+	pushd $WORKDIR >/dev/null
 fi
 
 case $script_mode in

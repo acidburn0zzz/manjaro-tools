@@ -8,9 +8,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# if [[ -r @libdir@/functions.sh ]];then
-#     source @libdir@/functions.sh
-# fi
+if [[ -r @libdir@/functions.sh ]];then
+    source @libdir@/functions.sh
+fi
 
 match=$1
 
@@ -30,17 +30,17 @@ find . -type d | while read d; do
 		for dep in "${depends[@]}"; do
 			# lose the version comparator, if any
 			depname=${dep%%[<>=]*}
-			[[ $depname = $match ]] && echo "$d (depends)"
+			[[ $depname = $match ]] && msg "$d (depends)"
 		done
 		for dep in "${makedepends[@]}"; do
 			# lose the version comparator, if any
 			depname=${dep%%[<>=]*}
-			[[ $depname = $match ]] && echo "$d (makedepends)"
+			[[ $depname = $match ]] && msg "$d (makedepends)"
 		done
 		for dep in "${optdepends[@]/:*}"; do
 			# lose the version comaparator, if any
 			depname=${dep%%[<>=]*}
-			[[ $depname = $match ]] && echo "$d (optdepends)"
+			[[ $depname = $match ]] && msg "$d (optdepends)"
 		done
 	fi
 done

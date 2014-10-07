@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ -r @libdir@/functions.sh ]];then
+    source @libdir@/functions.sh
+fi
+
 manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
 
 if [[ -f ${manjaro_tools_conf} ]]; then
@@ -12,30 +16,50 @@ else
     profiledir='@sysconfdir@/sets'
 fi
 
+profiles=$(get_profiles)
+query=false
 name='default'
+
+write_set(){
+    local list=$(find * -maxdepth 0 -type d | sort)
+    if [[ -f ${profiledir}/$name.set ]];then
+	rm ${profiledir}/$name.set
+    fi
+    msg "Creating [${profiledir}/$name.set] ..."
+    for item in ${list[@]};do
+	echo ${item##*/} >> ${profiledir}/$name.set || abort
+    done
+}
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -n <name>          Set name without extension"
-    echo '    -h                 This help'
+    echo "    -c <name>   Create set"
+    echo "    -q          Query sets"
+    echo '    -h          This help'
     echo ''
     echo ''
     exit 1
 }
 
-opts='n:h'
+opts='c:qh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-	n) name="$OPTARG" ;;
+	c) name="$OPTARG" ;;
+	q) query=true ;;
 	h) usage ;;
     esac
 done
 
+shift $(($OPTIND-1))
+
 if [[ $EUID !=  0 ]]; then
     die 'This script must be run as root.'
+fi
+
+if ${query};then
+    msg "Sets: ${profiles}"
+    exit 1
 else
-    for n in $(ls -d $(pwd)/*);do
-	echo ${n##*/} | sort > ${profiledir}/$1.set
-    done
+    write_set
 fi

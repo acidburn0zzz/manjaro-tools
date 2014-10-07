@@ -51,6 +51,11 @@ declare -A fsck_types=([cramfs]=1
                        [vfat]=1
                        [xfs]=1)
 
+ignore_error() {
+	"$@" 2>/dev/null
+	return 0
+}
+
 track_mount() {
 	if [[ -z $CHROOT_ACTIVE_MOUNTS ]]; then
 	  CHROOT_ACTIVE_MOUNTS=()

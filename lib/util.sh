@@ -8,11 +8,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-ignore_error() {
-	"$@" 2>/dev/null
-	return 0
-}
-
 # in_array() {
 #   local i
 #   for i in "${@:2}"; do

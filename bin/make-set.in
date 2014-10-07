@@ -27,6 +27,7 @@ write_set(){
     fi
     msg "Creating [${profiledir}/$name.set] ..."
     for item in ${list[@]};do
+	msg2 "Adding ${item##*/}"
 	echo ${item##*/} >> ${profiledir}/$name.set || abort
     done
 }

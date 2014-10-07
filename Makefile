@@ -34,7 +34,10 @@ CONFIGFILES = \
 	conf/pacman-mirrors.conf \
 	conf/pacman-multilib.conf
 LIBS = \
-	lib/functions.sh
+	lib/build-api.sh \
+	lib/mount-api.sh \
+	lib/util.sh \
+	lib/messages.sh
 
 all: $(BINPROGS)
 

@@ -20,6 +20,7 @@ profiles=$(get_profiles)
 query=false
 create=false
 remove=false
+display=false
 name='default'
 
 create_set(){
@@ -44,10 +45,19 @@ remove_set(){
     rm ${profiledir}/${name}.set
 }
 
+display_set(){
+    local list=$(cat ${profiledir}/${name}.set)
+    msg "Content of [${profiledir}/${name}.set] ..."
+    for item in ${list[@]}; do
+	msg2 $item
+    done
+}
+
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -c <name>   Create set"
     echo "    -r <name>   Remove set"
+    echo "    -d <name>   Display set"
     echo "    -q          Query sets"
     echo '    -h          This help'
     echo ''
@@ -55,13 +65,14 @@ usage() {
     exit 1
 }
 
-opts='c:r:qh'
+opts='c:r:d:qh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
 	c) name="$OPTARG"; create=true ;;
 	r) name="$OPTARG"; remove=true ;;
 	q) query=true ;;
+	d) name="$OPTARG"; display=true;;
 	h) usage ;;
     esac
 done
@@ -76,7 +87,9 @@ if ${create};then
     create_set
 elif ${remove};then
     remove_set
+elif ${display}; then
+    display_set
 else
-    msg "Sets: ${profiles}"
+    msg "Available sets: ${profiles}"
     exit 1
 fi

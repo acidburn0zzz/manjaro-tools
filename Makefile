@@ -1,4 +1,4 @@
-V=20141005
+V=0.8
 
 PREFIX = /usr/local
 
@@ -43,7 +43,8 @@ all: $(BINPROGS)
 
 edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/manjaro-tools|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/manjaro-tools|g" \
-	-e "s|@libdir[@]|$(DESTDIR)$(PREFIX)/lib/manjaro-tools|g"
+	-e "s|@libdir[@]|$(DESTDIR)$(PREFIX)/lib/manjaro-tools|g" \
+	-e "s|@version@|${V}|"
 
 %: %.in Makefile
 	@echo "GEN $@"

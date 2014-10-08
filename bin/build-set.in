@@ -80,7 +80,7 @@ fi
 if [[ -n ${repodir} ]];then
     repodir=${repodir}
 else
-    repodir='/opt/build-repo'
+    repodir='/srv/build-repo'
 fi
 
 if [[ -r /etc/makepkg.conf ]]; then

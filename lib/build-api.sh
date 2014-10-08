@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -7,6 +8,10 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
+
+version=20141008
+
+shopt -s nullglob
 
 mv_pkg(){
     msg2 "Moving $1 to ${pkgdir}"
@@ -22,8 +27,8 @@ repo_create(){
     msg "Creating repo ${repodir} ..."
     prepare_dir "${repodir}/${arch}"
     local ext='pkg.tar.xz'
-    for p in ${pkgdir}/*.${ext}; do
-	cp $p ${repodir}/${arch}/
+    for pkg in ${pkgdir}/*.${ext}; do
+	cp $pkg ${repodir}/${arch}/
     done
     cd ${repodir}/${arch}
     repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
@@ -52,8 +57,8 @@ EOF
 
 get_profiles(){
     local prof= temp=
-    for p in $(ls ${profiledir}/*.set);do
-	temp=${p##*/}
+    for item in $(ls ${profiledir}/*.set);do
+	temp=${item##*/}
 	prof=${prof:-}${prof:+|}${temp%.set}
     done
     echo $prof
@@ -131,6 +136,13 @@ chroot_init(){
       fi
 }
 
+eval_profile(){
+    eval "case ${profile} in
+	    $(get_profiles)) is_profile=true ;;
+	    *) is_profile=false ;;
+	esac"
+}
+
 chroot_build(){
     if ${is_profile};then
 	msg "Start building profile: [${profile}]"
@@ -183,15 +195,15 @@ display_settings(){
     fi
 
     msg "SETS:"
-    msg2 "profiles: ${profiles}"
+    msg2 "profiles: $(get_profiles)"
     msg2 "profile: ${profile}"
     msg2 "is_profile: ${is_profile}"
 
     if ${is_profile};then
 	msg "These packages will be built:"
-	local temp=$(cat ${profiledir}/${profile}.set)
-	for p in ${temp[@]}; do
-	    msg2 "$p"
+	local list=$(cat ${profiledir}/${profile}.set)
+	for item in ${list[@]}; do
+	    msg2 "$item"
 	done
     else
 	msg "This package will be built:"
@@ -201,11 +213,11 @@ display_settings(){
 
 create_set(){
     msg "Creating [${profiledir}/${name}.set] ..."
-    local list=$(find * -maxdepth 0 -type d | sort)
     if [[ -f ${profiledir}/${name}.set ]];then
 	msg2 "Backing up ${profiledir}/${name}.set.orig"
 	mv "${profiledir}/${name}.set" "${profiledir}/${name}.set.orig"
     fi
+    local list=$(find * -maxdepth 0 -type d | sort)
     for item in ${list[@]};do
 	cd $item
 	if [[ -f PKGBUILD ]];then
@@ -228,4 +240,3 @@ display_set(){
 	msg2 $item
     done
 }
-

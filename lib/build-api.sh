@@ -9,8 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version=20141008
-
 shopt -s nullglob
 
 mv_pkg(){
@@ -151,9 +149,8 @@ chroot_build(){
 	    setarch ${arch} \
 		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
 	    if [[ $pkg == 'eudev' ]]; then
-		local blacklist=('libsystemd')
+		local blacklist=('libsystemd') temp=
 		pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
-		local temp
 		if [[ -z $PKGDEST ]];then
 		    temp=$pkg
 		else
@@ -169,25 +166,27 @@ chroot_build(){
 	cd ${profile}
 	setarch ${arch} \
 	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
-	mv_pkg ${profile}
+	mv_pkg "${profile}"
 	cd ..
     fi
 }
 
 display_settings(){
+    msg "manjaro-tools version: ${version}"
+
     msg "OPTARGS:"
-    msg2 "arch: $arch"
-    msg2 "branch: $branch"
-    msg2 "chroots: $chroots"
+    msg2 "arch: ${arch}"
+    msg2 "branch: ${branch}"
+    msg2 "chroots: ${chroots}"
 
     msg "PATHS:"
-    msg2 "chrootdir: $chrootdir"
-    msg2 "profiledir: $profiledir"
-    msg2 "pacman_conf: ${pacman_conf}"
-    msg2 "makepkg_conf: $makepkg_conf"
+    msg2 "chrootdir: ${chrootdir}"
+    msg2 "profiledir: ${profiledir}"
     msg2 "pkgdir: ${pkgdir}"
     msg2 "PKGDEST: ${PKGDEST}"
     msg2 "repodir: ${repodir}"
+    msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "makepkg_conf: ${makepkg_conf}"
 
     if ${clean_first};then
 	msg "PKG:"

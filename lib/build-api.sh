@@ -37,8 +37,8 @@ repo_create(){
 set_pkgdir(){
     if [[ -n ${pkgdir} ]];then
 	pkgdir=${pkgdir}
-    elif [[ -n $PKGDEST ]];then
-	pkgdir=$PKGDEST
+#     elif [[ -n $PKGDEST ]];then
+# 	pkgdir=$PKGDEST
     else
 	pkgdir='/var/cache/manjaro-tools/pkg'
 	prepare_dir "${pkgdir}"
@@ -151,12 +151,13 @@ chroot_build(){
 	    if [[ $pkg == 'eudev' ]]; then
 		local blacklist=('libsystemd') temp=
 		pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
-		if [[ -z $PKGDEST ]];then
-		    temp=$pkg
-		else
-		    temp=$pkgdir/$pkg
-		fi
-		pacman -U $temp*${arch}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+# 		if [[ -z $PKGDEST ]];then
+# 		    temp=$pkg
+# 		else
+# 		    temp=$pkgdir/$pkg
+# 		fi
+# 		pacman -U $temp*${arch}*pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+		pacman -U *pkg*z -r ${chrootdir}/$(get_user) --noconfirm
 	    fi
 	    mv_pkg "${pkg}"
 	    cd ..
@@ -183,7 +184,7 @@ display_settings(){
     msg2 "chrootdir: ${chrootdir}"
     msg2 "profiledir: ${profiledir}"
     msg2 "pkgdir: ${pkgdir}"
-    msg2 "PKGDEST: ${PKGDEST}"
+#     msg2 "PKGDEST: ${PKGDEST}"
     msg2 "repodir: ${repodir}"
     msg2 "pacman_conf: ${pacman_conf}"
     msg2 "makepkg_conf: ${makepkg_conf}"

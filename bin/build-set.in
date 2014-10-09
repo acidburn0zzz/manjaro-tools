@@ -83,9 +83,9 @@ else
     repodir='/srv/build-repo'
 fi
 
-if [[ -r /etc/makepkg.conf ]]; then
-    source /etc/makepkg.conf
-fi
+# if [[ -r /etc/makepkg.conf ]]; then
+#     source /etc/makepkg.conf
+# fi
 
 pacman_conf_arch='default'
 

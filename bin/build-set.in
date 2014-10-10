@@ -83,10 +83,6 @@ else
     repodir='/srv/build-repo'
 fi
 
-# if [[ -r /etc/makepkg.conf ]]; then
-#     source /etc/makepkg.conf
-# fi
-
 pacman_conf_arch='default'
 
 clean_first=false
@@ -155,7 +151,12 @@ makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 
 chrootdir=${chroots}/${branch}-${arch}
 
-set_pkgdir
+if [[ -n ${pkgdir} ]];then
+    pkgdir=${pkgdir}
+else
+    pkgdir='/var/cache/manjaro-tools/pkg'
+fi
+prepare_dir "${pkgdir}"
 
 if ${nosystemd};then
     mkchroot_args+=(-x)

@@ -129,8 +129,8 @@ while getopts "${opts}" arg; do
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;
 	c) clean_first=true ;;
-	n) namcap=true;;
-	x) nosystemd=true ;;
+	n) namcap=true; mkchrootpkg_args+=(-n) ;;
+	x) nosystemd=true; mkchroot_args+=(-x) ;;
 	q) pretend=true ;;
 	w) clean_rundir=true ;;
 	y) repo=true ;;
@@ -157,14 +157,6 @@ else
     pkgdir='/var/cache/manjaro-tools/pkg'
 fi
 prepare_dir "${pkgdir}"
-
-if ${nosystemd};then
-    mkchroot_args+=(-x)
-fi
-
-if ${namcap};then
-    mkchrootpkg_args+=(-n)
-fi
 
 mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -b ${branch})
 

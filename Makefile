@@ -21,11 +21,7 @@ SYSCONFIGFILES = \
 	conf/manjaro-tools.conf
 
 SETS = \
-	sets/default.set \
-	sets/udev.set \
-	sets/nosystemd.set \
-	sets/openrc.set \
-	sets/openrc-nodeps.set
+	sets/default.set
 
 CONFIGFILES = \
 	conf/makepkg-i686.conf \

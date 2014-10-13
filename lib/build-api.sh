@@ -216,6 +216,6 @@ display_set(){
     local list=$(cat ${profiledir}/${name}.set)
     msg "Content of [${profiledir}/${name}.set] ..."
     for item in ${list[@]}; do
-	msg2 $item
+	msg2 "$item"
     done
 }

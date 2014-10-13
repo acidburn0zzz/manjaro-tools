@@ -33,10 +33,14 @@ run(){
 	fi
 	display_settings
 	chroot_init
+	prepare_dir "${pkgdir}"
 	chroot_build
+	ch_owner "$(dirname $(dirname ${pkgdir}))"
 	if ${repo}; then
+	    prepare_dir "${repodir}"
 	    repo_create
 	fi
+	ch_owner "${repodir}"
 	if ${sign}; then
 	    sign_pkgs
 	fi
@@ -78,9 +82,9 @@ else
 fi
 
 if [[ -n ${repodir} ]];then
-    repodir=${repodir}
+    repodir=${repodir}/${arch}
 else
-    repodir='/srv/build-repo'
+    repodir="/srv/build-repo/${arch}"
 fi
 
 pacman_conf_arch='default'
@@ -149,14 +153,13 @@ fi
 pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 
-chrootdir=${chroots}/${branch}-${arch}
+chrootdir=${chroots}/${branch}/${arch}
 
 if [[ -n ${pkgdir} ]];then
-    pkgdir=${pkgdir}
+    pkgdir="${pkgdir}/${branch}/${arch}"
 else
-    pkgdir='/var/cache/manjaro-tools/pkg'
+    pkgdir="/var/cache/manjaro-tools/pkg/${branch}/${arch}"
 fi
-prepare_dir "${pkgdir}"
 
 mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -b ${branch})
 

@@ -23,19 +23,17 @@ ch_owner(){
 
 repo_create(){
     msg "Creating repo ${repodir} ..."
-    prepare_dir "${repodir}/${arch}"
     local ext='pkg.tar.xz'
     for pkg in ${pkgdir}/*.${ext}; do
-	cp $pkg ${repodir}/${arch}/
+	cp $pkg ${repodir}/
     done
-    cd ${repodir}/${arch}
-    repo-add ${repodir}/${arch}/${repodir##*/}.db.tar.xz *.${ext}
-    ch_owner "${repodir}"
+    cd ${repodir}
+    local parent=$(dirname ${repodir})
+    repo-add ${repodir}/${parent##*/}.db.tar.xz *.${ext}
     msg "Done repo ${repodir}"
 }
 
 sign_pkgs(){
-    ch_owner "${pkgdir}"
     cd $pkgdir
     su $(get_user) <<'EOF'
 signpkgs
@@ -59,7 +57,6 @@ prepare_dir(){
     if ! [[ -d $1 ]];then
 	mkdir -p $1
     fi
-    ch_owner "$1"
 }
 
 chroot_clean(){

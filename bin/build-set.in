@@ -35,12 +35,12 @@ run(){
 	chroot_init
 	prepare_dir "${pkgdir}"
 	chroot_build
-	ch_owner "$(dirname $(dirname ${pkgdir}))"
+	ch_owner "$(dirname ${pkgdir})"
 	if ${repo}; then
 	    prepare_dir "${repodir}"
 	    repo_create
+	    ch_owner "$(dirname ${repodir})"
 	fi
-	ch_owner "${repodir}"
 	if ${sign}; then
 	    sign_pkgs
 	fi

@@ -12,17 +12,18 @@
 shopt -s nullglob
 
 mv_pkg(){
-    msg2 "Moving $1 to ${pkgdir}"
+    msg2 "Moving [$1] to [${pkgdir}]"
     local ext='pkg.tar.xz'
     mv *.${ext} ${pkgdir}/
 }
 
 ch_owner(){
+    msg "chown -R [$(get_user):users] [$1]"
     chown -R "$(get_user):users" "$1"
 }
 
 repo_create(){
-    msg "Creating repo ${repodir} ..."
+    msg "Creating repo [${repodir}] ..."
     local ext='pkg.tar.xz'
     for pkg in ${pkgdir}/*.${ext}; do
 	cp $pkg ${repodir}/
@@ -30,7 +31,6 @@ repo_create(){
     cd ${repodir}
     local parent=$(dirname ${repodir})
     repo-add ${repodir}/${parent##*/}.db.tar.xz *.${ext}
-    msg "Done repo ${repodir}"
 }
 
 sign_pkgs(){
@@ -83,7 +83,7 @@ chroot_clean(){
 
 clean_dir(){
     msg2 "Cleaning $1 ..."
-    rm $1/*
+    rm -r $1/*
 }
 
 git_clean(){
@@ -93,12 +93,12 @@ git_clean(){
 
 chroot_create(){
     mkdir -p "${chrootdir}"
-    setarch ${arch} \
+    setarch "${arch}" \
 	mkchroot ${mkchroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
 }
 
 chroot_update(){
-    setarch ${arch} \
+    setarch "${arch}" \
 	mkchroot ${mkchroot_args[*]} -u ${chrootdir}/$(get_user) || abort
 }
 
@@ -132,12 +132,12 @@ chroot_build(){
 	msg "Start building profile: [${profile}]"
 	for pkg in $(cat ${profiledir}/${profile}.set); do
 	    cd $pkg
-	    setarch ${arch} \
+	    setarch "${arch}" \
 		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
 	    if [[ $pkg == 'eudev' ]]; then
 		local blacklist=('libsystemd') temp=
 		pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
-		pacman -U *pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+		setarch "${arch}" pacman -U *pkg*z -r ${chrootdir}/$(get_user) --noconfirm
 	    fi
 	    mv_pkg "${pkg}"
 	    cd ..
@@ -145,7 +145,7 @@ chroot_build(){
 	msg "Finished building profile: [${profile}]"
     else
 	cd ${profile}
-	setarch ${arch} \
+	setarch "${arch}" \
 	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
 	mv_pkg "${profile}"
 	cd ..

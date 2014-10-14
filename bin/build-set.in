@@ -22,25 +22,23 @@ fi
 run(){
     eval_profile
     if ${pretend}; then
-	if ${clean_rundir}; then
+	if ${wipe_clean}; then
 	    git_clean "n"
 	fi
 	display_settings
 	exit 1
     else
-	if ${clean_rundir}; then
+	if ${wipe_clean}; then
+	    msg "Cleaning up ..."
 	    git_clean "q"
+	    clean_dir "${pkgdir}"
 	fi
 	display_settings
 	chroot_init
 	prepare_dir "${pkgdir}"
 	chroot_build
 	ch_owner "$(dirname ${pkgdir})"
-	if ${repo}; then
-	    prepare_dir "${repodir}"
-	    repo_create
-	    ch_owner "$(dirname ${repodir})"
-	fi
+
 	if ${sign}; then
 	    sign_pkgs
 	fi
@@ -49,9 +47,11 @@ run(){
 
 export LC_MESSAGES=C
 
+arch=$(uname -m)
+
 manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
 
-if [[ -f ${manjaro_tools_conf} ]]; then
+if [[ -r ${manjaro_tools_conf} ]]; then
     source ${manjaro_tools_conf}
 fi
 
@@ -67,8 +67,6 @@ else
     profile='default'
 fi
 
-arch=$(uname -m)
-
 if [[ -n ${branch} ]];then
     branch=${branch}
 else
@@ -81,21 +79,13 @@ else
     chroots='/srv/manjarobuild'
 fi
 
-if [[ -n ${repodir} ]];then
-    repodir=${repodir}/${arch}
-else
-    repodir="/srv/build-repo/${arch}"
-fi
-
 pacman_conf_arch='default'
 
 clean_first=false
-clean_rundir=false
+wipe_clean=false
 namcap=false
-nosystemd=false
 pretend=false
 is_profile=false
-repo=false
 sign=false
 
 base_packages=('base-devel')
@@ -110,21 +100,18 @@ usage() {
     echo "    -a <arch>          Set arch  [default: ${arch}]"
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots}]"
-    echo '    -c                 Clean chroot and pkg cache'
+    echo '    -c                 Clean chroot'
+    echo '    -w                 Wipe clean pkgbuild and pkg directory'
     echo '    -n                 Run namcap check'
-    echo '    -w                 Wipe clean pkgbuild directory'
-    echo '    -y                 Add packages to repo'
     echo '    -s                 Sign packages'
     echo '    -q                 Query settings and pretend build'
-    echo '    -x                 Use classic chroot instead of systemd-nspawn'
-    echo '                       Useful for testing if systemd is running to bypass autodetection'
     echo '    -h                 This help'
     echo ''
     echo ''
     exit 1
 }
 
-opts='p:a:b:r:cnwysqxh'
+opts='p:a:b:r:cwnsqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -133,12 +120,10 @@ while getopts "${opts}" arg; do
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;
 	c) clean_first=true ;;
+	w) wipe_clean=true ;;
 	n) namcap=true; mkchrootpkg_args+=(-n) ;;
-	x) nosystemd=true; mkchroot_args+=(-x) ;;
-	q) pretend=true ;;
-	w) clean_rundir=true ;;
-	y) repo=true ;;
 	s) sign=true ;;
+	q) pretend=true ;;
 	h) usage ;;
     esac
 done

@@ -47,12 +47,11 @@ usage() {
 	echo '    -n            Do not copy config files into the chroot'
 	echo '    -c <dir>      Set pacman cache'
 	echo '    -b <branch>   Set repository branch'
-	echo '    -x            Use classic chroot instead of systemd-nspawn'
 	echo '    -h            This message'
 	exit 1
 }
 
-while getopts 'r:ufnxhC:M:S:c:b:' arg; do
+while getopts 'r:ufnhC:M:S:c:b:' arg; do
 	case "${arg}" in
 		r) RUN="$OPTARG" ;;
 		u) RUN='pacman -Syu --noconfirm' ;;
@@ -62,7 +61,6 @@ while getopts 'r:ufnxhC:M:S:c:b:' arg; do
 		c) cache_dir="$OPTARG" ;;
 		b) branch="$OPTARG" ;;
 		S) mirrors_conf="$OPTARG" ;;
-		x) nosystemd=true ;;
 		h|?) usage ;;
 		*) error "invalid argument '${arg}'"; usage ;;
 	esac

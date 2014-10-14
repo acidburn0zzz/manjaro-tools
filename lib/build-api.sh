@@ -22,17 +22,6 @@ ch_owner(){
     chown -R "$(get_user):users" "$1"
 }
 
-repo_create(){
-    msg "Creating repo [${repodir}] ..."
-    local ext='pkg.tar.xz'
-    for pkg in ${pkgdir}/*.${ext}; do
-	cp $pkg ${repodir}/
-    done
-    cd ${repodir}
-    local parent=$(dirname ${repodir})
-    repo-add ${repodir}/${parent##*/}.db.tar.xz *.${ext}
-}
-
 sign_pkgs(){
     cd $pkgdir
     su $(get_user) <<'EOF'
@@ -87,7 +76,7 @@ clean_dir(){
 }
 
 git_clean(){
-    msg "Cleaning ${rundir} ..."
+    msg2 "Cleaning $(pwd) ..."
     git clean -dfx$1
 }
 
@@ -109,10 +98,6 @@ chroot_init(){
       elif ${clean_first};then
 	  msg "Creating chroot for [${branch}] (${arch})..."
 	  chroot_clean
-	  clean_dir ${pkgdir}
-# 	  if ${repo};then
-# 	      clean_dir ${repodir}
-# 	  fi
 	  chroot_create
       else
 	  msg "Updating chroot for [${branch}] (${arch})..."
@@ -164,7 +149,6 @@ display_settings(){
     msg2 "chrootdir: ${chrootdir}"
     msg2 "profiledir: ${profiledir}"
     msg2 "pkgdir: ${pkgdir}"
-    msg2 "repodir: ${repodir}"
     msg2 "pacman_conf: ${pacman_conf}"
     msg2 "makepkg_conf: ${makepkg_conf}"
 

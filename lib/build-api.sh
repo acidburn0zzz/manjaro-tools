@@ -11,12 +11,6 @@
 
 shopt -s nullglob
 
-mv_pkg(){
-    msg2 "Moving [$1] to [${pkgdir}]"
-    local ext='pkg.tar.xz'
-    mv *.${ext} ${pkgdir}/
-}
-
 ch_owner(){
     msg "chown -R [$(get_user):users] [$1]"
     chown -R "$(get_user):users" "$1"
@@ -112,27 +106,49 @@ eval_profile(){
 	esac"
 }
 
+blacklist_pkg(){
+    local blacklist=('libsystemd') cmd=$(pacman -Q ${blacklist[@]} -r ${chrootdir}/root 2> /dev/null)
+    if [[ -n $cmd ]] ; then
+	msg2 "Removing blacklisted [${blacklist[@]}] ..."
+	pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/root --noconfirm
+    else
+	msg2 "Blacklisted [${blacklist[@]}] not present."
+    fi
+}
+
+install_pkg(){
+    msg2 "Installing built package ..."
+    setarch "${arch}" pacman -U *pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+}
+
+move_pkg(){
+    msg2 "Moving [$1] to [${pkgdir}]"
+    local ext='pkg.tar.xz'
+    mv *.${ext} ${pkgdir}/
+}
+
 chroot_build(){
     if ${is_profile};then
 	msg "Start building profile: [${profile}]"
 	for pkg in $(cat ${profiledir}/${profile}.set); do
 	    cd $pkg
+	    if [[ $pkg == 'eudev' ]] || [[ $pkg == 'lib32-eudev' ]]; then
+		blacklist_pkg
+	    fi
 	    setarch "${arch}" \
 		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
-	    if [[ $pkg == 'eudev' ]]; then
-		local blacklist=('libsystemd') temp=
-		pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/$(get_user) --noconfirm
-		setarch "${arch}" pacman -U *pkg*z -r ${chrootdir}/$(get_user) --noconfirm
-	    fi
-	    mv_pkg "${pkg}"
+	    move_pkg "${pkg}"
 	    cd ..
 	done
 	msg "Finished building profile: [${profile}]"
     else
 	cd ${profile}
+	if [[ ${profile} == 'eudev' ]] || [[ ${profile} == 'lib32-eudev' ]]; then
+	    blacklist_pkg
+	fi
 	setarch "${arch}" \
 	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
-	mv_pkg "${profile}"
+	move_pkg "${profile}"
 	cd ..
     fi
 }

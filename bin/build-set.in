@@ -130,15 +130,15 @@ done
 
 if [[ "$arch" == 'multilib' ]]; then
     pacman_conf_arch='multilib'
+    chrootdir=${chroots}/${branch}/${arch}
     arch='x86_64'
-    branch="${branch}-multilib"
     base_packages+=('multilib-devel')
+else
+    chrootdir=${chroots}/${branch}/${arch}
 fi
 
 pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
-
-chrootdir=${chroots}/${branch}/${arch}
 
 if [[ -n ${pkgdir} ]];then
     pkgdir="${pkgdir}/${branch}/${arch}"

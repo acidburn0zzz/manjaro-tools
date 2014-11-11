@@ -72,12 +72,12 @@ setup_workdir() {
 
 cleanup() {
 	[[ -n $WORKDIR ]] && rm -rf "$WORKDIR"
-	[[ $1 ]] && exit $1
+	exit ${1:-0}
 }
 
 abort() {
-	msg 'Aborting...'
-	cleanup 0
+	error 'Aborting...'
+	cleanup 255
 }
 
 trap_abort() {
@@ -86,13 +86,14 @@ trap_abort() {
 }
 
 trap_exit() {
+	local r=$?
 	trap - EXIT INT QUIT TERM HUP
-	cleanup
+	cleanup $r
 }
 
 die() {
-	error "$*"
-	cleanup 1
+	(( $# )) && error "$@"
+	cleanup 255
 }
 
 trap 'trap_abort' INT QUIT TERM HUP

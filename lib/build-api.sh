@@ -42,6 +42,18 @@ prepare_dir(){
     fi
 }
 
+clean_dir(){
+    msg2 "Cleaning $1 ..."
+    rm -r $1/*
+}
+
+git_clean(){
+    msg2 "Cleaning $(pwd) ..."
+    git clean -dfx$1
+}
+
+####chroot controller######
+
 chroot_clean(){
     for copy in "${chrootdir}"/*; do
 	[[ -d "${copy}" ]] || continue
@@ -64,40 +76,60 @@ chroot_clean(){
     rm -rf --one-file-system "${chrootdir}"
 }
 
-clean_dir(){
-    msg2 "Cleaning $1 ..."
-    rm -r $1/*
-}
-
-git_clean(){
-    msg2 "Cleaning $(pwd) ..."
-    git clean -dfx$1
-}
-
 chroot_create(){
     mkdir -p "${chrootdir}"
     setarch "${arch}" \
 	mkchroot ${mkchroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
 }
 
-chroot_update(){
-    setarch "${arch}" \
-	mkchroot ${mkchroot_args[*]} -u ${chrootdir}/$(get_user) || abort
-}
+
+# chroot_update(){
+#     setarch "${arch}" \
+# 	mkchroot ${mkchroot_args[*]} -u ${chrootdir}/$(get_user) || abort
+# }
 
 chroot_init(){
       if [[ ! -d "${chrootdir}" ]]; then
 	  msg "Creating chroot for [${branch}] (${arch})..."
 	  chroot_create
-      elif ${clean_first};then
+      else ${clean_first};then
 	  msg "Creating chroot for [${branch}] (${arch})..."
 	  chroot_clean
 	  chroot_create
-      else
-	  msg "Updating chroot for [${branch}] (${arch})..."
-	  chroot_update
+#       else
+# 	  msg "Updating chroot for [${branch}] (${arch})..."
+# 	  chroot_update
       fi
 }
+
+chroot_build(){
+    if ${is_profile};then
+	msg "Start building profile: [${profile}]"
+	for pkg in $(cat ${profiledir}/${profile}.set); do
+	    cd $pkg
+	    if [[ $pkg == 'eudev' ]] || [[ $pkg == 'lib32-eudev' ]]; then
+		blacklist_pkg
+	    fi
+	    setarch "${arch}" \
+		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
+	    move_pkg "${pkg}"
+	    cd ..
+	done
+	msg "Finished building profile: [${profile}]"
+    else
+	cd ${profile}
+	if [[ ${profile} == 'eudev' ]] || [[ ${profile} == 'lib32-eudev' ]]; then
+	    blacklist_pkg
+	fi
+	setarch "${arch}" \
+	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
+	move_pkg "${profile}"
+	cd ..
+    fi
+}
+
+####end chroot controller######
+
 
 eval_profile(){
     eval "case ${profile} in
@@ -125,32 +157,6 @@ move_pkg(){
     msg2 "Moving [$1] to [${pkgdir}]"
     local ext='pkg.tar.xz'
     mv *.${ext} ${pkgdir}/
-}
-
-chroot_build(){
-    if ${is_profile};then
-	msg "Start building profile: [${profile}]"
-	for pkg in $(cat ${profiledir}/${profile}.set); do
-	    cd $pkg
-	    if [[ $pkg == 'eudev' ]] || [[ $pkg == 'lib32-eudev' ]]; then
-		blacklist_pkg
-	    fi
-	    setarch "${arch}" \
-		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
-	    move_pkg "${pkg}"
-	    cd ..
-	done
-	msg "Finished building profile: [${profile}]"
-    else
-	cd ${profile}
-	if [[ ${profile} == 'eudev' ]] || [[ ${profile} == 'lib32-eudev' ]]; then
-	    blacklist_pkg
-	fi
-	setarch "${arch}" \
-	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
-	move_pkg "${profile}"
-	cd ..
-    fi
 }
 
 display_settings(){
@@ -188,34 +194,4 @@ display_settings(){
 	msg "This package will be built:"
 	msg2 "${profile}"
     fi
-}
-
-create_set(){
-    msg "Creating [${profiledir}/${name}.set] ..."
-    if [[ -f ${profiledir}/${name}.set ]];then
-	msg2 "Backing up ${profiledir}/${name}.set.orig"
-	mv "${profiledir}/${name}.set" "${profiledir}/${name}.set.orig"
-    fi
-    local list=$(find * -maxdepth 0 -type d | sort)
-    for item in ${list[@]};do
-	cd $item
-	if [[ -f PKGBUILD ]];then
-	    msg2 "Adding ${item##*/}"
-	    echo ${item##*/} >> ${profiledir}/${name}.set || break
-	fi
-	cd ..
-    done
-}
-
-remove_set(){
-    msg "Removing [${profiledir}/${name}.set] ..."
-    rm ${profiledir}/${name}.set
-}
-
-display_set(){
-    local list=$(cat ${profiledir}/${name}.set)
-    msg "Content of [${profiledir}/${name}.set] ..."
-    for item in ${list[@]}; do
-	msg2 "$item"
-    done
 }

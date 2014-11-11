@@ -15,13 +15,13 @@ if [[ -r @libdir@/messages.sh ]];then
     source @libdir@/messages.sh
 fi
 
-if [[ -r @libdir@/build-api.sh ]];then
-    source @libdir@/build-api.sh
-fi
+# if [[ -r @libdir@/build-api.sh ]];then
+#     source @libdir@/build-api.sh
+# fi
 
 manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
 
-if [[ -f ${manjaro_tools_conf} ]]; then
+if [[ -r ${manjaro_tools_conf} ]]; then
     source ${manjaro_tools_conf}
 fi
 
@@ -31,13 +31,43 @@ else
     profiledir='@sysconfdir@/sets'
 fi
 
+create_set(){
+    msg "Creating [${profiledir}/${name}.set] ..."
+    if [[ -f ${profiledir}/${name}.set ]];then
+	msg2 "Backing up ${profiledir}/${name}.set.orig"
+	mv "${profiledir}/${name}.set" "${profiledir}/${name}.set.orig"
+    fi
+    local list=$(find * -maxdepth 0 -type d | sort)
+    for item in ${list[@]};do
+	cd $item
+	if [[ -f PKGBUILD ]];then
+	    msg2 "Adding ${item##*/}"
+	    echo ${item##*/} >> ${profiledir}/${name}.set || break
+	fi
+	cd ..
+    done
+}
+
+remove_set(){
+    msg "Removing [${profiledir}/${name}.set] ..."
+    rm ${profiledir}/${name}.set
+}
+
+show_set(){
+    local list=$(cat ${profiledir}/${name}.set)
+    msg "Content of [${profiledir}/${name}.set] ..."
+    for item in ${list[@]}; do
+	msg2 "$item"
+    done
+}
+
 run(){
     if ${create};then
 	create_set
     elif ${remove};then
 	remove_set
     elif ${display};then
-	display_set
+	show_set
     else
 	msg "Available sets: ${profiles}"
 	exit 1

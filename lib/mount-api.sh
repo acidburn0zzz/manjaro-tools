@@ -159,3 +159,12 @@ dm_name_for_devnode() {
 	  error 'Failed to resolve device mapper name for: %s' "$1"
 	fi
 }
+
+# check_root() {
+#     (( EUID == 0 )) && return
+#     if type -P sudo >/dev/null; then
+# 	exec sudo -- "$@"
+#     else
+# 	exec su root -c "$(printf ' %q' "$@")"
+#     fi
+# }

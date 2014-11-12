@@ -71,7 +71,7 @@ usage() {
 
 orig_argv=("$@")
 
-while getopts 'hcur:I:l:nTD:d:' arg; do
+while getopts 'hcur:I:l:nT' arg; do
 	case "$arg" in
 		c) clean_first=true ;;
 		u) update_first=true ;;
@@ -122,17 +122,6 @@ else
 fi
 
 # {{{ functions
-load_vars() {
-	local makepkg_conf="$1" var
-
-	[[ -f $makepkg_conf ]] || return 1
-
-	for var in {SRC,SRCPKG,PKG,LOG}DEST MAKEFLAGS PACKAGER; do
-		[[ -z ${!var} ]] && eval $(grep "^${var}=" "$makepkg_conf")
-	done
-
-	return 0
-}
 
 create_chroot() {
 	# Lock the chroot we want to use. We'll keep this lock until we exit.

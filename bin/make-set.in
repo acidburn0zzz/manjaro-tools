@@ -15,21 +15,11 @@ if [[ -r @libdir@/messages.sh ]];then
     source @libdir@/messages.sh
 fi
 
-# if [[ -r @libdir@/build-api.sh ]];then
-#     source @libdir@/build-api.sh
-# fi
-
-manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
-
-if [[ -r ${manjaro_tools_conf} ]]; then
-    source ${manjaro_tools_conf}
+if [[ -r @libdir@/util.sh ]];then
+    source @libdir@/util.sh
 fi
 
-if [[ -n ${profiledir} ]];then
-    profiledir=${profiledir}
-else
-    profiledir='@sysconfdir@/sets'
-fi
+load_config '@sysconfdir@'
 
 create_set(){
     msg "Creating [${profiledir}/${name}.set] ..."
@@ -93,6 +83,8 @@ usage() {
     exit 1
 }
 
+orig_argv=("$@")
+
 opts='c:r:d:qh'
 
 while getopts "${opts}" arg; do
@@ -107,8 +99,6 @@ done
 
 shift $(($OPTIND - 1))
 
-if [[ $EUID !=  0 ]]; then
-    die 'This script must be run as root.'
-fi
+check_root "$0" "${orig_argv[@]}"
 
 run $@

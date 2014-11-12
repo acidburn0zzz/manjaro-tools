@@ -11,17 +11,30 @@
 
 version=@version@
 
+shopt -s nullglob
+
 if [[ -r @libdir@/messages.sh ]];then
     source @libdir@/messages.sh
 fi
 
-if [[ -r @libdir@/build-api.sh ]];then
-    source @libdir@/build-api.sh
+if [[ -r @libdir@/util-build.sh ]];then
+    source @libdir@/util-build.sh
 fi
 
 if [[ -r @libdir@/util.sh ]];then
     source @libdir@/util.sh
 fi
+
+pkg_owner=${SUDO_USER:-$USER}
+
+if [[ -n $SUDO_USER ]]; then
+	eval "USER_HOME=~$SUDO_USER"
+else
+	USER_HOME=$HOME
+fi
+
+load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
 
 chroot_build(){
     if ${is_profile};then
@@ -51,7 +64,7 @@ chroot_build(){
 
 chroot_init(){
     if ${clean_first} || [[ ! -d "${chrootdir}" ]]; then
-	msg "Creating chroot for [${repo}] (${arch})..."
+	msg "Creating chroot for [${branch}] (${arch})..."
 
 	for copy in "${chrootdir}"/*; do
 	    [[ -d $copy ]] || continue
@@ -73,6 +86,7 @@ chroot_init(){
 		"${chrootdir}/root" \
 		"${base_packages[*]}" || abort
     else
+	msg "Updating chroot for [${branch}] (${arch})..."
 	lock 9 "${chrootdir}/root.lock" "Locking clean chroot"
 	chroot-run \
 		${mkchroot_args[*]} \
@@ -139,9 +153,9 @@ run(){
 	chroot_build
 	ch_owner "$(dirname ${pkgdir})"
 
-	if ${sign}; then
-	    sign_pkgs
-	fi
+# 	if ${sign}; then
+# 	    sign_pkgs
+# 	fi
     fi
 }
 
@@ -149,39 +163,11 @@ export LC_MESSAGES=C
 
 arch=$(uname -m)
 
-manjaro_tools_conf='@sysconfdir@/manjaro-tools.conf'
-
-if [[ -r ${manjaro_tools_conf} ]]; then
-    source ${manjaro_tools_conf}
-fi
-
-if [[ -n ${profiledir} ]];then
-    profiledir=${profiledir}
-else
-    profiledir='@sysconfdir@/sets'
-fi
-
-if [[ -n ${profile} ]];then
-    profile=${profile}
-else
-    profile='default'
-fi
-
-if [[ -n ${branch} ]];then
-    branch=${branch}
-else
-    branch='stable'
-fi
-
-if [[ -n ${chroots} ]];then
-    chroots=${chroots}
-else
-    chroots='/srv/manjarobuild'
-fi
+load_config '@sysconfdir@'
 
 pacman_conf_arch='default'
 
-# clean_first=false
+clean_first=false
 wipe_clean=false
 namcap=false
 pretend=false

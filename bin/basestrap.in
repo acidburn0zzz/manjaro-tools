@@ -16,8 +16,8 @@ if [[ -r @libdir@/messages.sh ]];then
     source @libdir@/messages.sh
 fi
 
-if [[ -r @libdir@/mount-api.sh ]];then
-    source @libdir@/mount-api.sh
+if [[ -r @libdir@/util-mount.sh ]];then
+    source @libdir@/util-mount.sh
 fi
 
 newroot=/mnt

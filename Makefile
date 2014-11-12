@@ -34,8 +34,8 @@ CONFIGFILES = \
 	conf/pacman-mirrors-unstable.conf
 	
 LIBS = \
-	lib/build-api.sh \
-	lib/mount-api.sh \
+	lib/util-build.sh \
+	lib/util-mount.sh \
 	lib/util.sh \
 	lib/messages.sh
 

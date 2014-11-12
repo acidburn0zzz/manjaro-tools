@@ -149,25 +149,46 @@ check_root() {
     fi
 }
 
-# get_cache_dirs(){
-#     local cache_dirs
-#     if [[ -z ${cache_dir} ]]; then
-# 	cache_dirs=($(pacman -v 2>&1 | grep '^Cache Dirs:' | sed 's/Cache Dirs:\s*//g'))
-#     else
-# 	cache_dirs=("${cache_dir}")
-#     fi
-#     echo ${cache_dirs[@]}
-# }
+load_vars() {
+    local mpkg_conf="$1" var
 
-# copy_hostconf () {
-# 
-#     cp -a /etc/pacman.d/gnupg "$1/etc/pacman.d"
-#     
-#     [[ -n $pac_conf ]] && cp $pac_conf "$1/etc/pacman.conf"
-#     [[ -n $makepkg_conf ]] && cp $makepkg_conf "$1/etc/makepkg.conf"
-#     [[ -n $mirrors_conf ]] && cp ${mirrors_conf} "$1/etc/pacman-mirrors.conf"
-#        
-#     local host_mirror=$(echo "$host_mirror" | sed -E "s#/branch/#/${branch}/#")
-#     echo "Server = $host_mirror" >"$1/etc/pacman.d/mirrorlist"
-#     sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n $(get_cache_dirs))|g" -i "$1/etc/pacman.conf"
-# }
+    [[ -f $mpkg_conf ]] || return 1
+
+    for var in {SRC,SRCPKG,PKG,LOG}DEST MAKEFLAGS PACKAGER; do
+	    [[ -z ${!var} ]] && eval $(grep "^${var}=" "$mpkg_conf")
+    done
+
+    return 0
+}
+
+load_config(){
+    manjaro_tools_conf="$1/manjaro-tools.conf"
+
+    if [[ -r ${manjaro_tools_conf} ]]; then
+	source ${manjaro_tools_conf}
+    fi
+
+    if [[ -n ${profiledir} ]];then
+	profiledir=${profiledir}
+    else
+	profiledir="$1/sets"
+    fi
+
+    if [[ -n ${profile} ]];then
+	profile=${profile}
+    else
+	profile='default'
+    fi
+
+    if [[ -n ${branch} ]];then
+	branch=${branch}
+    else
+	branch='stable'
+    fi
+
+    if [[ -n ${chroots} ]];then
+	chroots=${chroots}
+    else
+	chroots='/srv/manjarobuild'
+    fi
+}

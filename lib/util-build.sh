@@ -9,18 +9,28 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-shopt -s nullglob
+ext='pkg.tar.xz'
 
 ch_owner(){
-    msg "chown -R [$USER:users] [$1]"
-    chown -R "$USER:users" "$1"
+    msg "chown -R [$pkg_owner:users] [$1]"
+    chown -R "$pkg_owner:users" "$1"
 }
 
 sign_pkgs(){
     cd $pkgdir
-    su $USER <<'EOF'
+    su $pkg_owner <<'EOF'
 signpkgs
 EOF
+}
+
+move_pkg(){
+    msg2 "Moving [$1] to [${pkgdir}]"
+    local 
+    if [[ -n $PKGDEST ]];then
+	mv $PKGDEST/*{any,$arch}.${ext} ${pkgdir}/
+    else
+	mv *.${ext} ${pkgdir}/
+    fi
 }
 
 get_profiles(){
@@ -43,7 +53,8 @@ clean_dir(){
     rm -r $1/*
 }
 
-git_clean(){
+clean_src(){
+    if [[ -n 
     msg2 "Cleaning $(pwd) ..."
     git clean -dfx$1
 }
@@ -64,14 +75,3 @@ blacklist_pkg(){
 	msg2 "Blacklisted [${blacklist[@]}] not present."
     fi
 }
-
-move_pkg(){
-    msg2 "Moving [$1] to [${pkgdir}]"
-    local ext='pkg.tar.xz'
-    mv *.${ext} ${pkgdir}/
-}
-
-# get_branch(){
-#     local branch=${mirrors_conf##*-}
-#     echo ${branch%.*}
-# }

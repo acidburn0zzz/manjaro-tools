@@ -385,8 +385,8 @@ prepare_chroot
 
 download_sources
 
-if chroot-run -p "$PWD:/startdir_host" \
-	      -s "$SRCDEST:/srcdest_host" \
+if chroot-run -p "$PKGDEST" \
+	      -s "$SRCDEST" \
 	      "$copydir" \
 	      /chrootbuild; then
 	move_products

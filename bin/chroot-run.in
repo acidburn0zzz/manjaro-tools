@@ -112,15 +112,15 @@ elif [[ $(cat "$working_dir/.manjaro-chroot") != $version ]]; then
 fi
 
 api_fs_mount "${working_dir}"
-track_mount /etc/resolv.conf "${working_dir}/etc/resolv.conf" -Br
-track_mount ${cache_dirs[0]} "${working_dir}/${cache_dirs[0]}" -Br
+track_mount /etc/resolv.conf "${working_dir}/etc/resolv.conf" -B
+track_mount ${cache_dirs[0]} "${working_dir}/${cache_dirs[0]}" -B
 
 if [[ -n $pkgdest ]]; then
-    track_mount $pkgdest "${working_dir}/$pkgdest" -Br
+    track_mount $pkgdest "${working_dir}/startdir_host" -B
 fi
 
 if [[ -n $pkgsrc ]]; then
-    track_mount $pkgsrc "${working_dir}/$pkgsrc" -Br
+    track_mount $pkgsrc "${working_dir}/srcdest_host" -B
 fi 
 
 copy_hostconf

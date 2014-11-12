@@ -48,7 +48,7 @@ while getopts 'hC:M:S:c:p:s:' arg; do
 		S) mirrors_conf="$OPTARG" ;;
 		c) cache_dir="$OPTARG" ;;
 		p) pkgdest="$OPTARG" ;;
-		s) pkgsrc="$OPTARG" ;;
+		s) srcdest="$OPTARG" ;;
 		h|?) usage ;;
 		*) error "invalid argument '$arg'"; usage ;;
 	esac
@@ -72,21 +72,6 @@ fi
 host_mirror=$(pacman -Sddp extra/devtools 2>/dev/null | sed -E "s#(.*/)(.*/)extra/.*#\1branch/\$repo/\$arch#")
 [[ $host_mirror == *file://* ]] && host_mirror_path=$(echo "$host_mirror" | sed -r 's#file://(/.*)/\$repo/os/\$arch#\1#g')
 
-# {{{ functions
-build_mount_args() {
-	declare -g mount_args=()
-
-	if [[ -n $host_mirror_path ]]; then
-		mount_args+=(--bind-ro="$host_mirror_path")
-	fi
-
-	mount_args+=(--bind="${cache_dirs[0]}")
-
-	for cache_dir in ${cache_dirs[@]:1}; do
-		mount_args+=(--bind-ro="$cache_dir")
-	done
-}
-
 copy_hostconf () {
 	cp -a /etc/pacman.d/gnupg "$working_dir/etc/pacman.d"
 
@@ -100,7 +85,6 @@ copy_hostconf () {
 	
 	sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n ${cache_dirs[@]})|g" -i "$working_dir/etc/pacman.conf"
 }
-# }}}
 
 umask 0022
 
@@ -119,12 +103,12 @@ if [[ -n $pkgdest ]]; then
     track_mount $pkgdest "${working_dir}/startdir_host" -B
 fi
 
-if [[ -n $pkgsrc ]]; then
-    track_mount $pkgsrc "${working_dir}/srcdest_host" -B
+if [[ -n $srcdest ]]; then
+    track_mount $srcdest "${working_dir}/srcdest_host" -B
 fi 
 
 copy_hostconf
 
 eval $(grep '^CARCH=' "$working_dir/etc/makepkg.conf")
 
-exec ${CARCH:+setarch "$CARCH"} chroot "${working_dir}" "$@"
+${CARCH:+setarch "$CARCH"} chroot "${working_dir}" "$@"

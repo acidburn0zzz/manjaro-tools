@@ -54,53 +54,44 @@ git_clean(){
 
 ####chroot controller######
 
-chroot_clean(){
-    for copy in "${chrootdir}"/*; do
-	[[ -d "${copy}" ]] || continue
-	msg2 "Deleting chroot copy '$(basename "${copy}")'..."
-
-	exec 9>"${copy}.lock"
-	if ! flock -n 9; then
-	    stat_busy "Locking chroot copy '${copy}'"
-	    flock 9
-	    stat_done
-	fi
-
-	if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
-	    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
-	fi
-	rm -rf --one-file-system "${copy}"
-    done
-    exec 9>&-
-
-    rm -rf --one-file-system "${chrootdir}"
-}
-
-chroot_create(){
-    mkdir -p "${chrootdir}"
-    setarch "${arch}" \
-	mkchroot ${mkchroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
-}
-
-
-# chroot_update(){
-#     setarch "${arch}" \
-# 	mkchroot ${mkchroot_args[*]} -u ${chrootdir}/$(get_user) || abort
+# chroot_clean(){
+#     for copy in "${chrootdir}"/*; do
+# 	[[ -d "${copy}" ]] || continue
+# 	msg2 "Deleting chroot copy '$(basename "${copy}")'..."
+# 
+# 	exec 9>"${copy}.lock"
+# 	if ! flock -n 9; then
+# 	    stat_busy "Locking chroot copy '${copy}'"
+# 	    flock 9
+# 	    stat_done
+# 	fi
+# 
+# 	if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
+# 	    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
+# 	fi
+# 	rm -rf --one-file-system "${copy}"
+#     done
+#     exec 9>&-
+# 
+#     rm -rf --one-file-system "${chrootdir}"
 # }
-
-chroot_init(){
-      if [[ ! -d "${chrootdir}" ]]; then
-	  msg "Creating chroot for [${branch}] (${arch})..."
-	  chroot_create
-      else ${clean_first};then
-	  msg "Creating chroot for [${branch}] (${arch})..."
-	  chroot_clean
-	  chroot_create
+# 
+# chroot_create(){
+#     mkdir -p "${chrootdir}"
+#     setarch "${arch}" \
+# 	mkchroot ${mkchroot_args[*]} ${chrootdir}/root ${base_packages[*]} || abort
+# }
+# 
+# chroot_init(){
+#       if [[ -e ${chrootdir} ]]; then
+# 	  msg "Creating chroot for [${branch}] (${arch})..."
+# 	  chroot_clean
+# 	  chroot_create
 #       else
-# 	  msg "Updating chroot for [${branch}] (${arch})..."
-# 	  chroot_update
-      fi
-}
+# 	  msg "Creating chroot for [${branch}] (${arch})..."
+# 	  chroot_create
+#       fi
+# }
 
 chroot_build(){
     if ${is_profile};then
@@ -130,7 +121,6 @@ chroot_build(){
 
 ####end chroot controller######
 
-
 eval_profile(){
     eval "case ${profile} in
 	    $(get_profiles)) is_profile=true ;;
@@ -142,56 +132,19 @@ blacklist_pkg(){
     local blacklist=('libsystemd') cmd=$(pacman -Q ${blacklist[@]} -r ${chrootdir}/root 2> /dev/null)
     if [[ -n $cmd ]] ; then
 	msg2 "Removing blacklisted [${blacklist[@]}] ..."
-	pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/root --noconfirm
+	setarch "${arch}" pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/root --noconfirm
     else
 	msg2 "Blacklisted [${blacklist[@]}] not present."
     fi
 }
 
-install_pkg(){
-    msg2 "Installing built package ..."
-    setarch "${arch}" pacman -U *pkg*z -r ${chrootdir}/$(get_user) --noconfirm
-}
+# install_pkg(){
+#     msg2 "Installing built package ..."
+#     setarch "${arch}" pacman -U *pkg*z -r ${chrootdir}/$(get_user) --noconfirm
+# }
 
 move_pkg(){
     msg2 "Moving [$1] to [${pkgdir}]"
     local ext='pkg.tar.xz'
     mv *.${ext} ${pkgdir}/
-}
-
-display_settings(){
-    msg "manjaro-tools version: ${version}"
-
-    msg "OPTARGS:"
-    msg2 "arch: ${arch}"
-    msg2 "branch: ${branch}"
-    msg2 "chroots: ${chroots}"
-
-    msg "PATHS:"
-    msg2 "chrootdir: ${chrootdir}"
-    msg2 "profiledir: ${profiledir}"
-    msg2 "pkgdir: ${pkgdir}"
-    msg2 "pacman_conf: ${pacman_conf}"
-    msg2 "makepkg_conf: ${makepkg_conf}"
-
-    if ${clean_first};then
-	msg "PKG:"
-	msg2 "base_packages: ${base_packages[*]}"
-    fi
-
-    msg "SETS:"
-    msg2 "profiles: $(get_profiles)"
-    msg2 "profile: ${profile}"
-    msg2 "is_profile: ${is_profile}"
-
-    if ${is_profile};then
-	msg "These packages will be built:"
-	local list=$(cat ${profiledir}/${profile}.set)
-	for item in ${list[@]}; do
-	    msg2 "$item"
-	done
-    else
-	msg "This package will be built:"
-	msg2 "${profile}"
-    fi
 }

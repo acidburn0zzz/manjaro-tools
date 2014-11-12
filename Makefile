@@ -1,4 +1,4 @@
-V=0.9.1
+V=0.9.2
 
 PREFIX = /usr/local
 
@@ -15,7 +15,8 @@ BINPROGS = \
 	bin/basestrap \
 	bin/manjaro-chroot \
 	bin/fstabgen \
-	bin/make-set
+	bin/make-set \
+	bin/chroot-run
 
 SYSCONFIGFILES = \
 	conf/manjaro-tools.conf
@@ -64,10 +65,10 @@ install:
 	install -m0644 ${CONFIGFILES} $(DESTDIR)$(PREFIX)/share/manjaro-tools
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 	install -m0644 ${LIBS} $(DESTDIR)$(PREFIX)/lib/manjaro-tools
-	# compat symlinks
+	# compat symlink for manjaroiso
 	ln -sf basestrap $(DESTDIR)$(PREFIX)/bin/pacstrap
-	ln -sf fstabgen $(DESTDIR)$(PREFIX)/bin/genfstab
-	ln -sf manjaro-chroot $(DESTDIR)$(PREFIX)/bin/arch-chroot
+	#ln -sf fstabgen $(DESTDIR)$(PREFIX)/bin/genfstab
+	#ln -sf manjaro-chroot $(DESTDIR)$(PREFIX)/bin/arch-chroot
 
 uninstall:
 	for f in ${SYSCONFIGFILES}; do rm -f $(DESTDIR)$(SYSCONFDIR)/manjaro-tools/$$f; done
@@ -76,10 +77,10 @@ uninstall:
 	for f in ${CONFIGFILES}; do rm -f $(DESTDIR)$(PREFIX)/share/manjaro-tools/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
 	for f in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)/lib/manjaro-tools/$$f; done
-	# compat symlinks
+	# compat symlink for manjaroiso
 	rm -f $(DESTDIR)$(PREFIX)/bin/pacstrap
-	rm -f $(DESTDIR)$(PREFIX)/bin/genfstab
-	rm -f $(DESTDIR)$(PREFIX)/bin/arch-chroot
+	#rm -f $(DESTDIR)$(PREFIX)/bin/genfstab
+	#rm -f $(DESTDIR)$(PREFIX)/bin/arch-chroot
 
 dist:
 	git archive --format=tar --prefix=manjaro-tools-$(V)/ $(V) | gzip -9 > manjaro-tools-$(V).tar.gz

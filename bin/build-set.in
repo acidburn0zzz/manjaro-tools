@@ -19,6 +19,44 @@ if [[ -r @libdir@/build-api.sh ]];then
     source @libdir@/build-api.sh
 fi
 
+display_settings(){
+    msg "manjaro-tools version: ${version}"
+
+    msg "OPTARGS:"
+    msg2 "arch: ${arch}"
+    msg2 "branch: ${branch}"
+    msg2 "chroots: ${chroots}"
+
+    msg "PATHS:"
+    msg2 "chrootdir: ${chrootdir}"
+    msg2 "profiledir: ${profiledir}"
+    msg2 "pkgdir: ${pkgdir}"
+    msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "makepkg_conf: ${makepkg_conf}"
+    msg2 "pm_conf: ${pm_conf}"
+
+    if ${clean_first};then
+	msg "PKG:"
+	msg2 "base_packages: ${base_packages[*]}"
+    fi
+
+    msg "SETS:"
+    msg2 "profiles: $(get_profiles)"
+    msg2 "profile: ${profile}"
+    msg2 "is_profile: ${is_profile}"
+
+    if ${is_profile};then
+	msg "These packages will be built:"
+	local list=$(cat ${profiledir}/${profile}.set)
+	for item in ${list[@]}; do
+	    msg2 "$item"
+	done
+    else
+	msg "This package will be built:"
+	msg2 "${profile}"
+    fi
+}
+
 run(){
     eval_profile
     if ${pretend}; then
@@ -34,10 +72,10 @@ run(){
 	    clean_dir "${pkgdir}"
 	fi
 	display_settings
-	chroot_init
+	#chroot_init
 	prepare_dir "${pkgdir}"
-	chroot_build
-	ch_owner "$(dirname ${pkgdir})"
+	#chroot_build
+	#ch_owner "$(dirname ${pkgdir})"
 
 	if ${sign}; then
 	    sign_pkgs
@@ -81,7 +119,7 @@ fi
 
 pacman_conf_arch='default'
 
-clean_first=false
+# clean_first=false
 wipe_clean=false
 namcap=false
 pretend=false
@@ -100,7 +138,7 @@ usage() {
     echo "    -a <arch>          Set arch  [default: ${arch}]"
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots}]"
-    echo '    -c                 Clean chroot'
+#     echo '    -c                 Clean chroot'
     echo '    -w                 Wipe clean pkgbuild and pkg directory'
     echo '    -n                 Run namcap check'
     echo '    -s                 Sign packages'
@@ -119,7 +157,7 @@ while getopts "${opts}" arg; do
 	a) arch="$OPTARG" ;;
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;
-	c) clean_first=true ;;
+# 	c) clean_first=true ;;
 	w) wipe_clean=true ;;
 	n) namcap=true; mkchrootpkg_args+=(-n) ;;
 	s) sign=true ;;
@@ -139,6 +177,7 @@ fi
 
 pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
+pm_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
 
 if [[ -n ${pkgdir} ]];then
     pkgdir="${pkgdir}/${branch}/${arch}"
@@ -146,7 +185,7 @@ else
     pkgdir="/var/cache/manjaro-tools/pkg/${branch}/${arch}"
 fi
 
-mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -b ${branch})
+mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${pm_conf})
 
 mkchrootpkg_args+=(-b ${branch} -r ${chrootdir})
 

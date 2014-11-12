@@ -139,3 +139,35 @@ pkgver_equal() {
 		[[ ${1%%-*} = "${2%%-*}" ]]
 	fi
 }
+
+check_root() {
+    (( EUID == 0 )) && return
+    if type -P sudo >/dev/null; then
+	exec sudo -- "$@"
+    else
+	exec su root -c "$(printf ' %q' "$@")"
+    fi
+}
+
+get_cache_dirs(){
+    local cache_dirs
+    if [[ -z ${cache_dir} ]]; then
+	cache_dirs=($(pacman -v 2>&1 | grep '^Cache Dirs:' | sed 's/Cache Dirs:\s*//g'))
+    else
+	cache_dirs=("${cache_dir}")
+    fi
+    echo ${cache_dirs[@]}
+}
+
+copy_hostconf () {
+
+    cp -a /etc/pacman.d/gnupg "$1/etc/pacman.d"
+    
+    [[ -n $pac_conf ]] && cp $pac_conf "$1/etc/pacman.conf"
+    [[ -n $makepkg_conf ]] && cp $makepkg_conf "$1/etc/makepkg.conf"
+    [[ -n $mirrors_conf ]] && cp ${mirrors_conf} "$1/etc/pacman-mirrors.conf"
+       
+    local host_mirror=$(echo "$host_mirror" | sed -E "s#/branch/#/${branch}/#")
+    echo "Server = $host_mirror" >"$1/etc/pacman.d/mirrorlist"
+    sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n $(get_cache_dirs))|g" -i "$1/etc/pacman.conf"
+}

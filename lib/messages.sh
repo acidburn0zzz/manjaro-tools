@@ -96,5 +96,23 @@ die() {
 	cleanup 255
 }
 
+lock() {
+	eval "exec $1>"'"$2"'
+	if ! flock -n $1; then
+		stat_busy "$3"
+		flock $1
+		stat_done
+	fi
+}
+
+slock() {
+	eval "exec $1>"'"$2"'
+	if ! flock -sn $1; then
+		stat_busy "$3"
+		flock -s $1
+		stat_done
+	fi
+}
+
 trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT

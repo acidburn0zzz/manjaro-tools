@@ -18,8 +18,8 @@ if [[ -r @libdir@/mount-api.sh ]];then
     source @libdir@/mount-api.sh
 fi
 
-if [[ -r @libdir@/utils.sh ]];then
-    source @libdir@/utils.sh
+if [[ -r @libdir@/util.sh ]];then
+    source @libdir@/util.sh
 fi
 
 working_dir=''

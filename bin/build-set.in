@@ -19,8 +19,8 @@ if [[ -r @libdir@/build-api.sh ]];then
     source @libdir@/build-api.sh
 fi
 
-if [[ -r @libdir@/utils.sh ]];then
-    source @libdir@/utils.sh
+if [[ -r @libdir@/util.sh ]];then
+    source @libdir@/util.sh
 fi
 
 chroot_build(){

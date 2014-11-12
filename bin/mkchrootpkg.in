@@ -385,7 +385,7 @@ prepare_chroot
 
 download_sources
 
-if chroot-run -p "$PKGDEST" \
+if chroot-run -p "$PWD" \
 	      -s "$SRCDEST" \
 	      "$copydir" \
 	      /chrootbuild; then

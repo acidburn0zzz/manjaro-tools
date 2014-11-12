@@ -19,6 +19,68 @@ if [[ -r @libdir@/build-api.sh ]];then
     source @libdir@/build-api.sh
 fi
 
+if [[ -r @libdir@/utils.sh ]];then
+    source @libdir@/utils.sh
+fi
+
+chroot_build(){
+    if ${is_profile};then
+	msg "Start building profile: [${profile}]"
+	for pkg in $(cat ${profiledir}/${profile}.set); do
+	    cd $pkg
+	    if [[ $pkg == 'eudev' ]] || [[ $pkg == 'lib32-eudev' ]]; then
+		blacklist_pkg
+	    fi
+	    setarch "${arch}" \
+		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
+	    move_pkg "${pkg}"
+	    cd ..
+	done
+	msg "Finished building profile: [${profile}]"
+    else
+	cd ${profile}
+	if [[ ${profile} == 'eudev' ]] || [[ ${profile} == 'lib32-eudev' ]]; then
+	    blacklist_pkg
+	fi
+	setarch "${arch}" \
+	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
+	move_pkg "${profile}"
+	cd ..
+    fi
+}
+
+chroot_init(){
+    if ${clean_first} || [[ ! -d "${chrootdir}" ]]; then
+	msg "Creating chroot for [${repo}] (${arch})..."
+
+	for copy in "${chrootdir}"/*; do
+	    [[ -d $copy ]] || continue
+	    msg2 "Deleting chroot copy '$(basename "${copy}")'..."
+
+	    lock 9 "$copy.lock" "Locking chroot copy '$copy'"
+
+	    if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
+		    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
+	    fi
+	    rm -rf --one-file-system "${copy}"
+	done
+	exec 9>&-
+
+	rm -rf --one-file-system "${chrootdir}"
+	mkdir -p "${chrootdir}"
+	setarch "${arch}" mkchroot \
+		${mkchroot_args[*]} \
+		"${chrootdir}/root" \
+		"${base_packages[*]}" || abort
+    else
+	lock 9 "${chrootdir}/root.lock" "Locking clean chroot"
+	chroot-run \
+		${mkchroot_args[*]} \
+		"${chrootdir}/root" \
+		pacman -Syu --noconfirm || abort
+    fi
+}
+
 display_settings(){
     msg "manjaro-tools version: ${version}"
 
@@ -72,10 +134,10 @@ run(){
 	    clean_dir "${pkgdir}"
 	fi
 	display_settings
-	#chroot_init
+	chroot_init
 	prepare_dir "${pkgdir}"
-	#chroot_build
-	#ch_owner "$(dirname ${pkgdir})"
+	chroot_build
+	ch_owner "$(dirname ${pkgdir})"
 
 	if ${sign}; then
 	    sign_pkgs
@@ -138,7 +200,7 @@ usage() {
     echo "    -a <arch>          Set arch  [default: ${arch}]"
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots}]"
-#     echo '    -c                 Clean chroot'
+    echo '    -c                 Clean chroot'
     echo '    -w                 Wipe clean pkgbuild and pkg directory'
     echo '    -n                 Run namcap check'
     echo '    -s                 Sign packages'
@@ -149,6 +211,8 @@ usage() {
     exit 1
 }
 
+orig_argv=("$@")
+
 opts='p:a:b:r:cwnsqh'
 
 while getopts "${opts}" arg; do
@@ -157,7 +221,7 @@ while getopts "${opts}" arg; do
 	a) arch="$OPTARG" ;;
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;
-# 	c) clean_first=true ;;
+	c) clean_first=true ;;
 	w) wipe_clean=true ;;
 	n) namcap=true; mkchrootpkg_args+=(-n) ;;
 	s) sign=true ;;
@@ -187,12 +251,10 @@ fi
 
 mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${pm_conf})
 
-mkchrootpkg_args+=(-b ${branch} -r ${chrootdir})
+mkchrootpkg_args+=(-r ${chrootdir})
 
-makepkg_args+=("${*:$OPTIND}")
+makepkg_args+=("${@:$OPTIND}")
 
-if [[ $EUID !=  0 ]]; then
-    die 'This script must be run as root.'
-fi
+check_root "$0" "${orig_argv[@]}"
 
 run $@

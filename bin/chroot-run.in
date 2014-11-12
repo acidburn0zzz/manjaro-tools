@@ -18,6 +18,10 @@ if [[ -r @libdir@/mount-api.sh ]];then
     source @libdir@/mount-api.sh
 fi
 
+if [[ -r @libdir@/utils.sh ]];then
+    source @libdir@/utils.sh
+fi
+
 working_dir=''
 
 usage() {
@@ -37,7 +41,7 @@ usage() {
 
 orig_argv=("$@")
 
-while getopts 'hC:M:S:c:' arg; do
+while getopts 'hC:M:S:c:p:s:' arg; do
 	case "$arg" in
 		C) pac_conf="$OPTARG" ;;
 		M) makepkg_conf="$OPTARG" ;;
@@ -90,7 +94,7 @@ copy_hostconf () {
 	[[ -n $makepkg_conf ]] && cp $makepkg_conf "$working_dir/etc/makepkg.conf"
 	[[ -n $mirrors_conf ]] && cp ${mirrors_conf} "${working_dir}/etc/pacman-mirrors.conf"
 
-	branch=$(cat "${working_dir}/etc/pacman-mirrors.conf" | grep '^Branch=' | sed 's/Branch=\s*//g')
+	local branch=$(cat "${working_dir}/etc/pacman-mirrors.conf" | grep '^Branch=' | sed 's/Branch=\s*//g')
 	host_mirror=$(echo "$host_mirror" | sed -E "s#/branch/#/${branch}/#")
 	echo "Server = $host_mirror" >"$working_dir/etc/pacman.d/mirrorlist"
 	
@@ -113,7 +117,7 @@ track_mount ${cache_dirs[0]} "${working_dir}/${cache_dirs[0]}" -Br
 
 if [[ -n $pkgdest ]]; then
     track_mount $pkgdest "${working_dir}/$pkgdest" -Br
-fi 
+fi
 
 if [[ -n $pkgsrc ]]; then
     track_mount $pkgsrc "${working_dir}/$pkgsrc" -Br
@@ -123,12 +127,4 @@ copy_hostconf
 
 eval $(grep '^CARCH=' "$working_dir/etc/makepkg.conf")
 
-
-
 exec ${CARCH:+setarch "$CARCH"} chroot "${working_dir}" "$@"
-
-# exec ${CARCH:+setarch "$CARCH"} systemd-nspawn 2>/dev/null \
-# 	-D "$working_dir" \
-# 	--register=no \
-# 	"${mount_args[@]}" \
-# 	"$@"

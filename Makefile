@@ -28,8 +28,11 @@ CONFIGFILES = \
 	conf/makepkg-i686.conf \
 	conf/makepkg-x86_64.conf \
 	conf/pacman-default.conf \
-	conf/pacman-mirrors.conf \
-	conf/pacman-multilib.conf
+	conf/pacman-multilib.conf \
+	conf/pacman-mirrors-stable.conf \
+	conf/pacman-mirrors-testing.conf \
+	conf/pacman-mirrors-unstable.conf
+	
 LIBS = \
 	lib/build-api.sh \
 	lib/mount-api.sh \

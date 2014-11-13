@@ -164,9 +164,7 @@ load_vars() {
 load_config(){
     manjaro_tools_conf="$1/manjaro-tools.conf"
 
-    if [[ -r ${manjaro_tools_conf} ]]; then
-	source ${manjaro_tools_conf}
-    fi
+    [[ -r ${manjaro_tools_conf} ]] && source ${manjaro_tools_conf}
 
     if [[ -n ${profiledir} ]];then
 	profiledir=${profiledir}

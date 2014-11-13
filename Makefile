@@ -73,8 +73,8 @@ install:
 	#ln -sf fstabgen $(DESTDIR)$(PREFIX)/bin/genfstab
 	#ln -sf manjaro-chroot $(DESTDIR)$(PREFIX)/bin/arch-chroot
 	
-	install -Dm0644 bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro-tools
-	install -Dm0644 zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
+	install -Dm0644 bin/bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro-tools
+	install -Dm0644 bin/zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
 
 uninstall:
 	for f in ${SYSCONFIGFILES}; do rm -f $(DESTDIR)$(SYSCONFDIR)/manjaro-tools/$$f; done

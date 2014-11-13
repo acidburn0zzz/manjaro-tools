@@ -12,7 +12,7 @@ makedepends=('git')
 provides=('devtools' 'arch-install-scripts' 'manjaro-tools')
 conflicts=('devtools' 'arch-install-scripts' 'manjaro-tools')
 backup=('etc/manjaro-tools/manjaro-tools.conf')
-source=("git+$url.git#branch=devel")
+source=("git+$url.git")
 sha256sums=('SKIP')
 
 pkgver() {

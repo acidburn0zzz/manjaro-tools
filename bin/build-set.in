@@ -166,8 +166,8 @@ usage() {
     echo "    -a <arch>          Set arch  [default: ${arch}]"
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots}]"
-    echo '    -c                 Clean up and recreate chroot'
-    echo '    -w                 Wipe clean pkgbuild and pkg directory'
+    echo '    -c                 Recreate chroot'
+    echo '    -w                 Clean up'
     echo '    -n                 Run namcap check'
     echo '    -s                 Sign packages'
     echo '    -q                 Query settings and pretend build'

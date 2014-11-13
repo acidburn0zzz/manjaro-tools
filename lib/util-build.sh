@@ -52,17 +52,30 @@ clean_up(){
     msg "Cleaning up ..."
     if [[ -n $LOGDEST ]];then
 	msg2 "Cleaning logs $LOGDEST ..."
-	rm $LOGDEST/*.log
+	rm -r $LOGDEST/*.log
     else
 	msg2 "Cleaning logs $(pwd) ..."
-	rm $(pwd)/*.log
+	rm -r $(pwd)/*.log
     fi
     msg2 "Cleaning ${pkgdir} ..."
-    rm ${pkgdir}/*.$ext
+    rm -r ${pkgdir}/*.pkg.tar.xz{,.sig}
+    if [[ -n $SRCDEST ]];then
+	msg2 "Cleaning src files $SRCDEST ..."
+	rm -r $SRCDEST/*.?z
+    else
+	msg2 "Cleaning src files $(pwd) ..."
+	rm -r $(pwd)/*.?z
+    fi
+    if [[ -z $BUILDDIR ]];then
+	msg2 "Cleaning src $(pwd) ..."
+	rm -r $(pwd)/src
+	msg2 "Cleaning pkg $(pwd) ..."
+	rm -r $(pwd)/pkg
+    fi
 }
 
 eval_profile(){
-    eval "case ${profile} in
+    eval "case $1 in
 	    $(get_profiles)) is_profile=true ;;
 	    *) is_profile=false ;;
 	esac"

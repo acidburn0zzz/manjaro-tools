@@ -9,23 +9,21 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-ext='pkg.tar.xz'
-
 ch_owner(){
-    msg "chown -R [$pkg_owner:users] [$1]"
-    chown -R "$pkg_owner:users" "$1"
+    #msg "Changing owner [$1:users] [$2]"
+    chown -R "$1:users" "$2"
 }
 
 sign_pkgs(){
     cd $pkgdir
-    su $pkg_owner <<'EOF'
+    su $1 <<'EOF'
 signpkgs
 EOF
 }
 
 move_pkg(){
-    msg2 "Moving [$1] to [${pkgdir}]"
-    local 
+    #msg2 "Moving [$1] to [${pkgdir}]"
+    local ext='pkg.tar.xz'
     if [[ -n $PKGDEST ]];then
 	mv $PKGDEST/*{any,$arch}.${ext} ${pkgdir}/
     else
@@ -50,27 +48,21 @@ prepare_dir(){
 
 clean_up(){
     msg "Cleaning up ..."
-    if [[ -n $LOGDEST ]];then
-	msg2 "Cleaning logs $LOGDEST ..."
-	rm -r $LOGDEST/*.log
-    else
-	msg2 "Cleaning logs $(pwd) ..."
-	rm -r $(pwd)/*.log
+    local query=$(find ${pkgdir} -maxdepth 1 -name "*.*")
+    if [[ -n $query ]];then
+	rm -v $query
     fi
-    msg2 "Cleaning ${pkgdir} ..."
-    rm -r ${pkgdir}/*.pkg.tar.xz{,.sig}
-    if [[ -n $SRCDEST ]];then
-	msg2 "Cleaning src files $SRCDEST ..."
-	rm -r $SRCDEST/*.?z
-    else
-	msg2 "Cleaning src files $(pwd) ..."
-	rm -r $(pwd)/*.?z
+    if [[ -z $LOGDEST ]];then
+	query=$(find $(pwd) -maxdepth 2 -name '*.log')
+	if [[ -n $query ]];then
+	  rm -v $query
+	fi
     fi
-    if [[ -z $BUILDDIR ]];then
-	msg2 "Cleaning src $(pwd) ..."
-	rm -r $(pwd)/src
-	msg2 "Cleaning pkg $(pwd) ..."
-	rm -r $(pwd)/pkg
+    if [[ -z $SRCDEST ]];then
+	query=$(find $(pwd) -maxdepth 2 -name '*.?z?')
+	if [[ -n $query ]];then
+	    rm -v $query
+	fi
     fi
 }
 
@@ -94,10 +86,10 @@ blacklist_pkg(){
 
 chroot_clean(){
     for copy in "$1"/*; do
-	[[ -d $copy ]] || continue
+	[[ -d ${copy} ]] || continue
 	msg2 "Deleting chroot copy '$(basename "${copy}")'..."
 
-	lock 9 "$copy.lock" "Locking chroot copy '$copy'"
+	lock 9 "${copy}.lock" "Locking chroot copy '${copy}'"
 
 	if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
 	    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null

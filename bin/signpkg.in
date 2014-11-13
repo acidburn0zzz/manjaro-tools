@@ -14,7 +14,8 @@ if [[ -r @libdir@/messages.sh ]];then
     source @libdir@/messages.sh
 fi
 
-. /etc/makepkg.conf
+load_vars "$HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
 
 if [ ! -e "$1" ]; then
 	error "Package '$1' does not exists!"

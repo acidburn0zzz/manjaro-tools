@@ -154,7 +154,7 @@ load_vars() {
 
     [[ -f $mpkg_conf ]] || return 1
 
-    for var in {SRC,SRCPKG,PKG,LOG}DEST MAKEFLAGS PACKAGER BUILDDIR; do
+    for var in {SRC,SRCPKG,PKG,LOG}DEST MAKEFLAGS PACKAGER CARCH GPGKEY; do
 	    [[ -z ${!var} ]] && eval $(grep "^${var}=" "$mpkg_conf")
     done
 

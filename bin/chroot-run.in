@@ -14,12 +14,12 @@ if [[ -r @libdir@/messages.sh ]];then
     source @libdir@/messages.sh
 fi
 
-if [[ -r @libdir@/util-mount.sh ]];then
-    source @libdir@/util-mount.sh
-fi
-
 if [[ -r @libdir@/util.sh ]];then
     source @libdir@/util.sh
+fi
+
+if [[ -r @libdir@/util-mount.sh ]];then
+    source @libdir@/util-mount.sh
 fi
 
 working_dir=''

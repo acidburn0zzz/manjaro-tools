@@ -17,12 +17,12 @@ if [[ -r @libdir@/messages.sh ]];then
     source @libdir@/messages.sh
 fi
 
-if [[ -r @libdir@/util-build.sh ]];then
-    source @libdir@/util-build.sh
-fi
-
 if [[ -r @libdir@/util.sh ]];then
     source @libdir@/util.sh
+fi
+
+if [[ -r @libdir@/util-build.sh ]];then
+    source @libdir@/util-build.sh
 fi
 
 pkg_owner=${SUDO_USER:-$USER}
@@ -139,10 +139,10 @@ run(){
 	chroot_init
 	prepare_dir "${pkgdir}"
 	chroot_build
-	ch_owner "$(dirname ${pkgdir})"
+	ch_owner "${pkg_owner}" "$(dirname ${pkgdir})"
 
 	if ${sign}; then
-	    sign_pkgs
+	    sign_pkgs "${pkg_owner}"
 	fi
     fi
 }

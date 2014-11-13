@@ -34,10 +34,10 @@ CONFIGFILES = \
 	conf/pacman-mirrors-unstable.conf
 	
 LIBS = \
-	lib/util-build.sh \
-	lib/util-mount.sh \
 	lib/util.sh \
-	lib/messages.sh
+	lib/util-mount.sh \
+	lib/util-build.sh \
+	lib/util-msg.sh
 
 all: $(BINPROGS)
 

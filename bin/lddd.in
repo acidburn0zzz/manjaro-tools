@@ -10,8 +10,8 @@
 
 version=@version@
 
-if [[ -r @libdir@/messages.sh ]];then
-    source @libdir@/messages.sh
+if [[ -r @libdir@/util-msg.sh ]];then
+    source @libdir@/util-msg.sh
 fi
 
 ifs=$IFS

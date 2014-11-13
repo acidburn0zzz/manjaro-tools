@@ -3,8 +3,13 @@
 m4_include(lib/valid-tags.sh)
 
 _build_set_args=(
-	'-c[Recreate the chroot before building]'
-	'-r[Create chroots in this directory]:base_dir:_files -/'
+	'-c[Recreate chroot]'
+	'-r[Chroots directory]:base_dir:_files -/'
+	'-b[Set branch]:branch:_branch -/'
+	'-a[Set arch]:arch:_arch -/'
+	'-p[Set profile or pkg]:base_dir:_files -/'
+	'-w[Clean up]'
+	'-s[Sign packages]'
 )
 
 _chroot_run_args=(

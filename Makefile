@@ -39,7 +39,7 @@ LIBS = \
 	lib/util-build.sh \
 	lib/util-msg.sh
 
-all: $(BINPROGS)
+all: $(BINPROGS) bin/bash_completion bin/zsh_completion
 
 edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/manjaro-tools|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/manjaro-tools|g" \
@@ -54,7 +54,7 @@ edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/manjaro-tools|g" \
 	@chmod +x "$@"
 
 clean:
-	rm -f $(BINPROGS)
+	rm -f $(BINPROGS) bin/bash_completion bin/zsh_completion
 
 install:
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/manjaro-tools
@@ -72,6 +72,9 @@ install:
 	ln -sf basestrap $(DESTDIR)$(PREFIX)/bin/pacstrap
 	#ln -sf fstabgen $(DESTDIR)$(PREFIX)/bin/genfstab
 	#ln -sf manjaro-chroot $(DESTDIR)$(PREFIX)/bin/arch-chroot
+	
+	install -Dm0644 bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro-tools
+	install -Dm0644 zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
 
 uninstall:
 	for f in ${SYSCONFIGFILES}; do rm -f $(DESTDIR)$(SYSCONFDIR)/manjaro-tools/$$f; done
@@ -84,6 +87,9 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/pacstrap
 	#rm -f $(DESTDIR)$(PREFIX)/bin/genfstab
 	#rm -f $(DESTDIR)$(PREFIX)/bin/arch-chroot
+	
+	rm $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro-tools
+	rm $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
 
 dist:
 	git archive --format=tar --prefix=manjaro-tools-$(V)/ $(V) | gzip -9 > manjaro-tools-$(V).tar.gz

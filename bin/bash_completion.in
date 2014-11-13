@@ -1,0 +1,69 @@
+_manjaro-tools_compgen() {
+  local i r
+  COMPREPLY=($(compgen -W '$*' -- "$cur"))
+  for ((i=1; i < ${#COMP_WORDS[@]}-1; i++)); do
+    for r in ${!COMPREPLY[@]}; do
+      if [[ ${COMP_WORDS[i]} = ${COMPREPLY[r]} ]]; then
+        unset 'COMPREPLY[r]'; break
+      fi
+    done
+  done
+}
+
+_mkchrootpkg() {
+  local cur
+  COMPREPLY=()
+  _get_comp_words_by_ref cur
+
+  case $cur in
+    -*)
+       COMPREPLY=( $( compgen -W '-I -c -h -l -r -u' -- "$cur" ) )
+       ;;
+    *)
+      _filedir
+      return 0
+      ;;
+  esac
+
+  true
+} &&
+complete -F _mkchrootpkg mkchrootpkg
+
+_mkchroot() {
+  local cur
+  COMPREPLY=()
+  _get_comp_words_by_ref cur
+
+  case $cur in
+    -*)
+       COMPREPLY=( $( compgen -W '-C -M -S -c -h' -- "$cur" ) )
+       ;;
+    *)
+      _filedir
+      return 0
+      ;;
+  esac
+
+  true
+} &&
+complete -F _mkchroot mkchroot
+
+_chroot-run() {
+  local cur
+  COMPREPLY=()
+  _get_comp_words_by_ref cur
+
+  case $cur in
+    -*)
+       COMPREPLY=( $( compgen -W '-C -M -S -c -h' -- "$cur" ) )
+       ;;
+    *)
+      _filedir
+      return 0
+      ;;
+  esac
+
+  true
+} &&
+complete -F _chroot-run chroot-run
+# ex:et ts=2 sw=2 ft=sh

@@ -20,9 +20,9 @@ shopt -s nullglob
 pkg_owner=${SUDO_USER:-$USER}
 
 if [[ -n $SUDO_USER ]]; then
-	eval "USER_HOME=~$SUDO_USER"
+    eval "USER_HOME=~$SUDO_USER"
 else
-	USER_HOME=$HOME
+    USER_HOME=$HOME
 fi
 
 load_vars "$USER_HOME/.makepkg.conf"
@@ -54,8 +54,8 @@ chroot_build(){
 		blacklist_pkg "${chrootdir}"
 	    fi
 	    setarch "${arch}" \
-		mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || break
-	    move_pkg "${pkg}"
+		mkchrootpkg ${mkchrootpkg_args[*]} -- ${makepkg_args[*]} || break
+	    move_pkg "${pkg_owner}"
 	    cd ..
 	done
 	msg "Finished building profile: [${profile}]"
@@ -65,8 +65,8 @@ chroot_build(){
 	    blacklist_pkg "${chrootdir}"
 	fi
 	setarch "${arch}" \
-	    mkchrootpkg ${mkchrootpkg_args[*]} -- "${makepkg_args[*]}" || abort
-	move_pkg "${profile}"
+	    mkchrootpkg ${mkchrootpkg_args[*]} -- ${makepkg_args[*]} || abort
+	move_pkg "${pkg_owner}"
 	cd ..
     fi
 }
@@ -117,27 +117,6 @@ display_settings(){
     else
 	msg "This package will be built:"
 	msg2 "${profile}"
-    fi
-}
-
-run(){
-    eval_profile "${profile}"
-    if ${pretend}; then
-	display_settings
-	exit 1
-    else
-	if ${wipe_clean}; then
-	   clean_up
-	fi
-	display_settings
-	chroot_init
-	prepare_dir "${pkgdir}"
-	chroot_build
-	ch_owner "${pkg_owner}" "$(dirname ${pkgdir})"
-
-	if ${sign}; then
-	    sign_pkgs "${pkg_owner}"
-	fi
     fi
 }
 
@@ -223,4 +202,22 @@ makepkg_args+=("${@:$OPTIND}")
 
 check_root "$0" "${orig_argv[@]}"
 
-run $@
+prepare_dir "${pkgdir}" "${pkg_owner}"
+
+eval_profile "${profile}"
+
+if ${pretend}; then
+    display_settings
+    exit 1
+else
+    if ${wipe_clean}; then
+	clean_up
+    fi
+    display_settings
+    chroot_init
+    chroot_build
+
+    if ${sign}; then
+	sign_pkgs "${pkg_owner}"
+    fi
+fi

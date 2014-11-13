@@ -10,17 +10,9 @@
 
 version=@version@
 
-if [[ -r @libdir@/util-msg.sh ]];then
-    source @libdir@/util-msg.sh
-fi
-
-if [[ -r @libdir@/util.sh ]];then
-    source @libdir@/util.sh
-fi
-
-if [[ -r @libdir@/util-mount.sh ]];then
-    source @libdir@/util-mount.sh
-fi
+[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
+[[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
+[[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
 
 working_dir=''
 

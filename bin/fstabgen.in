@@ -12,13 +12,8 @@ version=@version@
 
 shopt -s extglob
 
-if [[ -r @libdir@/util-msg.sh ]];then
-    source @libdir@/util-msg.sh
-fi
-
-if [[ -r @libdir@/util-mount.sh ]];then
-    source @libdir@/util-mount.sh
-fi
+[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
+[[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
 
 write_source() {
   local src=$1 spec= label= uuid= comment=()

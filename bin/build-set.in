@@ -13,17 +13,9 @@ version=@version@
 
 shopt -s nullglob
 
-if [[ -r @libdir@/util-msg.sh ]];then
-    source @libdir@/util-msg.sh
-fi
-
-if [[ -r @libdir@/util.sh ]];then
-    source @libdir@/util.sh
-fi
-
-if [[ -r @libdir@/util-build.sh ]];then
-    source @libdir@/util-build.sh
-fi
+[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
+[[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
+[[ -r @libdir@/util-build.sh ]] && source @libdir@/util-build.sh
 
 pkg_owner=${SUDO_USER:-$USER}
 
@@ -35,6 +27,8 @@ fi
 
 load_vars "$USER_HOME/.makepkg.conf"
 load_vars /etc/makepkg.conf
+
+load_config '@sysconfdir@'
 
 chroot_create(){
     mkdir -p "${chrootdir}"
@@ -150,8 +144,6 @@ run(){
 export LC_MESSAGES=C
 
 arch=$(uname -m)
-
-load_config '@sysconfdir@'
 
 pacman_conf_arch='default'
 

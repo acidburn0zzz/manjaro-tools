@@ -48,15 +48,17 @@ prepare_dir(){
     fi
 }
 
-clean_dir(){
-    msg2 "Cleaning $1 ..."
-    rm -r $1/*
-}
-
-clean_src(){
-    if [[ -n 
-    msg2 "Cleaning $(pwd) ..."
-    git clean -dfx$1
+clean_up(){
+    msg "Cleaning up ..."
+    if [[ -n $LOGDEST ]];then
+	msg2 "Cleaning logs $LOGDEST ..."
+	rm $LOGDEST/*.log
+    else
+	msg2 "Cleaning logs $(pwd) ..."
+	rm $(pwd)/*.log
+    fi
+    msg2 "Cleaning ${pkgdir} ..."
+    rm ${pkgdir}/*.$ext
 }
 
 eval_profile(){
@@ -67,11 +69,29 @@ eval_profile(){
 }
 
 blacklist_pkg(){
-    local blacklist=('libsystemd') cmd=$(pacman -Q ${blacklist[@]} -r ${chrootdir}/root 2> /dev/null)
+    local blacklist=('libsystemd') cmd=$(pacman -Q ${blacklist[@]} -r $1/root 2> /dev/null)
     if [[ -n $cmd ]] ; then
 	msg2 "Removing blacklisted [${blacklist[@]}] ..."
-	setarch "${arch}" pacman -Rdd "${blacklist[@]}" -r ${chrootdir}/root --noconfirm
+	pacman -Rdd "${blacklist[@]}" -r $1/root --noconfirm
     else
 	msg2 "Blacklisted [${blacklist[@]}] not present."
     fi
+}
+
+
+chroot_clean(){
+    for copy in "$1"/*; do
+	[[ -d $copy ]] || continue
+	msg2 "Deleting chroot copy '$(basename "${copy}")'..."
+
+	lock 9 "$copy.lock" "Locking chroot copy '$copy'"
+
+	if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
+	    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
+	fi
+	rm -rf --one-file-system "${copy}"
+    done
+    exec 9>&-
+    
+    rm -rf --one-file-system "$1"
 }

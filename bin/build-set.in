@@ -22,7 +22,7 @@ chroot_create(){
     setarch "${arch}" mkchroot \
 	    ${mkchroot_args[*]} \
 	    "${chrootdir}/root" \
-	    "${base_packages[*]}" || abort
+	    ${base_packages[*]} || abort
 }
 
 chroot_update(){
@@ -183,6 +183,7 @@ if [[ "$arch" == 'multilib' ]]; then
     pacman_conf_arch='multilib'
     arch='x86_64'
     base_packages+=('multilib-devel')
+    repo='multilib'
 fi
 
 chrootdir=${chroots}/${branch}/${arch}

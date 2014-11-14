@@ -113,6 +113,19 @@ display_settings(){
 
 export LC_MESSAGES=C
 
+load_config '@sysconfdir@'
+
+pkg_owner=${SUDO_USER:-$USER}
+
+if [[ -n $SUDO_USER ]]; then
+    eval "USER_HOME=~$SUDO_USER"
+else
+    USER_HOME=$HOME
+fi
+
+load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
+
 arch=$(uname -m)
 
 pacman_conf_arch='default'
@@ -130,24 +143,12 @@ mkchroot_args=()
 mkchrootpkg_args=()
 makepkg_args=()
 
-pkg_owner=${SUDO_USER:-$USER}
-
-if [[ -n $SUDO_USER ]]; then
-    eval "USER_HOME=~$SUDO_USER"
-else
-    USER_HOME=$HOME
-fi
-
-load_vars "$USER_HOME/.makepkg.conf"
-load_vars /etc/makepkg.conf
-
 usage() {
     echo "Usage: ${0##*/} [options] [--] [makepkg args]"
     echo "    -p <profile>       Set profile or pkg [default: ${profile}]"
     echo "    -a <arch>          Set arch  [default: ${arch}]"
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots}]"
-    echo "    -t <repo>          Set repo [default: ${repo}]"
     echo '    -c                 Recreate chroot'
     echo '    -w                 Clean up'
     echo '    -n                 Install and run namcap check'
@@ -161,7 +162,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='p:a:b:r:t:cwnsqh'
+opts='p:a:b:r:cwnsqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -169,7 +170,6 @@ while getopts "${opts}" arg; do
 	a) arch="$OPTARG" ;;
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;
-	t) repo="$OPTARG" ;;
 	c) clean_first=true ;;
 	w) wipe_clean=true ;;
 	n) namcap=true; mkchrootpkg_args+=(-n) ;;
@@ -179,22 +179,19 @@ while getopts "${opts}" arg; do
     esac
 done
 
-load_config '@sysconfdir@'
-
 if [[ "$arch" == 'multilib' ]]; then
     pacman_conf_arch='multilib'
-    arch='x86_64'
     base_packages+=('multilib-devel')
-    repo='multilib'
+    arch='x86_64'
 fi
 
 chrootdir=${chroots}/${branch}/${arch}
 
+pkgdir="${pkgdir}/${branch}/${arch}"
+
 pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 pm_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
-
-
 
 mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${pm_conf})
 
@@ -204,7 +201,7 @@ makepkg_args+=("${@:$OPTIND}")
 
 check_root "$0" "${orig_argv[@]}"
 
-prepare_dir "${pkgdir}" "${pkg_owner}"
+[[ -d "${pkgdir}" ]] || prepare_dir "${pkgdir}" "${pkg_owner}"
 
 eval_profile "${profile}"
 

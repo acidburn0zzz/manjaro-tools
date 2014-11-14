@@ -190,15 +190,9 @@ load_config(){
 	chroots='/srv/manjarobuild'
     fi
     
-    if [[ -n ${repo} ]];then
-	repo=${repo}
-    else
-	repo='core'
-    fi
-    
     if [[ -n ${pkgdir} ]];then
-	pkgdir="${pkgdir}/${branch}/${repo}/${arch}"
+	pkgdir=${pkgdir}
     else
-	pkgdir="/var/cache/manjaro-tools/pkg/${branch}/${repo}/${arch}"
+	pkgdir='/var/cache/manjaro-tools/pkg'
     fi
 }

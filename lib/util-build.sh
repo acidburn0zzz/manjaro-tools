@@ -36,11 +36,9 @@ get_profiles(){
 }
 
 prepare_dir(){
-    if ! [[ -d $1 ]];then
-	mkdir -p $1
-	msg "Creating $1"
-	chown -R "$2:users" "$(dirname $1)"
-    fi
+    mkdir -p $1
+    msg "Creating $1"
+    chown -R "$2:users" "$(dirname $1)"
 }
 
 clean_up(){

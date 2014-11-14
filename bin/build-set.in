@@ -179,6 +179,8 @@ while getopts "${opts}" arg; do
     esac
 done
 
+load_config '@sysconfdir@'
+
 if [[ "$arch" == 'multilib' ]]; then
     pacman_conf_arch='multilib'
     arch='x86_64'
@@ -192,7 +194,7 @@ pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 pm_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
 
-load_config '@sysconfdir@'
+
 
 mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${pm_conf})
 

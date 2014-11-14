@@ -41,7 +41,7 @@ _mkchroot_args=(
 	'-h[Display usage]'
 )
 
-__manjaro_tools_completions_all_packages() {
+_manjaro_tools_completions_all_packages() {
 	typeset -U packages
 	packages=($(_call_program packages pacman -Sql))
 	compadd - "${(@)packages}"

@@ -3,3 +3,9 @@ _arch=(
 	x86_64
 	any
 )
+
+_branch=(
+	stable
+	testing
+	unstable
+)

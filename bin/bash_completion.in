@@ -1,4 +1,4 @@
-_manjaro-tools_compgen() {
+_manjaro_tools_compgen() {
   local i r
   COMPREPLY=($(compgen -W '$*' -- "$cur"))
   for ((i=1; i < ${#COMP_WORDS[@]}-1; i++)); do
@@ -66,4 +66,25 @@ _chroot-run() {
   true
 } &&
 complete -F _chroot-run chroot-run
+
+_build-set() {
+  local cur
+  COMPREPLY=()
+  _get_comp_words_by_ref cur
+
+  case $cur in
+    -*)
+       COMPREPLY=( $( compgen -W '-a -b -p -c -r -w -s -h' -- "$cur" ) )
+       ;;
+    *)
+      _filedir
+      return 0
+      ;;
+  esac
+
+  true
+} &&
+complete -F _build-set build-set
+
+
 # ex:et ts=2 sw=2 ft=sh

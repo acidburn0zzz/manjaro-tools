@@ -33,50 +33,50 @@ copy=$USER
 src_owner=${SUDO_USER:-$USER}
 
 usage() {
-	echo "Usage: ${0##*/} [options] -r <chrootdir> [--] [makepkg args]"
-	echo ' Run this script in a PKGBUILD dir to build a package inside a'
-	echo ' clean chroot. Arguments passed to this script after the'
-	echo ' end-of-options marker (--) will be passed to makepkg.'
-	echo ''
-	echo ' The chroot dir consists of the following directories:'
-	echo ' <chrootdir>/{root, copy} but only "root" is required'
-	echo ' by default. The working copy will be created as needed'
-	echo ''
-	echo 'The chroot "root" directory must be created via the following'
-	echo 'command:'
-	echo '    mkchroot <chrootdir>/root base-devel'
-	echo ''
-	echo "Default makepkg args: ${makepkg_args[*]}"
-	echo ''
-	echo 'Flags:'
-	echo '-h         This help'
-	echo '-c         Clean the chroot before building'
-	echo '-u         Update the working copy of the chroot before building'
-	echo '           This is useful for rebuilds without dirtying the pristine'
-	echo '           chroot'
-	echo '-r <dir>   The chroot dir to use'
-	echo '-I <pkg>   Install a package into the working copy of the chroot'
-	echo '-l <copy>  The directory to use as the working copy of the chroot'
-	echo '           Useful for maintaining multiple copies'
-	echo "           Default: $copy"
-	echo '-n         Run namcap on the package'
-	echo '-T         Build in a temporary directory'
-	exit 1
+    echo "Usage: ${0##*/} [options] -r <chrootdir> [--] [makepkg args]"
+    echo '      Run this script in a PKGBUILD dir to build a package inside a'
+    echo '      clean chroot. Arguments passed to this script after the'
+    echo '      end-of-options marker (--) will be passed to makepkg.'
+    echo ''
+    echo '      The chroot dir consists of the following directories:'
+    echo '      <chrootdir>/{root, copy} but only "root" is required'
+    echo '      by default. The working copy will be created as needed'
+    echo ''
+    echo '      The chroot "root" directory must be created via the following'
+    echo '      command:'
+    echo '      mkchroot <chrootdir>/root base-devel'
+    echo ''
+    echo "      Default makepkg args: ${makepkg_args[*]}"
+    echo ''
+    echo '      Flags:'
+    echo '        -h         This help'
+    echo '        -c         Clean the chroot before building'
+    echo '        -u         Update the working copy of the chroot before building'
+    echo '                   This is useful for rebuilds without dirtying the pristine'
+    echo '                   chroot'
+    echo '        -r <dir>   The chroot dir to use'
+    echo '        -I <pkg>   Install a package into the working copy of the chroot'
+    echo '        -l <copy>  The directory to use as the working copy of the chroot'
+    echo '                   Useful for maintaining multiple copies'
+    echo "                   Default: $copy"
+    echo '        -n         Run namcap on the package'
+    echo '        -T         Build in a temporary directory'
+    exit 1
 }
 
 orig_argv=("$@")
 
 while getopts 'hcur:I:l:nT' arg; do
-	case "$arg" in
-		c) clean_first=true ;;
-		u) update_first=true ;;
-		r) passeddir="$OPTARG" ;;
-		I) install_pkgs+=("$OPTARG") ;;
-		l) copy="$OPTARG" ;;
-		n) run_namcap=true; makepkg_args+=(-i) ;;
-		T) temp_chroot=true; copy+="-$$" ;;
-		h|*) usage ;;
-	esac
+    case "$arg" in
+	c) clean_first=true ;;
+	u) update_first=true ;;
+	r) passeddir="$OPTARG" ;;
+	I) install_pkgs+=("$OPTARG") ;;
+	l) copy="$OPTARG" ;;
+	n) run_namcap=true; makepkg_args+=(-i) ;;
+	T) temp_chroot=true; copy+="-$$" ;;
+	h|*) usage ;;
+    esac
 done
 
 [[ ! -f PKGBUILD && -z "${install_pkgs[*]}" ]] && die 'This must be run in a directory containing a PKGBUILD.'
@@ -102,12 +102,12 @@ makepkg_args+=("${@:$OPTIND}")
 
 # See if -R was passed to makepkg
 for arg in "${@:OPTIND}"; do
-	case ${arg%%=*} in
-		-*R*|--repackage)
-			repack=true
-			break 2
-			;;
-	esac
+    case ${arg%%=*} in
+	-*R*|--repackage)
+	    repack=true
+	    break 2
+	;;
+    esac
 done
 
 if [[ -n $SUDO_USER ]]; then

@@ -9,11 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-ch_owner(){
-    #msg "Changing owner [$1:users] [$2]"
-    chown -R "$1:users" "$2"
-}
-
 sign_pkgs(){
     cd $pkgdir
     su $1 <<'EOF'
@@ -22,13 +17,13 @@ EOF
 }
 
 move_pkg(){
-    #msg2 "Moving [$1] to [${pkgdir}]"
     local ext='pkg.tar.xz'
     if [[ -n $PKGDEST ]];then
 	mv $PKGDEST/*{any,$arch}.${ext} ${pkgdir}/
     else
 	mv *.${ext} ${pkgdir}/
     fi
+    chown -R "$1:users" "${pkgdir}"
 }
 
 get_profiles(){
@@ -41,9 +36,8 @@ get_profiles(){
 }
 
 prepare_dir(){
-    if ! [[ -d $1 ]];then
-	mkdir -p $1
-    fi
+    mkdir -p $1
+    chown -R "$2:users" "$(dirname $1)"
 }
 
 clean_up(){

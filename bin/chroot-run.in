@@ -18,7 +18,7 @@ working_dir=''
 
 usage() {
 	echo "Usage: ${0##*/} [options] working-dir [systemd-nspawn arguments]"
-	echo "A wrapper around systemd-nspawn. Provides support for pacman."
+	echo "A wrapper around chroot. Provides support for pacman."
 	echo
 	echo ' options:'
 	echo '    -C <file>     Location of a pacman config file'

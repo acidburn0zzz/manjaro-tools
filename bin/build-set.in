@@ -17,19 +17,6 @@ shopt -s nullglob
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
 [[ -r @libdir@/util-build.sh ]] && source @libdir@/util-build.sh
 
-pkg_owner=${SUDO_USER:-$USER}
-
-if [[ -n $SUDO_USER ]]; then
-    eval "USER_HOME=~$SUDO_USER"
-else
-    USER_HOME=$HOME
-fi
-
-load_vars "$USER_HOME/.makepkg.conf"
-load_vars /etc/makepkg.conf
-
-load_config '@sysconfdir@'
-
 chroot_create(){
     mkdir -p "${chrootdir}"
     setarch "${arch}" mkchroot \
@@ -113,18 +100,14 @@ display_settings(){
     msg2 "is_profile: ${is_profile}"
 
     if ${is_profile};then
-	msg "These packages will be built:"
+	msg "Build queue:"
 	local list=$(cat ${profiledir}/${profile}.set)
 	for item in ${list[@]}; do
 	    msg2 "$item"
 	done
     else
-	msg "This package will be built:"
-	if [[ -n ${split} ]];then
-	    msg2 "${split}"
-	else
-	    msg2 "${profile}"
-	fi
+	msg "Build queue:"
+	msg2 "${profile}"
     fi
 }
 
@@ -140,7 +123,6 @@ namcap=false
 pretend=false
 is_profile=false
 sign=false
-split=''
 
 base_packages=('base-devel')
 
@@ -148,13 +130,24 @@ mkchroot_args=()
 mkchrootpkg_args=()
 makepkg_args=()
 
+pkg_owner=${SUDO_USER:-$USER}
+
+if [[ -n $SUDO_USER ]]; then
+    eval "USER_HOME=~$SUDO_USER"
+else
+    USER_HOME=$HOME
+fi
+
+load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
+
 usage() {
     echo "Usage: ${0##*/} [options] [--] [makepkg args]"
     echo "    -p <profile>       Set profile or pkg [default: ${profile}]"
     echo "    -a <arch>          Set arch  [default: ${arch}]"
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots}]"
-    echo '    -x <list>          Build a split package(s)'
+    echo "    -t <repo>          Set repo [default: ${repo}]"
     echo '    -c                 Recreate chroot'
     echo '    -w                 Clean up'
     echo '    -n                 Install and run namcap check'
@@ -168,7 +161,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='p:a:b:r:x:cwnsqh'
+opts='p:a:b:r:t:cwnsqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -176,10 +169,10 @@ while getopts "${opts}" arg; do
 	a) arch="$OPTARG" ;;
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;
+	t) repo="$OPTARG" ;;
 	c) clean_first=true ;;
 	w) wipe_clean=true ;;
 	n) namcap=true; mkchrootpkg_args+=(-n) ;;
-	x) split="$OPTARG"; makepkg_args+=(--pkg "${split}") ;;
 	s) sign=true ;;
 	q) pretend=true ;;
 	h) usage ;;
@@ -188,22 +181,17 @@ done
 
 if [[ "$arch" == 'multilib' ]]; then
     pacman_conf_arch='multilib'
-    chrootdir=${chroots}/${branch}/${arch}
     arch='x86_64'
     base_packages+=('multilib-devel')
-else
-    chrootdir=${chroots}/${branch}/${arch}
 fi
+
+chrootdir=${chroots}/${branch}/${arch}
 
 pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 pm_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
 
-if [[ -n ${pkgdir} ]];then
-    pkgdir="${pkgdir}/${branch}/${arch}"
-else
-    pkgdir="/var/cache/manjaro-tools/pkg/${branch}/${arch}"
-fi
+load_config '@sysconfdir@'
 
 mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${pm_conf})
 
@@ -219,16 +207,11 @@ eval_profile "${profile}"
 
 if ${pretend}; then
     display_settings
-    exit 1
+    exit $?
 else
-    if ${wipe_clean}; then
-	clean_up
-    fi
+    ${wipe_clean} && clean_up
     display_settings
     chroot_init
     chroot_build
-
-    if ${sign}; then
-	sign_pkgs "${pkg_owner}"
-    fi
+    ${sign} && sign_pkgs "${pkg_owner}"
 fi

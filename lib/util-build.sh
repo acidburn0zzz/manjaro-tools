@@ -37,7 +37,6 @@ get_profiles(){
 
 prepare_dir(){
     mkdir -p $1
-    msg "Creating $1"
     chown -R "$2:users" "$(dirname $1)"
 }
 

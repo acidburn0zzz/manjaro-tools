@@ -34,12 +34,12 @@ clean_up(){
     [[ -n $query ]] && rm -v $query
     
     if [[ -z $LOGDEST ]];then
-	query=$(find $(pwd) -maxdepth 2 -name '*.log')
+	query=$(find $PWD -maxdepth 2 -name '*.log')
 	[[ -n $query ]] && rm -v $query
     fi
     
     if [[ -z $SRCDEST ]];then
-	query=$(find $(pwd) -maxdepth 2 -name '*.?z?')
+	query=$(find $PWD -maxdepth 2 -name '*.?z?')
 	[[ -n $query ]] && rm -v $query
     fi
 }

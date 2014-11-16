@@ -96,6 +96,16 @@ chroot_update(){
 	      pacman -Syu --noconfirm || abort
 }
 
+move_pkg(){
+    local ext='pkg.tar.xz'
+    if [[ -n $PKGDEST ]];then
+	mv $PKGDEST/*{any,$arch}.${ext} ${pkgdir}/
+    else
+	mv *.${ext} ${pkgdir}/
+    fi
+    chown -R "${pkg_owner}:users" "${pkgdir}"
+}
+
 chroot_build(){
     if ${is_profile};then
 	msg "Start building profile: [${profile}]"
@@ -106,7 +116,7 @@ chroot_build(){
 	    fi
 	    setarch "${arch}" \
 		mkchrootpkg ${mkchrootpkg_args[*]} -- ${makepkg_args[*]} || break
-	    move_pkg "${pkg_owner}"
+	    move_pkg
 	    cd ..
 	done
 	msg "Finished building profile: [${profile}]"
@@ -117,7 +127,7 @@ chroot_build(){
 	fi
 	setarch "${arch}" \
 	    mkchrootpkg ${mkchrootpkg_args[*]} -- ${makepkg_args[*]} || abort
-	move_pkg "${pkg_owner}"
+	move_pkg
 	cd ..
     fi
 }
@@ -131,6 +141,13 @@ chroot_init(){
 	msg "Updating chroot for [${branch}] (${arch})..."
 	chroot_update
     fi
+}
+
+sign_pkgs(){
+    cd $pkgdir
+    su "${pkg_owner}" <<'EOF'
+signpkgs
+EOF
 }
 
 export LC_MESSAGES=C
@@ -218,7 +235,7 @@ makepkg_args+=("${@:$OPTIND}")
 
 check_root "$0" "${orig_argv[@]}"
 
-[[ -d "${pkgdir}" ]] || prepare_dir "${pkgdir}" "${pkg_owner}"
+[[ -d "${pkgdir}" ]] || prepare_dir "${pkg_owner}"
 
 eval_profile "${profile}"
 
@@ -230,4 +247,4 @@ chroot_init
 
 chroot_build
 
-${sign} && sign_pkgs "${pkg_owner}"
+${sign} && sign_pkgs

@@ -9,23 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-sign_pkgs(){
-    cd $pkgdir
-    su $1 <<'EOF'
-signpkgs
-EOF
-}
-
-move_pkg(){
-    local ext='pkg.tar.xz'
-    if [[ -n $PKGDEST ]];then
-	mv $PKGDEST/*{any,$arch}.${ext} ${pkgdir}/
-    else
-	mv *.${ext} ${pkgdir}/
-    fi
-    chown -R "$1:users" "${pkgdir}"
-}
-
 clean_up(){
     msg "Cleaning up ..."
     

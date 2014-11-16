@@ -207,6 +207,6 @@ load_sets(){
 }
 
 prepare_dir(){
-    mkdir -p $1
-    chown -R "$2:users" "$(dirname $1)"
+    mkdir -p "${pkgdir}"
+    chown -R "$1:users" "$(dirname ${pkgdir})"
 }

@@ -43,7 +43,7 @@ display_settings(){
     fi
 
     msg "SETS:"
-    msg2 "profiles: $(get_profiles)"
+    msg2 "profiles: $(load_sets)"
     msg2 "profile: ${profile}"
     msg2 "is_profile: ${is_profile}"
 

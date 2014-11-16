@@ -46,20 +46,6 @@ show_set(){
     done
 }
 
-run(){
-    if ${create};then
-	create_set
-    elif ${remove};then
-	remove_set
-    elif ${display};then
-	show_set
-    else
-	msg "Available sets: ${profiles}"
-	exit 1
-    fi
-}
-
-profiles=$(get_profiles)
 query=false
 create=false
 remove=false
@@ -71,7 +57,7 @@ usage() {
     echo "    -c <name>   Create set"
     echo "    -r <name>   Remove set"
     echo "    -d <name>   Display set"
-    echo "    -q          Query sets"
+    echo "    -q          Show sets"
     echo '    -h          This help'
     echo ''
     echo ''
@@ -96,4 +82,12 @@ shift $(($OPTIND - 1))
 
 check_root "$0" "${orig_argv[@]}"
 
-run $@
+if ${create};then
+    create_set
+elif ${remove};then
+    remove_set
+elif ${display};then
+    show_set
+else
+    msg "Available sets: $(load_sets)"
+fi

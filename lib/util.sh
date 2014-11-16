@@ -196,3 +196,17 @@ load_config(){
 	pkgdir='/var/cache/manjaro-tools/pkg'
     fi
 }
+
+load_sets(){
+    local prof= temp=
+    for item in $(ls ${profiledir}/*.set);do
+	temp=${item##*/}
+	prof=${prof:-}${prof:+|}${temp%.set}
+    done
+    echo $prof
+}
+
+prepare_dir(){
+    mkdir -p $1
+    chown -R "$2:users" "$(dirname $1)"
+}

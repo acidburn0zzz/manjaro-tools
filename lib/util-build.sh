@@ -26,57 +26,33 @@ move_pkg(){
     chown -R "$1:users" "${pkgdir}"
 }
 
-get_profiles(){
-    local prof= temp=
-    for item in $(ls ${profiledir}/*.set);do
-	temp=${item##*/}
-	prof=${prof:-}${prof:+|}${temp%.set}
-    done
-    echo $prof
-}
-
-prepare_dir(){
-    mkdir -p $1
-    chown -R "$2:users" "$(dirname $1)"
-}
-
 clean_up(){
     msg "Cleaning up ..."
+    
     local query=$(find ${pkgdir} -maxdepth 1 -name "*.*")
-    if [[ -n $query ]];then
-	rm -v $query
-    fi
+    
+    [[ -n $query ]] && rm -v $query
+    
     if [[ -z $LOGDEST ]];then
 	query=$(find $(pwd) -maxdepth 2 -name '*.log')
-	if [[ -n $query ]];then
-	  rm -v $query
-	fi
+	[[ -n $query ]] && rm -v $query
     fi
+    
     if [[ -z $SRCDEST ]];then
 	query=$(find $(pwd) -maxdepth 2 -name '*.?z?')
-	if [[ -n $query ]];then
-	    rm -v $query
-	fi
+	[[ -n $query ]] && rm -v $query
     fi
 }
 
-eval_profile(){
-    eval "case $1 in
-	    $(get_profiles)) is_profile=true ;;
-	    *) is_profile=false ;;
-	esac"
-}
 
 blacklist_pkg(){
-    local blacklist=('libsystemd') cmd=$(pacman -Q ${blacklist[@]} -r $1/root 2> /dev/null)
+    local blacklist=('libsystemd') \
+    cmd=$(pacman -Q ${blacklist[@]} -r $1/root 2> /dev/null)
+    
     if [[ -n $cmd ]] ; then
-	msg2 "Removing blacklisted [${blacklist[@]}] ..."
-	pacman -Rdd "${blacklist[@]}" -r $1/root --noconfirm
-    else
-	msg2 "Blacklisted [${blacklist[@]}] not present."
+	chroot-run $1/root pacman -Rdd "${blacklist[@]}" --noconfirm
     fi
 }
-
 
 chroot_clean(){
     for copy in "$1"/*; do

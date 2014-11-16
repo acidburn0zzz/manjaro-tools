@@ -17,6 +17,70 @@ shopt -s nullglob
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
 [[ -r @libdir@/util-build.sh ]] && source @libdir@/util-build.sh
 
+display_settings(){
+    msg "manjaro-tools version: ${version}"
+
+    msg "OPTIONS:"
+    msg2 "arch: ${arch}"
+    msg2 "branch: ${branch}"
+    msg2 "chroots: ${chroots}"
+    
+    msg "ARGS:"
+    msg2 "mkchrootpkg_args: ${mkchrootpkg_args[*]}"
+    msg2 "makepkg_args: ${makepkg_args[*]}"
+    
+    msg "PATHS:"
+    msg2 "chrootdir: ${chrootdir}"
+    msg2 "profiledir: ${profiledir}"
+    msg2 "pkgdir: ${pkgdir}"
+    msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "makepkg_conf: ${makepkg_conf}"
+    msg2 "pm_conf: ${pm_conf}"
+
+    if ${clean_first};then
+	msg "PKG:"
+	msg2 "base_packages: ${base_packages[*]}"
+    fi
+
+    msg "SETS:"
+    msg2 "profiles: $(get_profiles)"
+    msg2 "profile: ${profile}"
+    msg2 "is_profile: ${is_profile}"
+
+    if ${is_profile};then
+	msg "Build queue:"
+	local list=$(cat ${profiledir}/${profile}.set)
+	for item in ${list[@]}; do
+	    msg2 "$item"
+	done
+    else
+	msg "Build queue:"
+	for arg in "${makepkg_args[@]}"; do
+	    case ${arg} in
+		--pkg) continue ;;
+		-*) continue ;;
+		*) local split_arg=${arg} ;;
+	    esac
+	done
+	if [[ -n ${split_arg} ]]; then
+	    local IFS=','
+	    for item in ${split_arg}; do
+		msg2 "$item"
+	    done
+	    unset IFS
+	else
+	    msg2 "${profile}"
+	fi
+    fi
+}
+
+eval_profile(){
+    eval "case $1 in
+	    $(load_sets)) is_profile=true ;;
+	    *) is_profile=false ;;
+	esac"
+}
+
 chroot_create(){
     mkdir -p "${chrootdir}"
     setarch "${arch}" mkchroot \
@@ -69,48 +133,6 @@ chroot_init(){
     fi
 }
 
-display_settings(){
-    msg "manjaro-tools version: ${version}"
-
-    msg "OPTIONS:"
-    msg2 "arch: ${arch}"
-    msg2 "branch: ${branch}"
-    msg2 "chroots: ${chroots}"
-    
-    msg "ARGS:"
-    msg2 "mkchrootpkg_args: ${mkchrootpkg_args[*]}"
-    msg2 "makepkg_args: ${makepkg_args[*]}"
-    
-    msg "PATHS:"
-    msg2 "chrootdir: ${chrootdir}"
-    msg2 "profiledir: ${profiledir}"
-    msg2 "pkgdir: ${pkgdir}"
-    msg2 "pacman_conf: ${pacman_conf}"
-    msg2 "makepkg_conf: ${makepkg_conf}"
-    msg2 "pm_conf: ${pm_conf}"
-
-    if ${clean_first};then
-	msg "PKG:"
-	msg2 "base_packages: ${base_packages[*]}"
-    fi
-
-    msg "SETS:"
-    msg2 "profiles: $(get_profiles)"
-    msg2 "profile: ${profile}"
-    msg2 "is_profile: ${is_profile}"
-
-    if ${is_profile};then
-	msg "Build queue:"
-	local list=$(cat ${profiledir}/${profile}.set)
-	for item in ${list[@]}; do
-	    msg2 "$item"
-	done
-    else
-	msg "Build queue:"
-	msg2 "${profile}"
-    fi
-}
-
 export LC_MESSAGES=C
 
 load_config '@sysconfdir@'
@@ -129,6 +151,7 @@ load_vars /etc/makepkg.conf
 arch=$(uname -m)
 
 pacman_conf_arch='default'
+base_packages=('base-devel')
 
 clean_first=false
 wipe_clean=false
@@ -136,12 +159,6 @@ namcap=false
 pretend=false
 is_profile=false
 sign=false
-
-base_packages=('base-devel')
-
-mkchroot_args=()
-mkchrootpkg_args=()
-makepkg_args=()
 
 usage() {
     echo "Usage: ${0##*/} [options] [--] [makepkg args]"
@@ -205,13 +222,12 @@ check_root "$0" "${orig_argv[@]}"
 
 eval_profile "${profile}"
 
-if ${pretend}; then
-    display_settings
-    exit $?
-else
-    ${wipe_clean} && clean_up
-    display_settings
-    chroot_init
-    chroot_build
-    ${sign} && sign_pkgs "${pkg_owner}"
-fi
+${pretend} && display_settings && exit
+
+${wipe_clean} && clean_up
+
+chroot_init 
+
+chroot_build
+
+${sign} && sign_pkgs "${pkg_owner}"

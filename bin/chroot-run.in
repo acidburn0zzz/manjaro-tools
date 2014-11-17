@@ -92,11 +92,11 @@ track_mount /etc/resolv.conf "${working_dir}/etc/resolv.conf" -B
 track_mount ${cache_dirs[0]} "${working_dir}/${cache_dirs[0]}" -B
 
 if [[ -n $pkgdest ]]; then
-    track_mount $pkgdest "${working_dir}/startdir_host" -B
+    track_mount $pkgdest "${working_dir}/startdir_host" -Br
 fi
 
 if [[ -n $srcdest ]]; then
-    track_mount $srcdest "${working_dir}/srcdest_host" -B
+    track_mount $srcdest "${working_dir}/srcdest_host" -Br
 fi 
 
 copy_hostconf

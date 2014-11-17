@@ -96,14 +96,19 @@ chroot_update(){
 	      pacman -Syu --noconfirm || abort
 }
 
+prepare_dir(){
+    mkdir -p "${pkgdir}"
+    chown -R "${pkg_owner}:users" "${pkgdir_loaded}"
+}
+
 move_pkg(){
     local ext='pkg.tar.xz'
     if [[ -n $PKGDEST ]];then
 	mv $PKGDEST/*{any,$arch}.${ext} ${pkgdir}/
     else
-	mv *.${ext} ${pkgdir}/
+	mv *.${ext} ${pkgdir}
     fi
-    chown -R "${pkg_owner}:users" "${pkgdir}"
+    chown -R "${pkg_owner}:users" "${pkgdir_loaded}"
 }
 
 chroot_build(){
@@ -220,7 +225,7 @@ if [[ "$arch" == 'multilib' ]]; then
 fi
 
 chrootdir=${chroots}/${branch}/${arch}
-
+pkgdir_loaded=${pkgdir}
 pkgdir="${pkgdir}/${branch}/${arch}"
 
 pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"

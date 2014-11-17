@@ -193,7 +193,7 @@ load_config(){
     if [[ -n ${pkgdir} ]];then
 	pkgdir=${pkgdir}
     else
-	pkgdir='/var/cache/manjaro-tools/pkg'
+	pkgdir='/var/cache/manjaro-tools'
     fi
 }
 
@@ -204,9 +204,4 @@ load_sets(){
 	prof=${prof:-}${prof:+|}${temp%.set}
     done
     echo $prof
-}
-
-prepare_dir(){
-    mkdir -p "${pkgdir}"
-    chown -R "$1:users" "$(dirname ${pkgdir})"
 }

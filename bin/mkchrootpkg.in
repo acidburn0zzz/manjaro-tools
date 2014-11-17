@@ -360,8 +360,11 @@ load_vars /etc/makepkg.conf
 
 create_chroot
 
-$update_first && chroot-run "$copydir" \
-		pacman -Syu --noconfirm
+$update_first && chroot-run \
+		  -r "${mountargs_ro}" \
+		  -w "${mountargs_rw}" \
+		  "$copydir" \
+		  pacman -Syu --noconfirm
 
 [[ -n ${install_pkgs[*]} ]] && install_packages
 
@@ -369,8 +372,10 @@ prepare_chroot
 
 download_sources
 
-if chroot-run -p "$PWD" \
-	      -s "$SRCDEST" \
+mountargs_ro="${PWD}:/startdir_host,${SRCDEST}:/srcdest_host"
+
+if chroot-run -r "${mountargs_ro}" \
+	      -w "${mountargs_rw}" \
 	      "$copydir" \
 	      /chrootbuild; then
 	move_products

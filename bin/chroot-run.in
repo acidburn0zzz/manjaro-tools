@@ -17,7 +17,7 @@ version=@version@
 working_dir=''
 
 usage() {
-	echo "Usage: ${0##*/} [options] working-dir [systemd-nspawn arguments]"
+	echo "Usage: ${0##*/} [options] working-dir [run arguments]"
 	echo "A wrapper around chroot. Provides support for pacman."
 	echo
 	echo ' options:'
@@ -25,22 +25,23 @@ usage() {
 	echo '    -M <file>     Location of a makepkg config file'
 	echo '    -S <file>     Location of a pacman-mirrors config file'
 	echo '    -c <dir>      Set pacman cache'
-	echo '    -p <mount>    Set PKGDEST mountpoint'
-	echo '    -s <mount>    Set PKGSRC mountpoint'
+	echo '    -r <list>     Bind mountargs ro'
+	echo '    -w <list>     Bind mountargs rw'
+	echo '                  List format [src1:target1,...,srcN:targetN]'
 	echo '    -h            This message'
 	exit 1
 }
 
 orig_argv=("$@")
 
-while getopts 'hC:M:S:c:p:s:' arg; do
+while getopts 'hC:M:S:c:r:w:' arg; do
 	case "$arg" in
 		C) pac_conf="$OPTARG" ;;
 		M) makepkg_conf="$OPTARG" ;;
 		S) mirrors_conf="$OPTARG" ;;
 		c) cache_dir="$OPTARG" ;;
-		p) pkgdest="$OPTARG" ;;
-		s) srcdest="$OPTARG" ;;
+		r) mountargs_ro="$OPTARG" ;;
+		w) mountargs_rw="$OPTARG" ;;
 		h|?) usage ;;
 		*) error "invalid argument '$arg'"; usage ;;
 	esac
@@ -78,6 +79,24 @@ copy_hostconf () {
 	sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n ${cache_dirs[@]})|g" -i "$working_dir/etc/pacman.conf"
 }
 
+build_mount_args() {
+    track_mount "/etc/resolv.conf" "${working_dir}/etc/resolv.conf" -B
+    track_mount "${cache_dirs[0]}" "${working_dir}${cache_dirs[0]}" -B
+
+    for cache_dir in ${cache_dirs[@]:1}; do
+	track_mount "$cache_dir" "${working_dir}${cache_dir}" -Br
+    done
+    
+    local IFS=','
+    for m in ${mountargs_ro[@]}; do
+	track_mount "${m%%:*}" "${working_dir}${m##*:}" -Br
+    done
+    for m in ${mountargs_rw[@]}; do
+	track_mount "${m%%:*}" "${working_dir}${m##*:}" -B
+    done
+    unset IFS
+}
+
 umask 0022
 
 # Sanity check
@@ -87,17 +106,9 @@ elif [[ $(cat "$working_dir/.manjaro-chroot") != $version ]]; then
 	die "chroot '%s' is not at version %s. Please rebuild." "$working_dir" "$version"
 fi
 
-api_fs_mount "${working_dir}"
-track_mount /etc/resolv.conf "${working_dir}/etc/resolv.conf" -B
-track_mount ${cache_dirs[0]} "${working_dir}/${cache_dirs[0]}" -B
+api_fs_mount "${working_dir}" || die "failed to setup API filesystems in chroot %s" "${working_dir}"
 
-if [[ -n $pkgdest ]]; then
-    track_mount $pkgdest "${working_dir}/startdir_host" -Br
-fi
-
-if [[ -n $srcdest ]]; then
-    track_mount $srcdest "${working_dir}/srcdest_host" -Br
-fi 
+build_mount_args
 
 copy_hostconf
 

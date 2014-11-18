@@ -248,7 +248,7 @@ opts='p:a:b:r:cwnsqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-	p) profile="$OPTARG";  ;;
+	p) profile="$OPTARG" ;;
 	a) arch="$OPTARG" ;;
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;

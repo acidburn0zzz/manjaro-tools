@@ -1,4 +1,4 @@
-V=0.9.2
+V=0.9.3
 
 PREFIX = /usr/local
 
@@ -36,7 +36,6 @@ CONFIGFILES = \
 LIBS = \
 	lib/util.sh \
 	lib/util-mount.sh \
-	lib/util-build.sh \
 	lib/util-msg.sh
 
 all: $(BINPROGS) bin/bash_completion bin/zsh_completion

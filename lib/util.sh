@@ -150,14 +150,14 @@ check_root() {
 }
 
 load_vars() {
-    local mpkg_conf="$1" var
-
-    [[ -f $mpkg_conf ]] || return 1
+    local var
+    
+    [[ -f $1 ]] || return 1
 
     for var in {SRC,SRCPKG,PKG,LOG}DEST MAKEFLAGS PACKAGER CARCH GPGKEY; do
-	    [[ -z ${!var} ]] && eval $(grep "^${var}=" "$mpkg_conf")
+	    [[ -z ${!var} ]] && eval $(grep "^${var}=" "$1")
     done
-
+    
     return 0
 }
 
@@ -198,8 +198,8 @@ load_config(){
 }
 
 load_sets(){
-    local prof= temp=
-    for item in $(ls ${profiledir}/*.set);do
+    local prof temp
+    for item in $(ls ${profiledir}/*.set); do
 	temp=${item##*/}
 	prof=${prof:-}${prof:+|}${temp%.set}
     done

@@ -15,7 +15,6 @@ shopt -s nullglob
 
 [[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
-[[ -r @libdir@/util-build.sh ]] && source @libdir@/util-build.sh
 
 display_settings(){
     msg "manjaro-tools version: ${version}"
@@ -32,7 +31,7 @@ display_settings(){
     msg "PATHS:"
     msg2 "chrootdir: ${chrootdir}"
     msg2 "profiledir: ${profiledir}"
-    msg2 "pkgdir: ${pkgdir}"
+    msg2 "pkgdir: ${pkg_dir}"
     msg2 "pacman_conf: ${pacman_conf}"
     msg2 "makepkg_conf: ${makepkg_conf}"
     msg2 "pm_conf: ${pm_conf}"
@@ -89,6 +88,23 @@ chroot_create(){
 	    ${base_packages[*]} || abort
 }
 
+chroot_clean(){
+    for copy in "${chrootdir}"/*; do
+	[[ -d ${copy} ]] || continue
+	msg2 "Deleting chroot copy '$(basename "${copy}")'..."
+
+	lock 9 "${copy}.lock" "Locking chroot copy '${copy}'"
+
+	if [[ "$(stat -f -c %T "${copy}")" == btrfs ]]; then
+	    { type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
+	fi
+	rm -rf --one-file-system "${copy}"
+    done
+    exec 9>&-
+    
+    rm -rf --one-file-system "${chrootdir}"
+}
+
 chroot_update(){
     lock 9 "${chrootdir}/root.lock" "Locking clean chroot"
     chroot-run ${mkchroot_args[*]} \
@@ -96,19 +112,46 @@ chroot_update(){
 	      pacman -Syu --noconfirm || abort
 }
 
-prepare_dir(){
-    mkdir -p "${pkgdir}"
-    chown -R "${pkg_owner}:users" "${pkgdir_loaded}"
+clean_up(){
+    msg "Cleaning up ..."
+    
+    local query=$(find ${pkg_dir} -maxdepth 1 -name "*.*")
+    
+    [[ -n $query ]] && rm -v $query
+    
+    if [[ -z $LOGDEST ]];then
+	query=$(find $PWD -maxdepth 2 -name '*.log')
+	[[ -n $query ]] && rm -v $query
+    fi
+    
+    if [[ -z $SRCDEST ]];then
+	query=$(find $PWD -maxdepth 2 -name '*.?z?')
+	[[ -n $query ]] && rm -v $query
+    fi
+}
+
+blacklist_pkg(){
+    local blacklist=('libsystemd') \
+    cmd=$(pacman -Q ${blacklist[@]} -r $1/root 2> /dev/null)
+    
+    if [[ -n $cmd ]] ; then
+	chroot-run $1/root pacman -Rdd "${blacklist[@]}" --noconfirm
+    fi
+}
+
+prepare_cachedir(){
+    mkdir -p "${pkg_dir}"
+    chown -R "${pkg_owner}:users" "${pkg_dir_loaded}"
 }
 
 move_pkg(){
     local ext='pkg.tar.xz'
     if [[ -n $PKGDEST ]];then
-	mv $PKGDEST/*{any,$arch}.${ext} ${pkgdir}/
+	mv $PKGDEST/*{any,$arch}.${ext} ${pkg_dir}/
     else
-	mv *.${ext} ${pkgdir}
+	mv *.${ext} ${pkg_dir}
     fi
-    chown -R "${pkg_owner}:users" "${pkgdir_loaded}"
+    chown -R "${pkg_owner}:users" "${pkg_dir_loaded}"
 }
 
 chroot_build(){
@@ -140,7 +183,7 @@ chroot_build(){
 chroot_init(){
     if ${clean_first} || [[ ! -d "${chrootdir}" ]]; then
 	msg "Creating chroot for [${branch}] (${arch})..."
-	chroot_clean "${chrootdir}"
+	chroot_clean
 	chroot_create
     else
 	msg "Updating chroot for [${branch}] (${arch})..."
@@ -149,7 +192,7 @@ chroot_init(){
 }
 
 sign_pkgs(){
-    cd $pkgdir
+    cd $pkg_dir
     su "${pkg_owner}" <<'EOF'
 signpkgs
 EOF
@@ -205,7 +248,7 @@ opts='p:a:b:r:cwnsqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-	p) profile="$OPTARG" ;;
+	p) profile="$OPTARG";  ;;
 	a) arch="$OPTARG" ;;
 	b) branch="$OPTARG" ;;
 	r) chroots="$OPTARG" ;;
@@ -225,8 +268,8 @@ if [[ "$arch" == 'multilib' ]]; then
 fi
 
 chrootdir=${chroots}/${branch}/${arch}
-pkgdir_loaded=${pkgdir}
-pkgdir="${pkgdir}/${branch}/${arch}"
+pkg_dir_loaded=${pkg_dir}
+pkg_dir="${pkg_dir}/${branch}/${arch}"
 
 pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
@@ -240,7 +283,7 @@ makepkg_args+=("${@:$OPTIND}")
 
 check_root "$0" "${orig_argv[@]}"
 
-[[ -d "${pkgdir}" ]] || prepare_dir "${pkg_owner}"
+[[ -d "${pkg_dir}" ]] || prepare_cachedir
 
 eval_profile "${profile}"
 

@@ -23,7 +23,7 @@ if [[ -z $match ]]; then
 	exit 1
 fi
 
-find . -type d | while read d; do
+find $PWD -type d | while read d; do
 	if [[ -f "$d/PKGBUILD" ]]; then
 		unset pkgname depends makedepends optdepends
 		. "$d/PKGBUILD"

@@ -195,6 +195,18 @@ load_config(){
     else
 	pkgdir='/var/cache/manjaro-tools'
     fi
+    
+    if [[ -n ${blacklist_trigger[@]} ]];then
+	blacklist_trigger=${blacklist_trigger[@]}
+    else
+	blacklist_trigger=('eudev' 'lib32-eudev' 'upower-pm-utils' 'eudev-systemdcompat' 'lib32-eudev-systemdcompat')
+    fi
+    
+    if [[ -n ${blacklist[@]} ]];then
+	blacklist=${blacklist[@]}
+    else
+	blacklist=('libsystemd')
+    fi
 }
 
 load_sets(){

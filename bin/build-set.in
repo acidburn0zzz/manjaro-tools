@@ -17,7 +17,8 @@ shopt -s nullglob
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
 
 display_settings(){
-    msg "manjaro-tools version: ${version}"
+    msg "manjaro-tools"
+    msg2 "version: ${version}"
 
     msg "OPTIONS:"
     msg2 "arch: ${arch}"
@@ -131,12 +132,8 @@ clean_up(){
 }
 
 blacklist_pkg(){
-    local blacklist=('libsystemd') \
-    cmd=$(pacman -Q ${blacklist[@]} -r $1/root 2> /dev/null)
-    
-    if [[ -n $cmd ]] ; then
-	chroot-run $1/root pacman -Rdd "${blacklist[@]}" --noconfirm
-    fi
+    msg "Removing ${blacklist[@]}..."
+    chroot-run $1/root pacman -Rdd "${blacklist[@]}" --noconfirm
 }
 
 prepare_cachedir(){
@@ -159,9 +156,11 @@ chroot_build(){
 	msg "Start building profile: [${profile}]"
 	for pkg in $(cat ${profiledir}/${profile}.set); do
 	    cd $pkg
-	    if [[ $pkg == 'eudev' ]] || [[ $pkg == 'lib32-eudev' ]]; then
-		blacklist_pkg "${chrootdir}"
-	    fi
+	    for p in ${blacklist_trigger[@]}; do
+		if [[ $pkg == $p ]]; then
+		    blacklist_pkg "${chrootdir}"
+		fi
+	    done
 	    setarch "${arch}" \
 		mkchrootpkg ${mkchrootpkg_args[*]} -- ${makepkg_args[*]} || break
 	    move_pkg
@@ -170,9 +169,11 @@ chroot_build(){
 	msg "Finished building profile: [${profile}]"
     else
 	cd ${profile}
-	if [[ ${profile} == 'eudev' ]] || [[ ${profile} == 'lib32-eudev' ]]; then
-	    blacklist_pkg "${chrootdir}"
-	fi
+	for p in ${blacklist_trigger[@]}; do
+	    if [[ ${profile} == $p ]]; then
+		blacklist_pkg "${chrootdir}"
+	    fi
+	done
 	setarch "${arch}" \
 	    mkchrootpkg ${mkchrootpkg_args[*]} -- ${makepkg_args[*]} || abort
 	move_pkg

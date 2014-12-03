@@ -133,7 +133,9 @@ clean_up(){
 
 blacklist_pkg(){
     msg "Removing ${blacklist[@]}..."
-    chroot-run $1/root pacman -Rdd "${blacklist[@]}" --noconfirm
+    for item in "${blacklist[@]}"; do
+	chroot-run $1/root pacman -Rdd "$item" --noconfirm
+    done
 }
 
 prepare_cachedir(){

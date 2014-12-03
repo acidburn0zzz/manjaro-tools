@@ -165,7 +165,21 @@ load_config(){
     manjaro_tools_conf="$1/manjaro-tools.conf"
 
     [[ -r ${manjaro_tools_conf} ]] && source ${manjaro_tools_conf}
-
+    
+    ######################
+    # manjaro-tools common
+    ######################
+    
+    if [[ -n ${branch} ]];then
+	branch=${branch}
+    else
+	branch='stable'
+    fi
+    
+    ###############
+    # manjaro-tools
+    ###############
+    
     if [[ -n ${profiledir} ]];then
 	profiledir=${profiledir}
     else
@@ -176,12 +190,6 @@ load_config(){
 	profile=${profile}
     else
 	profile='default'
-    fi
-
-    if [[ -n ${branch} ]];then
-	branch=${branch}
-    else
-	branch='stable'
     fi
 
     if [[ -n ${chroots} ]];then
@@ -206,6 +214,94 @@ load_config(){
 	blacklist=${blacklist[@]}
     else
 	blacklist=('libsystemd')
+    fi
+    
+    ##################
+    # manjaro-isotools
+    ##################
+    
+    if [[ -n ${work_dir} ]];then
+	work_dir=${work_dir}
+    else
+	work_dir='/srv/manjaroiso'
+    fi
+
+    if [[ -n ${iso_label} ]];then
+	iso_label=${iso_label}
+    else
+	iso_label="MJRO0811"
+    fi
+
+    if [[ -n ${isoversion} ]];then
+	isoversion=${isoversion}
+    else
+	isoversion=0.8.11
+    fi
+
+    if [[ -n ${manjaro_kernel} ]];then
+	manjaro_kernel=${manjaro_kernel}
+    else
+	manjaro_kernel="linux316"
+    fi
+
+    if [[ -n ${manjaro_kernel_ver} ]];then
+	manjaro_kernel_ver=${manjaro_kernel_ver}
+    else
+	manjaro_kernel_ver="316"
+    fi
+    
+    if [[ -n ${manjaro_version} ]];then
+	manjaro_version=${manjaro_version}
+    else
+	manjaro_version="2014.12"
+    fi
+    
+    if [[ -n ${manjaroiso} ]];then
+	manjaroiso=${manjaroiso}
+    else
+	manjaroiso="manjaroiso"
+    fi
+    
+    if [[ -n ${code_name} ]];then
+	code_name=${code_name}
+    else
+	code_name="Manjaro"
+    fi
+    
+    if [[ -n ${img_name} ]];then
+	img_name=${img_name}
+    else
+	img_name=manjaro
+    fi
+    
+    if [[ -n ${hostname} ]];then
+	hostname=${hostname}
+    else
+	hostname="manjaro"
+    fi
+    
+    if [[ -n ${username} ]];then
+	username=${username}
+    else
+	username="manjaro"
+    fi
+    
+    if [[ -n ${install_dir} ]];then
+	install_dir=${install_dir}
+    else
+	install_dir=manjaro
+    fi
+    
+    if [[ -n ${plymouth_theme} ]];then
+	plymouth_theme=${plymouth_theme}
+    else
+	plymouth_theme=manjaro-elegant
+    fi
+    
+    if [[ -n ${compression} ]];then
+	compression=${compression}
+    else
+	compression=xz
     fi
 }
 

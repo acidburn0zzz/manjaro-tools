@@ -135,7 +135,7 @@ banner() {
 	echo "   | || || |/ _  |  _ \ | |/ _  |/ ___) _ \| |/___)/ _ \  "
 	echo "   | || || ( ( | | | | || ( ( | | |  | |_| | |___ | |_| | "
 	echo "   |_||_||_|\_||_|_| |_|| |\_||_|_|   \___/|_(___/ \___/  "
-	echo -e "${_g}                      (__/  ${_n}    vVERSION"
+	echo -e "${_g}                      (__/  ${_n}    v${isoversion}"
 	echo -e "${_n}"
 }
 
@@ -151,10 +151,10 @@ title2() {
 	printf "\033[1;33m >>\033[1;0m\033[1;1m ${mesg}\033[1;0m\n"
 }
 
-msg() {
-	local mesg=$1; shift
-	printf "\033[1;32m ::\033[1;0m\033[1;0m ${mesg}\033[1;0m\n"
-}
+# msg() {
+# 	local mesg=$1; shift
+# 	printf "\033[1;32m ::\033[1;0m\033[1;0m ${mesg}\033[1;0m\n"
+# }
 
 warning() {
 	local mesg=$1; shift

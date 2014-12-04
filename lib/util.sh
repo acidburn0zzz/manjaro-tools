@@ -232,10 +232,10 @@ load_config(){
 	iso_label="MJRO0811"
     fi
 
-    if [[ -n ${isoversion} ]];then
-	isoversion=${isoversion}
+    if [[ -n ${iso_version} ]];then
+	iso_version=${iso_version}
     else
-	isoversion=0.8.11
+	iso_version=0.8.11
     fi
 
     if [[ -n ${manjaro_kernel} ]];then

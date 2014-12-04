@@ -11,6 +11,9 @@
 
 version=@version@
 
+[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
+[[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
+
 PKGLIST=""
 QUIET="y"
 FORCE="n"
@@ -58,6 +61,8 @@ usage ()
     exit $1
 }
 
+orig_argv=("$@")
+
 while getopts 'p:C:L:P:A:a:c:D:i:dfvhx' arg; do
     case "${arg}" in
         p) PKGLIST="${PKGLIST} ${OPTARG}" ;;
@@ -87,15 +92,18 @@ PKGLIST="$(echo $PKGLIST)"
 
 shift $(($OPTIND - 1))
 
+check_root "$0" "${orig_argv[@]}"
+
 # do UID checking here so someone can at least get usage instructions
-if [ "$EUID" != "0" ]; then
-    echo "error: This script must be run as root."
-    exit 1
-fi
+# if [ "$EUID" != "0" ]; then
+#     echo "error: This script must be run as root."
+#     exit 1
+# fi
 
 if [ ! -f "$PACCONFIG" ]; then
-    echo "error: pacman config file '$PACCONFIG' does not exist"
-    exit 1
+#     echo "error: pacman config file '$PACCONFIG' does not exist"
+#     exit 1
+    error "pacman config file '$PACCONFIG' does not exist"
 fi
 
 command_name="${1}"
@@ -105,15 +113,16 @@ imgname=""
 case "${command_name}" in
     create) work_dir="${2}"; imgname="none" ;;
     iso) work_dir="${2}"; imgname="${3}" ;;
-    *) echo "invalid command name '${command_name}'"; usage 1 ;;
+    *) echo "Invalid command name '${command_name}'"; usage 1 ;;
 esac
 
 if [ -z "${ARCH}" ] ; then
-     echo "Error: you need to specify an architecture:\ni686\nx86_64" && usage 1
+#      echo "Error: you need to specify an architecture:\ni686\nx86_64" && usage 1
+	error "You need to specify an architecture:\ni686\nx86_64" && usage 1
 fi
 
-[ "x${imgname}" = "x" ] && echo "Image name must be specified" && usage 1
-[ "x${work_dir}" = "x" ] && echo "Please specify a working directory" && usage 1
+[ "x${imgname}" = "x" ] && msg "Image name must be specified" && usage 1
+[ "x${work_dir}" = "x" ] && msg "Please specify a working directory" && usage 1
 
 echo "${APPNAME} : Configuration Settings"
 echo "        working directory:   ${work_dir}"
@@ -125,10 +134,10 @@ _pacman ()
     local ret
     mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
     if [ "${QUIET}" = "y" ]; then
-        pacstrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
+        basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
         ret=$?
     else
-        pacstrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
+        basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
         ret=$?
     fi
 
@@ -145,15 +154,15 @@ _pacman ()
 }
 
 command_create () {
-    echo "====> Creating working directory: ${work_dir}"
+    msg "Creating working directory: ${work_dir}"
     mkdir -p "${work_dir}/iso/${INSTALL_DIR}/${ARCH}"
     mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
 
     if [ ! -z "${PKGLIST}" ]; then
-        echo "====> Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
+        msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
         _pacman "${PKGLIST}"
 
-        echo "Cleaning up what we can"
+        msg2 "Cleaning up what we can"
         if [ -d "${work_dir}/${IMAGE_FOLDER}/boot/" ]; then
             # remove the initcpio images that were generated for the host system
             find "${work_dir}/${IMAGE_FOLDER}/boot" -name '*.img' -delete
@@ -161,7 +170,7 @@ command_create () {
 
         if [ ${CREATE_DEFAULT} == "y" ]; then
             if [ -d "${work_dir}/${IMAGE_FOLDER}/home/" ]; then
-                echo "Creating default home directory"
+                msg2 "Creating default home directory"
                 install -d -o1000 -g100 -m0755 "${work_dir}/${IMAGE_FOLDER}/home/manjaro"
             fi
         fi
@@ -184,26 +193,26 @@ command_create () {
 # _mksquash dirname
 _mksquash () {
     if [ ! -d "$1" ]; then
-        echo "Error: '$1' is not a directory"
+        error "$1 is not a directory"
         return 1
     fi
 
     sqimg="${work_dir}/iso/${INSTALL_DIR}/${ARCH}/$(basename ${1}).sqfs"
-    echo "====> Generating SquashFS image for '${1}'"
+    msg "Generating SquashFS image for '${1}'"
     if [ -e "${sqimg}" ]; then
         dirhaschanged=$(find ${1} -newer ${sqimg})
-        echo ">> Possible changes for ${1}..." >> /tmp/mkiso.debug
-        echo "${dirhaschanged}" >> /tmp/mkiso.debug
+        msg2 "Possible changes for ${1}..." >> /tmp/mkiso.debug
+        msg2 "${dirhaschanged}" >> /tmp/mkiso.debug
         if [ ! -z "${dirhaschanged}" ]; then
-            echo "SquashFS image '${sqimg}' is not up to date, rebuilding..."
+            msg2 "SquashFS image '${sqimg}' is not up to date, rebuilding..."
             rm "${sqimg}"
         else
-            echo "SquashFS image '${sqimg}' is up to date, skipping."
+            msg2 "SquashFS image '${sqimg}' is up to date, skipping."
             return
         fi
     fi
 
-    echo "Creating SquashFS image. This may take some time..."
+    msg2 "Creating SquashFS image. This may take some time..."
     start=$(date +%s)
     if [ "${QUIET}" = "y" ]; then
         mksquashfs "${1}" "${sqimg}" -noappend -comp "${COMPRESSION}" ${HIGHCOMP} >/dev/null
@@ -211,7 +220,7 @@ _mksquash () {
         mksquashfs "${1}" "${sqimg}" -noappend -comp "${COMPRESSION}" ${HIGHCOMP}
     fi
     minutes=$(echo $start $(date +%s) | awk '{ printf "%0.2f",($2-$1)/60 }')
-    echo "Image creation done in $minutes minutes."
+    msg "Image creation done in $minutes minutes."
 }
 
 _imgcommon () {
@@ -224,44 +233,44 @@ _imgcommon () {
         fi
     done
 
-    echo "====> Making bootable image"
+    msg "Making bootable image"
 
     # Sanity checks
     if [ ! -d "${work_dir}/iso" ]; then
-        echo "Error: '${work_dir}/iso' doesn't exist. What did you do?!"
-        exit 1
+        error "${work_dir}/iso doesn't exist. What did you do?!"
+#         exit 1
     fi
 
     if [ ! -f "${work_dir}/iso/${INSTALL_DIR}/isomounts" ]; then
-        echo "Error: the isomounts file doesn't exist. This image won't do anything"
-        echo "  Protecting you from yourself and erroring out here..."
-        exit 1
+        error "The isomounts file doesn't exist. This image won't do anything"
+        abort "Protecting you from yourself and erroring out here..."
+#         exit 1
     fi
 
     if [ -e "${imgname}" ]; then
         if [ "${FORCE}" = "y" ]; then
-            echo "Removing existing bootable image..."
+            msg2 "Removing existing bootable image..."
             rm -rf "${imgname}"
         else
-            echo "Error: Image '${imgname}' already exists, aborting."
-            exit 1
+            error "Image ${imgname} already exists, aborting."
+#             exit 1
         fi
     fi
 
     if ! sed "s|%MANJAROISO_LABEL%|${LABEL}|g;
               s|%INSTALL_DIR%|${INSTALL_DIR}|g;
               s|%ARCH%|${ARCH}|g" -i ${work_dir}/iso/isolinux/*.cfg; then
-        echo "Error: ${work_dir}/iso/isolinux/isolinux.cfg, doesn't exist, aborting."
-        exit 1
+        abort "${work_dir}/iso/isolinux/isolinux.cfg, doesn't exist, aborting."
+#         exit 1
     fi
 
     if [ ! -f "${work_dir}/iso/isolinux/isolinux.bin" ]; then
-         echo "Error: ${work_dir}/iso/isolinux/isolinux.bin, doesn't exist, aborting."
-         exit 1
+         abort "${work_dir}/iso/isolinux/isolinux.bin, doesn't exist, aborting."
+#          exit 1
     fi
     if [ ! -f "${work_dir}/iso/isolinux/isohdpfx.bin" ]; then
-         echo "Error: ${work_dir}/iso/isolinux/isohdpfx.bin, doesn't exist, aborting."
-         exit 1
+         abort "${work_dir}/iso/isolinux/isohdpfx.bin, doesn't exist, aborting."
+#          exit 1
     fi
 }
 
@@ -276,7 +285,7 @@ command_iso () {
                             -isohybrid-gpt-basdat -no-emul-boot"
     fi
 
-    echo "Creating ISO image..."
+    msg "Creating ISO image..."
     ## Generate the BIOS+ISOHYBRID CD image using xorriso (extra/libisoburn package) in mkisofs emulation mode
     _qflag=""
     if [ ${QUIET} == "y" ]; then
@@ -308,5 +317,3 @@ fi
 if [ "${command_name}" = "iso" ]; then
     command_iso
 fi
-
-# vim:ts=4:sw=4:et:

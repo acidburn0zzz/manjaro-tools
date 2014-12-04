@@ -17,8 +17,6 @@ version=@version@
 
 load_config '@sysconfdir@'
 
-#get_colors
-
 if [ -e Packages-Xfce ] ; then
     de="-xfce"
     desktop="xfce"
@@ -133,8 +131,6 @@ shift $(($OPTIND - 1))
 
 check_root "$0" "${orig_argv[@]}"
 
-banner
-
 if [ -z "${arch}" ] ; then
     arch=$(pacman -Qi bash | grep "Architecture" | cut -d " " -f 5)
     echo " "
@@ -155,10 +151,6 @@ if [ ! -e "pacman-${arch}.conf" ] ; then
     echo " "
     exit
 fi
-
-#set -e -u
-
-# pwd=`pwd`
 
 if [ "${arch}" == "i686" ]; then
     packages=$(sed "s|#.*||g" Packages | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
@@ -608,12 +600,12 @@ display_settings(){
     msg2 "arch: ${arch}"
     msg2 "branch: ${branch}"
     msg2 "work_dir: ${work_dir}"
-    
+    msg2 "target_dir: ${target_dir}"
+
     msg "ARGS:"
     msg2 "mkiso_args: ${mkiso_args[*]}"
     
     msg "ISO SETTINGS:"
-    msg2 "target_dir: ${target_dir}"
     msg2 "iso_label: ${iso_label}"
     msg2 "iso_version: ${iso_version}"
     msg2 "manjaro_kernel: ${manjaro_kernel}"

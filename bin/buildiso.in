@@ -598,6 +598,23 @@ make_iso() {
     echo -e "$_g >$_W done $_n"
 }
 
+display_settings(){
+    msg "manjaro-tools"
+    msg2 "version: ${version}"
+    msg2 "iso_version: ${iso_version}"
+    
+    msg "OPTIONS:"
+    msg2 "arch: ${arch}"
+    msg2 "branch: ${branch}"
+    msg2 "work_dir: ${work_dir}"
+    
+    msg "ARGS:"
+    msg2 "mkiso_args: ${mkiso_args[*]}"
+
+}
+
+${pretend} && display_settings && exit 1
+
 # install basic
 make_root_image
 # install DE(s)

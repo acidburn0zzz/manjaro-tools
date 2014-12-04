@@ -42,12 +42,12 @@ LIBS = \
 	lib/util-msg.sh
 
 CPIOHOOKS = \
-	hooks/msio \
+	hooks/miso \
 	hooks/miso_loop_mnt \
 	hooks/miso_pxe_nbd
 	
 CPIOINST = \
-	inst/msio \
+	inst/miso \
 	inst/miso_loop_mnt \
 	inst/miso_pxe_nbd \
 	inst/miso_kms

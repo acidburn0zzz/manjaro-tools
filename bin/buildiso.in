@@ -1,14 +1,21 @@
 #!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-# switch to basic language
-export LANG=C
-export LC_MESSAGES=C
+version=@version@
 
-[[ -r /usr/lib/manjaro-tools/util-msg.sh ]] && source /usr/lib/manjaro-tools/util-msg.sh
-[[ -r /usr/lib/manjaro-tools/util.sh ]] && source /usr/lib/manjaro-tools/util.sh
-[[ -r /usr/lib/manjaro-tools/util-mount.sh ]] && source /usr/lib/manjaro-tools/util-mount.sh
+[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
+[[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
+[[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
 
-load_config '/etc/manjaro-tools/manjaro-tools.conf'
+load_config '@sysconfdir@'
 
 get_colors
 

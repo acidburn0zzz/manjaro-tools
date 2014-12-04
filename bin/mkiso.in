@@ -113,7 +113,7 @@ imgname=""
 case "${command_name}" in
     create) work_dir="${2}"; imgname="none" ;;
     iso) work_dir="${2}"; imgname="${3}" ;;
-    *) echo "Invalid command name '${command_name}'"; usage 1 ;;
+    *) error "Invalid command name ${command_name}" && usage 1 ;;
 esac
 
 if [ -z "${ARCH}" ] ; then
@@ -124,9 +124,9 @@ fi
 [ "x${imgname}" = "x" ] && msg "Image name must be specified" && usage 1
 [ "x${work_dir}" = "x" ] && msg "Please specify a working directory" && usage 1
 
-echo "${APPNAME} : Configuration Settings"
-echo "        working directory:   ${work_dir}"
-echo "               image name:   ${imgname}"
+msg "${APPNAME} : Configuration Settings"
+msg2 "working directory: ${work_dir}"
+msg2 "image name: ${imgname}"
 
 # usage: _pacman <packages>...
 _pacman ()

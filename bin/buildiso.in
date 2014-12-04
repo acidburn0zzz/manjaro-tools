@@ -129,6 +129,8 @@ done
 
 shift $(($OPTIND - 1))
 
+work_dir=${work_dir}/${desktop}/${arch}
+
 check_root "$0" "${orig_argv[@]}"
 
 if [ -z "${arch}" ] ; then

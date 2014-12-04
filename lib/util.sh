@@ -225,7 +225,13 @@ load_config(){
     else
 	work_dir='/srv/manjaroiso'
     fi
-
+    
+    if [[ -n ${target_dir} ]];then
+	target_dir=${target_dir}
+    else
+	target_dir='/srv/manjaro-release-iso'
+    fi
+    
     if [[ -n ${iso_label} ]];then
 	iso_label=${iso_label}
     else

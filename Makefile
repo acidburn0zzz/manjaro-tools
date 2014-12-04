@@ -82,10 +82,10 @@ install:
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 	install -m0644 ${LIBS} $(DESTDIR)$(PREFIX)/lib/manjaro-tools
 	
-	install -dm0644 $(DESTDIR)$(PREFIX)/lib/initcpio/hooks
-	install -m0644 ${CPIOHOOKS} $(DESTDIR)$(PREFIX)/lib/initcpio/hooks
-	install -dm0644 $(DESTDIR)$(PREFIX)/lib/initcpio/install
-	install -m0644 ${CPIOINST} $(DESTDIR)$(PREFIX)/lib/initcpio/install
+	install -dm0755 $(DESTDIR)$(PREFIX)/lib/initcpio/hooks
+	install -m0755 ${CPIOHOOKS} $(DESTDIR)$(PREFIX)/lib/initcpio/hooks
+	install -dm0755 $(DESTDIR)$(PREFIX)/lib/initcpio/install
+	install -m0755 ${CPIOINST} $(DESTDIR)$(PREFIX)/lib/initcpio/install
 
 	install -Dm0644 bin/bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
 	install -Dm0644 bin/zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools

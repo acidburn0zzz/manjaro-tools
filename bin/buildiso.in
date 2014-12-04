@@ -239,14 +239,14 @@ make_root_image() {
          echo -e "$_g >$_W done $_n"
     fi
 }
-
+# `
 # Desktop installation (de-image)
 if [ -e "${pkgsfile}" ] ; then
      make_de_image() {
          if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
               echo -e -n "$_r >$_W ${desktop} installation (${desktop}-image) \n $_n"
               mkdir -p ${work_dir}/${desktop}-image
-              if [ ! -z "`mount -l | grep ${desktop}-image`" ]; then
+              if [ ! -z "$(mount -l | grep ${desktop}-image)" ]; then
                  umount -l ${work_dir}/${desktop}-image
               fi
               mount -t aufs -o br=${work_dir}/${desktop}-image:${work_dir}/root-image=ro none ${work_dir}/${desktop}-image
@@ -284,7 +284,7 @@ if [ -e Packages-Xorg ] ; then
          if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
               echo -e -n "$_r >$_W Prepare pkgs-image \n $_n"
               mkdir -p ${work_dir}/pkgs-image/opt/livecd/pkgs
-              if [ ! -z "`mount -l | grep pkgs-image`" ]; then
+              if [ ! -z "$(mount -l | grep pkgs-image)" ]; then
                  umount -l ${work_dir}/pkgs-image
               fi
               echo -e -n "$_r >$_W mount root-image \n $_n"
@@ -303,32 +303,32 @@ if [ -e Packages-Xorg ] ; then
               rm -r ${work_dir}/pkgs-image/var
               repo-add ${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs.db.tar.gz ${work_dir}/pkgs-image/opt/livecd/pkgs/*pkg*z
               # Disable Catalyst if not present
-              if  [ -z "`ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep catalyst-utils 2> /dev/null`" ]; then
+              if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep catalyst-utils 2> /dev/null)" ]; then
                  echo -e -n "$_r >$_W Disabling Catalyst driver \n $_n"
                  mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/catalyst/
                  touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/catalyst/MHWDCONFIG
                  echo -e "$_g >$_W done $_n"
               fi
               # Disable Nvidia if not present
-              if  [ -z "`ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null`" ]; then
+              if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null)" ]; then
                  echo -e -n "$_r >$_W Disabling Nvidia driver \n $_n"
                  mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia/
                  touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia/MHWDCONFIG
                  echo -e "$_g >$_W done $_n"
               fi
-              if  [ -z "`ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null`" ]; then
+              if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null)" ]; then
                  echo -e -n "$_r >$_W Disabling Nvidia Bumblebee driver \n $_n"
                  mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/hybrid-intel-nvidia-bumblebee/
                  touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/hybrid-intel-nvidia-bumblebee/MHWDCONFIG
                  echo -e "$_g >$_W done $_n"
               fi
-              if  [ -z "`ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-304xx-utils 2> /dev/null`" ]; then
+              if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-304xx-utils 2> /dev/null)" ]; then
                  echo -e -n "$_r >$_W Disabling Nvidia 304xx driver \n $_n"
                  mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-304xx/
                  touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-304xx/MHWDCONFIG
                  echo -e "$_g >$_W done $_n"
               fi
-              if  [ -z "`ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-340xx-utils 2> /dev/null`" ]; then
+              if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-340xx-utils 2> /dev/null)" ]; then
                  echo -e -n "$_r >$_W Disabling Nvidia 340xx driver \n $_n"
                  mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-340xx/
                  touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-340xx/MHWDCONFIG
@@ -339,7 +339,7 @@ if [ -e Packages-Xorg ] ; then
               if ${xorg_overlays}; then
                  echo -e -n "$_r >$_W Prepare pkgs-free-overlay \n $_n"
                  mkdir -p ${work_dir}/pkgs-free-overlay
-                 if [ ! -z "`mount -l | grep pkgs-free-overlay`" ]; then
+                 if [ ! -z "$(mount -l | grep pkgs-free-overlay)" ]; then
                     umount -l ${work_dir}/pkgs-free-overlay
                  fi
                  echo -e -n "$_r >$_W mount root-image \n $_n"
@@ -356,7 +356,7 @@ if [ -e Packages-Xorg ] ; then
                  rm -R ${work_dir}/pkgs-free-overlay/.wh*
                  echo -e -n "$_r >$_W Prepare pkgs-nonfree-overlay \n $_n"
                  mkdir -p ${work_dir}/pkgs-nonfree-overlay
-                 if [ ! -z "`mount -l | grep pkgs-nonfree-overlay`" ]; then
+                 if [ ! -z "$(mount -l | grep pkgs-nonfree-overlay)" ]; then
                     umount -l ${work_dir}/pkgs-nonfree-overlay
                  fi
                  echo -e -n "$_r >$_W mount root-image \n $_n"
@@ -384,7 +384,7 @@ if [ -e Packages-Lng ] ; then
          if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
               echo -e -n "$_r >$_W Prepare lng-image \n $_n"
               mkdir -p ${work_dir}/lng-image/opt/livecd/lng
-              if [ ! -z "`mount -l | grep lng-image`" ]; then
+              if [ ! -z "$(mount -l | grep lng-image)" ]; then
                  umount -l ${work_dir}/lng-image
               fi
               echo -e -n "$_r >$_W mount root-image \n $_n"
@@ -413,7 +413,7 @@ if [ -e Packages-Lng ] ; then
          fi
      }
 fi
-
+# `
 # Prepare ${install_dir}/boot/
 make_boot() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -422,7 +422,7 @@ make_boot() {
         cp ${work_dir}/root-image/boot/memtest86+/memtest.bin ${work_dir}/iso/${install_dir}/boot/${arch}/memtest
 	cp ${work_dir}/root-image/boot/vmlinuz* ${work_dir}/iso/${install_dir}/boot/${arch}/${manjaroiso}
         mkdir -p ${work_dir}/boot-image
-        if [ ! -z "`mount -l | grep boot-image`" ]; then
+        if [ ! -z "$(mount -l | grep boot-image)" ]; then
            umount -l ${work_dir}/boot-image/proc ${work_dir}/boot-image/sys ${work_dir}/boot-image/dev ${work_dir}/boot-image
         fi
         echo -e -n "$_r >$_W mount root-image \n $_n"
@@ -437,7 +437,7 @@ make_boot() {
         cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
         cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
         cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
-        _kernver=`cat ${work_dir}/boot-image/usr/lib/modules/*-MANJARO/version`
+        _kernver=$(cat ${work_dir}/boot-image/usr/lib/modules/*-MANJARO/version)
         chroot ${work_dir}/boot-image /usr/bin/mkinitcpio -k ${_kernver} -c /etc/mkinitcpio-${manjaroiso}.conf -g /boot/${img_name}.img
         mv ${work_dir}/boot-image/boot/${img_name}.img ${work_dir}/iso/${install_dir}/boot/${arch}/${img_name}.img
         umount -l ${work_dir}/boot-image/proc ${work_dir}/boot-image/sys ${work_dir}/boot-image/dev ${work_dir}/boot-image

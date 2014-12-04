@@ -1,14 +1,14 @@
 # Maintainer: artoo <flower_of_life@gmx.net>
 
 pkgname=manjaro-tools-git
-pkgver=r141.36fc29f
+pkgver=r147.01269bc
 pkgrel=1
 pkgdesc='Development tools for Manjaro Linux'
 arch=('any')
 license=('GPL')
 url='https://github.com/udeved/manjaro-tools'
-depends=('namcap' 'openssh' 'rsync'  'mkinitcpio' 'mkinitcpio-nfs-utils' 
-	'nbd' 'libisoburn' 'squashfs-tools' 'syslinux' 'haveged' 'pacman>=4.1')
+depends=('namcap' 'openssh' 'rsync'  'mkinitcpio-nfs-utils' 'nbd'
+	'libisoburn' 'squashfs-tools' 'syslinux' 'haveged')
 makedepends=('git')
 optdepends=('qemu: quickly test isos' 'manjaroiso-profiles: Manjaro Linux ISO-Image profiles')
 provides=('devtools' 'arch-install-scripts' 'manjaro-tools' 'manjaroiso')

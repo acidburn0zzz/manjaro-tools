@@ -1,4 +1,4 @@
-V=0.9.4
+V=0.9.3
 
 PREFIX = $(PREFIX)/local
 
@@ -52,7 +52,7 @@ CPIOINST = \
 	inst/miso_pxe_nbd \
 	inst/miso_kms
 	
-all: $(BINPROGS) bin/bash_completion bin/zsh_completion
+all: $(BINPROGS) #bin/bash_completion bin/zsh_completion
 
 edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/manjaro-tools|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/manjaro-tools|g" \
@@ -87,8 +87,8 @@ install:
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/initcpio/install
 	install -m0755 ${CPIOINST} $(DESTDIR)$(PREFIX)/lib/initcpio/install
 
-	install -Dm0644 bin/bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
-	install -Dm0644 bin/zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
+	#install -Dm0644 bin/bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
+	#install -Dm0644 bin/zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
 	
 	# compat symlink for manjaroiso
 	#ln -sf basestrap $(DESTDIR)$(PREFIX)/bin/pacstrap
@@ -106,8 +106,8 @@ uninstall:
 	for f in ${CPIOHOOKS}; do rm -f $(DESTDIR)$(PREFIX)/lib/initcpio/hooks/$$f; done
 	for f in ${CPIOINST}; do rm -f $(DESTDIR)$(PREFIX)/lib/initcpio/install/$$f; done
 	
-	rm $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
-	rm $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
+	#rm $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
+	#rm $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
 	
 	# compat symlink for manjaroiso
 	#rm -f $(DESTDIR)$(PREFIX)/bin/pacstrap

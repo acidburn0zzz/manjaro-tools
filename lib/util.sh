@@ -223,13 +223,13 @@ load_config(){
     if [[ -n ${work_dir} ]];then
 	work_dir=${work_dir}
     else
-	work_dir='/srv/manjaroiso'
+	work_dir=${PWD}
     fi
     
     if [[ -n ${target_dir} ]];then
 	target_dir=${target_dir}
     else
-	target_dir='/srv/manjaro-release-iso'
+	target_dir=${PWD}
     fi
     
     if [[ -n ${iso_label} ]];then

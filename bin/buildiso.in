@@ -82,7 +82,7 @@ arch=$(uname -m)
 
 clean=false
 pretend=false
-high_compression=true
+high_compression=false
 verbose=false
 overwrite=false
 xorg_overlays=false
@@ -620,19 +620,18 @@ display_settings(){
     msg2 "install_dir: ${install_dir}"
     msg2 "plymouth_theme: ${plymouth_theme}"
     msg2 "compression: ${compression}"
-
 }
 
-cleanup(){
+clean_up(){
     msg "Removing work dir ${work_dir}"
-#     rm -rv ${work_dir}
+    rm -r ${work_dir}
 }
 
 iso_owner=${SUDO_USER:-$USER}
 
 ${pretend} && display_settings && exit 1
 
-${clean} && cleanup && exit 1
+${clean} && clean_up
 
 prepare_targetdir
 

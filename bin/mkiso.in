@@ -94,15 +94,7 @@ shift $(($OPTIND - 1))
 
 check_root "$0" "${orig_argv[@]}"
 
-# do UID checking here so someone can at least get usage instructions
-# if [ "$EUID" != "0" ]; then
-#     echo "error: This script must be run as root."
-#     exit 1
-# fi
-
 if [ ! -f "$PACCONFIG" ]; then
-#     echo "error: pacman config file '$PACCONFIG' does not exist"
-#     exit 1
     error "pacman config file '$PACCONFIG' does not exist"
 fi
 
@@ -117,7 +109,6 @@ case "${command_name}" in
 esac
 
 if [ -z "${ARCH}" ] ; then
-#      echo "Error: you need to specify an architecture:\ni686\nx86_64" && usage 1
 	error "You need to specify an architecture:\ni686\nx86_64" && usage 1
 fi
 
@@ -238,13 +229,11 @@ _imgcommon () {
     # Sanity checks
     if [ ! -d "${work_dir}/iso" ]; then
         error "${work_dir}/iso doesn't exist. What did you do?!"
-#         exit 1
     fi
 
     if [ ! -f "${work_dir}/iso/${INSTALL_DIR}/isomounts" ]; then
         error "The isomounts file doesn't exist. This image won't do anything"
         abort "Protecting you from yourself and erroring out here..."
-#         exit 1
     fi
 
     if [ -e "${imgname}" ]; then
@@ -253,7 +242,6 @@ _imgcommon () {
             rm -rf "${imgname}"
         else
             error "Image ${imgname} already exists, aborting."
-#             exit 1
         fi
     fi
 
@@ -261,16 +249,13 @@ _imgcommon () {
               s|%INSTALL_DIR%|${INSTALL_DIR}|g;
               s|%ARCH%|${ARCH}|g" -i ${work_dir}/iso/isolinux/*.cfg; then
         abort "${work_dir}/iso/isolinux/isolinux.cfg, doesn't exist, aborting."
-#         exit 1
     fi
 
     if [ ! -f "${work_dir}/iso/isolinux/isolinux.bin" ]; then
          abort "${work_dir}/iso/isolinux/isolinux.bin, doesn't exist, aborting."
-#          exit 1
     fi
     if [ ! -f "${work_dir}/iso/isolinux/isohdpfx.bin" ]; then
          abort "${work_dir}/iso/isolinux/isohdpfx.bin, doesn't exist, aborting."
-#          exit 1
     fi
 }
 

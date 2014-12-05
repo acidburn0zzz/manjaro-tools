@@ -278,16 +278,15 @@ if [ -e Packages-Xorg ] ; then
     # Prepare pkgs-image
     make_pkgs_image() {
 	if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-    #               echo -e -n "$_r >$_W Prepare pkgs-image \n $_n"
 	    msg "Prepare pkgs-image"
 	    mkdir -p ${work_dir}/pkgs-image/opt/livecd/pkgs
 	    if [ ! -z "$(mount -l | grep pkgs-image)" ]; then
 		umount -l ${work_dir}/pkgs-image
 	    fi
-    #               echo -e -n "$_r >$_W mount root-image \n $_n"
+	    msg2 "mount root-image"
 	    mount -t aufs -o br=${work_dir}/pkgs-image:${work_dir}/root-image=ro none ${work_dir}/pkgs-image
 	    if [ ! -z "${de}" ] ; then
-    #                  echo -e -n "$_r >$_W mount ${desktop}-image \n $_n"
+		msg2 -"mount ${desktop}-image"
 		mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
 	    fi
 	    pacman -v --config "pacman-${arch}.conf" --arch "${arch}" --root "${work_dir}/pkgs-image" --cache ${work_dir}/pkgs-image/opt/livecd/pkgs -Syw ${xorg_packages} --noconfirm
@@ -379,10 +378,10 @@ if [ -e Packages-Lng ] ; then
               if [ ! -z "$(mount -l | grep lng-image)" ]; then
                  umount -l ${work_dir}/lng-image
               fi
-#               echo -e -n "$_r >$_W mount root-image \n $_n"
+              msg2 "mount root-image"
               mount -t aufs -o br=${work_dir}/lng-image:${work_dir}/root-image=ro none ${work_dir}/lng-image
               if [ ! -z "${de}" ] ; then
-#                  echo -e -n "$_r >$_W mount ${desktop}-image \n $_n"
+                 msg2 "mount ${desktop}-image"
                  mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/lng-image
               fi
               if ${kde_lng_packages}; then
@@ -417,10 +416,10 @@ make_boot() {
         if [ ! -z "$(mount -l | grep boot-image)" ]; then
            umount -l ${work_dir}/boot-image/proc ${work_dir}/boot-image/sys ${work_dir}/boot-image/dev ${work_dir}/boot-image
         fi
-#         echo -e -n "$_r >$_W mount root-image \n $_n"
+        msg2 "mount root-image"
         mount -t aufs -o br=${work_dir}/boot-image:${work_dir}/root-image=ro none ${work_dir}/boot-image
         if [ ! -z "${de}" ] ; then
-#              echo -e -n "$_r >$_W mount ${desktop}-image \n $_n"
+             nsg2 "mount ${desktop}-image"
              mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/boot-image
         fi
         mount -t proc none ${work_dir}/boot-image/proc

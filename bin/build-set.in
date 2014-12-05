@@ -216,8 +216,6 @@ fi
 load_vars "$USER_HOME/.makepkg.conf"
 load_vars /etc/makepkg.conf
 
-arch=$(uname -m)
-
 pacman_conf_arch='default'
 base_packages=('base-devel')
 

@@ -78,8 +78,6 @@ if [ -e Packages-Custom ] ; then
     pkgsfile="Packages-Custom"
 fi
 
-arch=$(uname -m)
-
 clean=false
 pretend=false
 high_compression=false

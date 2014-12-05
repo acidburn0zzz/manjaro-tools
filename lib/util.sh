@@ -176,6 +176,12 @@ load_config(){
 	branch='stable'
     fi
     
+    if [[ -n ${arch} ]]; then
+	arch=${arch}
+    else
+	arch=$(uname -m)
+    fi
+    
     ###############
     # manjaro-tools
     ###############

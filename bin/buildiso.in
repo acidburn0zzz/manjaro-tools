@@ -80,6 +80,7 @@ fi
 
 arch=$(uname -m)
 
+clean=false
 pretend=false
 high_compression=true
 verbose=false
@@ -116,7 +117,7 @@ while getopts "${opts}" arg; do
 	b) branch="$OPTARG" ;;
 	r) work_dir="$OPTARG" ;;
 	t) target_dir="$OPTARG" ;;
-	c) clean_first=true ;;
+	c) clean=true ;;
 	v) verbose=true; mkiso_args+=(-v) ;;
 	f) overwrite=true; mkiso_args+=(-f) ;;
 	z) high_compression=true; mkiso_args+=(-x) ;;
@@ -138,7 +139,6 @@ if [ -z "${arch}" ] ; then
     echo " "
     msg  "architecture not supplied, defaulting to host's architecture: ${arch}"
 fi
-
 
 if [ ! -e Packages ] ; then
     echo " "
@@ -419,7 +419,7 @@ make_boot() {
         msg2 "mount root-image"
         mount -t aufs -o br=${work_dir}/boot-image:${work_dir}/root-image=ro none ${work_dir}/boot-image
         if [ ! -z "${de}" ] ; then
-             nsg2 "mount ${desktop}-image"
+             msg2 "mount ${desktop}-image"
              mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/boot-image
         fi
         mount -t proc none ${work_dir}/boot-image/proc
@@ -623,9 +623,16 @@ display_settings(){
 
 }
 
+cleanup(){
+    msg "Removing work dir ${work_dir}"
+#     rm -rv ${work_dir}
+}
+
 iso_owner=${SUDO_USER:-$USER}
 
 ${pretend} && display_settings && exit 1
+
+${clean} && cleanup && exit 1
 
 prepare_targetdir
 

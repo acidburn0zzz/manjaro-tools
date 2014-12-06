@@ -126,11 +126,9 @@ _pacman ()
     mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
     if [ "${QUIET}" = "y" ]; then
         basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
-        echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
         ret=$?
     else
         basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
-        echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
         ret=$?
     fi
 

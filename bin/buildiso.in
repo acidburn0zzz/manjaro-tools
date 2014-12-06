@@ -555,8 +555,10 @@ make_overlay() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare overlay-image"
         mkdir -p ${work_dir}/overlay/etc/pacman.d
-        cp -LPrd overlay-livecd/* ${work_dir}/overlay
-        cp options.conf ${work_dir}/overlay/opt/livecd/options.conf
+        
+        cp -LPdr overlay-livecd/{etc,usr,var,root} ${work_dir}/overlay
+	cp -Lr overlay-livecd/opt ${work_dir}/overlay
+        
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
         sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist

@@ -204,10 +204,10 @@ load_config(){
 	chroots='/srv/manjarobuild'
     fi
     
-    if [[ -n ${pkgdir} ]];then
-	pkgdir=${pkgdir}
+    if [[ -n ${pkg_dir} ]];then
+	pkg_dir=${pkg_dir}
     else
-	pkgdir='/var/cache/manjaro-tools'
+	pkg_dir='/var/cache/manjaro-tools'
     fi
     
     if [[ -n ${blacklist_trigger[@]} ]];then

@@ -14,7 +14,7 @@ optdepends=('qemu: quickly test isos' 'manjaroiso-profiles: Manjaro Linux ISO-Im
 provides=('devtools' 'arch-install-scripts' 'manjaro-tools' 'manjaroiso')
 conflicts=('devtools' 'arch-install-scripts' 'manjaro-tools' 'manjaroiso')
 backup=('etc/manjaro-tools/manjaro-tools.conf')
-source=("git+$url.git")
+source=("git+$url.git#branch=devel")
 sha256sums=('SKIP')
 
 pkgver() {

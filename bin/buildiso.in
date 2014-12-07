@@ -13,7 +13,7 @@ version=@version@
 
 [[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
-[[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
+# [[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
 
 load_config '@sysconfdir@' '@pkgdatadir@'
 
@@ -83,7 +83,9 @@ make_root_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Base installation (root-image)"
 	mkiso ${create_args[*]} -p "${packages}" -i "root-image" create "${work_dir}"
+	
 	pacman -Qr "${work_dir}/root-image" > "${work_dir}/root-image/root-image-pkgs.txt"
+		
 	cp ${work_dir}/root-image/etc/locale.gen.bak ${work_dir}/root-image/etc/locale.gen
 	if [ -e ${work_dir}/root-image/boot/grub/grub.cfg ] ; then
 	    rm ${work_dir}/root-image/boot/grub/grub.cfg
@@ -116,8 +118,6 @@ make_root_image() {
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
 
-	# Enable followed line if you want to use the pacman.conf used to build this image
-	#cp pacman-${arch}.conf ${work_dir}/root-image/etc/pacman.conf
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi
@@ -282,6 +282,7 @@ make_overlay() {
 	cp -Lr overlay-livecd/opt ${work_dir}/overlay
         
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
+        
         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
         sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
         sed -i "s/^.*TITLE=.*/  TITLE=\"Manjaro Linux Installation Framework (v${iso_version})\"/g" ${work_dir}/overlay/opt/livecd/setup
@@ -368,7 +369,8 @@ make_de_image() {
 	mkiso ${create_args[*]} -i "${desktop}-image" -p "${de_packages}" create "${work_dir}"
 
 	pacman -Qr "${work_dir}/${desktop}-image" > "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt"
-	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${img_name}${de}-${iso_version}-${arch}-pkgs.txt
+	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${target_dir}/${img_name}${de}-${iso_version}-${arch}-pkgs.txt
+	
 	if [ -e ${desktop}-overlay ] ; then
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
 	fi
@@ -404,7 +406,7 @@ make_pkgs_image() {
 	    msg2 -"mount ${desktop}-image"
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
 	fi
-	pacman -v --config "pacman-${arch}.conf" --arch "${arch}" --root "${work_dir}/pkgs-image" --cache ${work_dir}/pkgs-image/opt/livecd/pkgs -Syw ${xorg_packages} --noconfirm
+	pacman -v --config "${pac_conf}" --arch "${arch}" --root "${work_dir}/pkgs-image" --cache ${work_dir}/pkgs-image/opt/livecd/pkgs -Syw ${xorg_packages} --noconfirm
 	if [ ! -z "${xorg_packages_cleanup}" ]; then
 	    for xorg_clean in ${xorg_packages_cleanup};
 	      do  rm ${work_dir}/pkgs-image/opt/livecd/pkgs/${xorg_clean}
@@ -497,9 +499,9 @@ make_lng_image() {
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/lng-image
 	fi
 	if ${kde_lng_packages}; then
-	    pacman -v --config "pacman-${arch}.conf" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} ${lng_packages_kde} --noconfirm
+	    pacman -v --config "${pac_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} ${lng_packages_kde} --noconfirm
 	else
-	    pacman -v --config "pacman-${arch}.conf" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} --noconfirm
+	    pacman -v --config "${pac_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} --noconfirm
 	fi
 	if [ ! -z "${lng_packages_cleanup}" ]; then
 	    for lng_clean in ${lng_packages_cleanup};
@@ -577,13 +579,6 @@ iso_args+=(-a ${arch} -D ${install_dir} -L ${iso_label} -c ${compression})
 iso_file="${target_dir}/${img_name}${de}-${iso_version}-${arch}.iso"
 
 check_root "$0" "${orig_argv[@]}"
-
-if [ ! -e "pacman-${arch}.conf" ] ; then
-    echo " "
-    error "the config file pacman-${arch}.conf is missing, exiting..."
-    echo " "
-    exit
-fi
 
 if [ "${arch}" == "i686" ]; then
     packages=$(sed "s|#.*||g" Packages | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')

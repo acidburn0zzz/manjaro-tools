@@ -241,13 +241,15 @@ load_config(){
     if [[ -n ${iso_label} ]];then
 	iso_label=${iso_label}
     else
-	iso_label="MJRO0811"
+	source /etc/lsb-release
+	iso_label="MJRO0${DISTRIB_RELEASE//.}"
     fi
 
     if [[ -n ${iso_version} ]];then
 	iso_version=${iso_version}
-    else
-	iso_version=0.8.11
+    else	
+	source /etc/lsb-release
+	iso_version=${DISTRIB_RELEASE}
     fi
 
     if [[ -n ${manjaro_kernel} ]];then
@@ -256,14 +258,7 @@ load_config(){
 	manjaro_kernel="linux316"
     fi
 
-#     if [[ -n ${manjaro_kernel_ver} ]];then
-# 	manjaro_kernel_ver=${manjaro_kernel_ver}
-#     else
-	manjaro_kernel_ver=${manjaro_kernel}
-	manjaro_kernel_ver=${manjaro_kernel_ver%%-*}
-	manjaro_kernel_ver=${manjaro_kernel_ver%%.[00-99].[00-99]}
-	manjaro_kernel_ver=${manjaro_kernel_ver//.}
-#     fi
+    manjaro_kernel_ver=${manjaro_kernel#*linux}
     
     if [[ -n ${manjaro_version} ]];then
 	manjaro_version=${manjaro_version}
@@ -280,7 +275,8 @@ load_config(){
     if [[ -n ${code_name} ]];then
 	code_name=${code_name}
     else
-	code_name="Manjaro"
+	source /etc/lsb-release
+	code_name="${DISTRIB_CODENAME}"
     fi
     
     if [[ -n ${img_name} ]];then

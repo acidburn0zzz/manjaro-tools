@@ -118,9 +118,6 @@ make_root_image() {
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
 	
-	# set hostname here
-	msg $PWD
-	
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi
@@ -347,8 +344,10 @@ display_settings(){
 }
 
 clean_up(){
-    msg "Removing work dir ${work_dir}"
-    rm -r ${work_dir}
+    if [[ -d ${work_dir} ]];then
+	msg "Removing work dir ${work_dir}"
+	rm -r ${work_dir}
+    fi
 }
 
 # Build ISO

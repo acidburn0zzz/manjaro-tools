@@ -1,7 +1,7 @@
 # Maintainer: artoo <flower_of_life@gmx.net>
 
 pkgname=manjaro-tools-git
-pkgver=r168.1647139
+pkgver=r174.1b6b789
 pkgrel=1
 pkgdesc='Development tools for Manjaro Linux'
 arch=('any')

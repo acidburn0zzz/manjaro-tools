@@ -320,6 +320,7 @@ display_settings(){
     msg "ARGS:"
     msg2 "xorg_overlays: ${xorg_overlays}"
     msg2 "kde_lng_packages: ${kde_lng_packages}"
+    msg2 "high_compression: ${high_compression}"
     msg2 "create_args: ${create_args[*]}"
     msg2 "iso_args: ${iso_args[*]}"
     
@@ -518,13 +519,15 @@ make_lng_image() {
     fi
 }
 
-clean=false
+clean_first=false
 pretend=false
-high_compression=false
+high_compression=true
 verbose=false
 overwrite=false
 xorg_overlays=false
 kde_lng_packages=false
+
+create_args+=(-v)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
@@ -556,10 +559,10 @@ while getopts "${opts}" arg; do
 	b) branch="$OPTARG" ;;
 	r) work_dir="$OPTARG" ;;
 	t) target_dir="$OPTARG" ;;
-	c) clean=true ;;
-	v) verbose=true; create_args+=(-v); iso_args+=(-v) ;;
+	c) clean_first=true ;;
+	v) verbose=true; iso_args+=(-v) ;;
 	f) overwrite=true; iso_args+=(-f) ;;
-	z) high_compression=true; iso_args+=(-x) ;;
+	z) high_compression=false; iso_args+=(-x) ;;
 	x) xorg_overlays=true ;;
 	k) kde_lng_packages=true ;;
 	i) pac_conf="$OPTARG" ;;
@@ -621,7 +624,7 @@ iso_owner=${SUDO_USER:-$USER}
 
 ${pretend} && display_settings && exit 1
 
-${clean} && clean_up
+${clean_first} && clean_up
 
 prepare_targetdir
 

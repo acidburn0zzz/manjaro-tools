@@ -207,7 +207,7 @@ EOF
 
 export LC_MESSAGES=C
 
-load_config '@sysconfdir@'
+load_config '@sysconfdir@' '@pkgdatadir@'
 
 pkg_owner=${SUDO_USER:-$USER}
 

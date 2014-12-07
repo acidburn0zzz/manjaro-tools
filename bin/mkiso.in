@@ -125,10 +125,10 @@ _pacman ()
     local ret
     mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
     if [ "${QUIET}" = "y" ]; then
-        basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
+        setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
         ret=$?
     else
-        basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
+        setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
         ret=$?
     fi
 

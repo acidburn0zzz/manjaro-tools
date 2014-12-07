@@ -315,6 +315,12 @@ load_config(){
     else
 	compression=xz
     fi
+    
+    if [[ -n ${pac_conf} ]];then
+	pac_conf=${pac_conf}
+    else
+	pac_conf="$2/pacman-default.conf"
+    fi
 }
 
 load_sets(){

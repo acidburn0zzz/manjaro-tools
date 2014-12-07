@@ -14,7 +14,7 @@ version=@version@
 [[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
 
-load_config '@sysconfdir@'
+load_config '@sysconfdir@' '@pkgdatadir@'
 
 create_set(){
     msg "Creating [${profiledir}/${name}.set] ..."

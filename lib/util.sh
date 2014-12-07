@@ -182,9 +182,9 @@ load_config(){
 	arch=$(uname -m)
     fi
     
-    ###############
-    # manjaro-tools
-    ###############
+    ###################
+    # manjaro-tools-pkg
+    ###################
     
     if [[ -n ${profiledir} ]];then
 	profiledir=${profiledir}
@@ -222,9 +222,9 @@ load_config(){
 	blacklist=('libsystemd')
     fi
     
-    ##################
-    # manjaro-isotools
-    ##################
+    ###################
+    # manjaro-tools-iso
+    ###################
     
     if [[ -n ${work_dir} ]];then
 	work_dir=${work_dir}

@@ -36,7 +36,11 @@ display_settings(){
     msg2 "pacman_conf: ${pacman_conf}"
     msg2 "makepkg_conf: ${makepkg_conf}"
     msg2 "pm_conf: ${pm_conf}"
-
+    
+    msg "BLACKLIST:"
+    msg2 "blacklist_trigger: ${blacklist_trigger[*]}"
+    msg2 "blacklist: ${blacklist[*]}"
+    
     if ${clean_first};then
 	msg "PKG:"
 	msg2 "base_packages: ${base_packages[*]}"

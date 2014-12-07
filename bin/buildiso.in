@@ -117,7 +117,10 @@ make_root_image() {
 	# Change to given branch in options.conf
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
-
+	
+	# set hostname here
+	msg $PWD
+	
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi

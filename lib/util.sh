@@ -256,16 +256,19 @@ load_config(){
 	manjaro_kernel="linux316"
     fi
 
-    if [[ -n ${manjaro_kernel_ver} ]];then
-	manjaro_kernel_ver=${manjaro_kernel_ver}
-    else
-	manjaro_kernel_ver="316"
-    fi
+#     if [[ -n ${manjaro_kernel_ver} ]];then
+# 	manjaro_kernel_ver=${manjaro_kernel_ver}
+#     else
+	manjaro_kernel_ver=${manjaro_kernel}
+	manjaro_kernel_ver=${manjaro_kernel_ver%%-*}
+	manjaro_kernel_ver=${manjaro_kernel_ver%%.[00-99].[00-99]}
+	manjaro_kernel_ver=${manjaro_kernel_ver//.}
+#     fi
     
     if [[ -n ${manjaro_version} ]];then
 	manjaro_version=${manjaro_version}
     else
-	manjaro_version="2014.12"
+	manjaro_version=$(date +%Y.%m)
     fi
     
     if [[ -n ${manjaroiso} ]];then

@@ -66,8 +66,9 @@ copy_manjaro_tools_conf(){
 
 copy_livecd(){
     local livecd=$1
+    msg2 "Copying $1/livecd to ${work_dir}/overlay/opt ..."
     [[ ! -d ${work_dir}/overlay/opt ]] && mkdir -p ${work_dir}/overlay/opt
-    cp $1/livecd ${work_dir}/overlay/opt
+    cp -r $1/livecd ${work_dir}/overlay/opt
 }
 
 # Prepare overlay-image

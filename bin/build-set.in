@@ -207,7 +207,7 @@ EOF
 
 export LC_MESSAGES=C
 
-load_config '@sysconfdir@' '@pkgdatadir@'
+load_config '@sysconfdir@/manjaro-tools.conf'
 
 pkg_owner=${SUDO_USER:-$USER}
 
@@ -217,7 +217,9 @@ else
     USER_HOME=$HOME
 fi
 
-load_vars "$USER_HOME/.makepkg.conf"
+load_config "$USER_HOME/.config/.manjaro-tools.conf"  
+
+load_vars "$USER_HOME/.config/.makepkg.conf"
 load_vars /etc/makepkg.conf
 
 pacman_conf_arch='default'
@@ -276,7 +278,7 @@ chrootdir=${chroots}/${branch}/${arch}
 pkg_dir_loaded=${pkg_dir}
 pkg_dir="${pkg_dir}/${branch}/${arch}"
 
-pacman_conf="@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
+load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
 pm_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
 

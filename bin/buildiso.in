@@ -15,10 +15,6 @@ version=@version@
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
 # [[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
 
-load_config '@sysconfdir@' '@pkgdatadir@'
-
-load_desktop_definitions
-
 # Prepare ${install_dir}/boot/
 make_boot() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -211,7 +207,7 @@ display_settings(){
     msg2 "branch: ${branch}"
     msg2 "work_dir: ${work_dir}"
     msg2 "target_dir: ${target_dir}"
-    msg2 "pac_conf: ${pac_conf}"
+    msg2 "pacman_conf: ${pacman_conf}"
 
     msg "ARGS:"
     msg2 "xorg_overlays: ${xorg_overlays}"
@@ -348,7 +344,7 @@ make_pkgs_image() {
 	    msg2 -"mount ${desktop}-image"
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
 	fi
-	pacman -v --config "${pac_conf}" --arch "${arch}" --root "${work_dir}/pkgs-image" --cache ${work_dir}/pkgs-image/opt/livecd/pkgs -Syw ${xorg_packages} --noconfirm
+	pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/pkgs-image" --cache ${work_dir}/pkgs-image/opt/livecd/pkgs -Syw ${xorg_packages} --noconfirm
 	if [ ! -z "${xorg_packages_cleanup}" ]; then
 	    for xorg_clean in ${xorg_packages_cleanup};
 	      do  rm ${work_dir}/pkgs-image/opt/livecd/pkgs/${xorg_clean}
@@ -441,9 +437,9 @@ make_lng_image() {
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/lng-image
 	fi
 	if ${kde_lng_packages}; then
-	    pacman -v --config "${pac_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} ${lng_packages_kde} --noconfirm
+	    pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} ${lng_packages_kde} --noconfirm
 	else
-	    pacman -v --config "${pac_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} --noconfirm
+	    pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} --noconfirm
 	fi
 	if [ ! -z "${lng_packages_cleanup}" ]; then
 	    for lng_clean in ${lng_packages_cleanup};
@@ -460,6 +456,20 @@ make_lng_image() {
     fi
 }
 
+load_config '@sysconfdir@/manjaro-tools.conf' 
+
+iso_owner=${SUDO_USER:-$USER}
+
+if [[ -n $SUDO_USER ]]; then
+    eval "USER_HOME=~$SUDO_USER"
+else
+    USER_HOME=$HOME
+fi
+
+load_config "$USER_HOME/.config/.manjaro-tools.conf"  
+
+load_desktop_definitions
+
 clean_first=false
 pretend=false
 high_compression=false
@@ -468,13 +478,15 @@ overwrite=false
 xorg_overlays=false
 kde_lng_packages=false
 
+pacman_conf_arch='default'
+
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a <arch>          Set arch [default: ${arch}]"
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Work directory [default: ${work_dir}]"
     echo "    -t <dir>           Target iso directory [default: ${target_dir}]"
-    echo "    -i <file>          Config file for pacman [default: ${pac_conf}]"
+    echo "    -i <file>          Config file for pacman [default: ${pacman_conf}]"
     echo '    -c                 Clean work dir'
     echo '    -v                 Verbose'
     echo '    -f                 Overwrite'
@@ -504,7 +516,7 @@ while getopts "${opts}" arg; do
 	z) high_compression=true; iso_args+=(-x) ;;
 	x) xorg_overlays=true ;;
 	k) kde_lng_packages=true ;;
-	i) pac_conf="$OPTARG" ;;
+	i) pacman_conf="$OPTARG" ;;
 	q) pretend=true ;;
 	h) usage ;;
     esac
@@ -514,11 +526,17 @@ shift $(($OPTIND - 1))
 
 work_dir=${work_dir}/${desktop}/${arch}
 
-create_args+=(-v -a ${arch} -D ${install_dir} -C ${pac_conf})
+create_args+=(-v -a ${arch} -D ${install_dir} -C ${pacman_conf})
 
 iso_args+=(-a ${arch} -D ${install_dir} -L ${iso_label} -c ${compression})
 
 iso_file="${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}.iso"
+
+if [[ "$arch" == 'x86_64' ]]; then
+    pacman_conf_arch='multilib'
+fi
+
+load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 
 check_root "$0" "${orig_argv[@]}"
 
@@ -558,8 +576,6 @@ if [ -e "${pkgsfile}" ] ; then
 	de_packages=$(sed "s|#.*||g" "${pkgsfile}" | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
     fi
 fi
-
-iso_owner=${SUDO_USER:-$USER}
 
 ${pretend} && display_settings && exit 1
 

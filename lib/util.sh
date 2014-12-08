@@ -162,7 +162,10 @@ load_vars() {
 }
 
 load_config(){
-    manjaro_tools_conf="$1/manjaro-tools.conf"
+
+    [[ -f $1 ]] || return 1
+    
+    local manjaro_tools_conf="$1"
 
     [[ -r ${manjaro_tools_conf} ]] && source ${manjaro_tools_conf}
     
@@ -315,10 +318,14 @@ load_config(){
 	compression=xz
     fi
     
-    if [[ -n ${pac_conf} ]];then
-	pac_conf=${pac_conf}
+    return 0
+}
+
+load_pacman_conf(){
+    if [[ -n ${pacman_conf} ]];then
+	pacman_conf=${pacman_conf}
     else
-	pac_conf="$2/pacman-mutilib.conf"
+	pacman_conf="$1"
     fi
 }
 

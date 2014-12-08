@@ -39,7 +39,9 @@ CONFIGFILES = \
 LIBS = \
 	lib/util.sh \
 	lib/util-mount.sh \
-	lib/util-msg.sh
+	lib/util-msg.sh \
+	lib/util-pkg.sh \
+	lib/util-iso.sh
 
 CPIOHOOKS = \
 	hooks/miso \

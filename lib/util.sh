@@ -330,3 +330,44 @@ load_sets(){
     done
     echo $prof
 }
+
+load_desktop_definitions(){
+    if [ -e Packages-Xfce ] ; then
+	pkgsfile="Packages-Xfce"
+    fi
+    if [ -e Packages-Kde ] ; then
+    	pkgsfile="Packages-Kde"
+    fi
+    if [ -e Packages-Gnome ] ; then
+   	pkgsfile="Packages-Gnome" 
+    fi
+    if [ -e Packages-Cinnamon ] ; then
+   	pkgsfile="Packages-Cinnamon" 
+    fi
+    if [ -e Packages-Openbox ] ; then
+  	pkgsfile="Packages-Openbox"  
+    fi
+    if [ -e Packages-Lxde ] ; then
+ 	pkgsfile="Packages-Lxde"   
+    fi
+    if [ -e Packages-Lxqt ] ; then
+    	pkgsfile="Packages-Lxqt"
+    fi
+    if [ -e Packages-Mate ] ; then
+    	pkgsfile="Packages-Mate"
+    fi
+    if [ -e Packages-Enlightenment ] ; then
+    	pkgsfile="Packages-Enlightenment"
+    fi
+    if [ -e Packages-Net ] ; then
+   	pkgsfile="Packages-Net" 
+    fi
+    if [ -e Packages-PekWM ] ; then
+	pkgsfile="Packages-PekWM"
+    fi
+    if [ -e Packages-Custom ] ; then
+    	pkgsfile="Packages-Custom"
+    fi
+    desktop=${pkgsfile#*-}
+    desktop=${desktop,,}
+}

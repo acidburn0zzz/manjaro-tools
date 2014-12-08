@@ -17,111 +17,7 @@ version=@version@
 
 load_config '@sysconfdir@' '@pkgdatadir@'
 
-if [ -e Packages-Xfce ] ; then
-    de="-xfce"
-    desktop="xfce"
-    pkgsfile="Packages-Xfce"
-fi
-if [ -e Packages-Kde ] ; then
-    de="-kde"
-    desktop="kde"
-    pkgsfile="Packages-Kde"
-fi
-if [ -e Packages-Gnome ] ; then
-    de="-gnome"
-    desktop="gnome"
-    pkgsfile="Packages-Gnome"
-fi
-if [ -e Packages-Cinnamon ] ; then
-    de="-cinnamon"
-    desktop="cinnamon"
-    pkgsfile="Packages-Cinnamon"
-fi
-if [ -e Packages-Openbox ] ; then
-    de="-openbox"
-    desktop="openbox"
-    pkgsfile="Packages-Openbox"
-fi
-if [ -e Packages-Lxde ] ; then
-    de="-lxde"
-    desktop="lxde"
-    pkgsfile="Packages-Lxde"
-fi
-if [ -e Packages-Lxqt ] ; then
-    de="-lxqt"
-    desktop="lxqt"
-    pkgsfile="Packages-Lxqt"
-fi
-if [ -e Packages-Mate ] ; then
-    de="-mate"
-    desktop="mate"
-    pkgsfile="Packages-Mate"
-fi
-if [ -e Packages-Enlightenment ] ; then
-    de="-enlightenment"
-    desktop="enlightenment"
-    pkgsfile="Packages-Enlightenment"
-fi
-if [ -e Packages-Net ] ; then
-    de="-net"
-    desktop="net"
-    pkgsfile="Packages-Net"
-fi
-if [ -e Packages-PekWM ] ; then
-    de="-pekwm"
-    desktop="pekwm"
-    pkgsfile="Packages-PekWM"
-fi
-if [ -e Packages-Custom ] ; then
-    de="-custom"
-    desktop="custom"
-    pkgsfile="Packages-Custom"
-fi
-
-# Base installation (root-image)
-make_root_image() {
-    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Base installation (root-image)"
-	mkiso ${create_args[*]} -p "${packages}" -i "root-image" create "${work_dir}"
-	
-	pacman -Qr "${work_dir}/root-image" > "${work_dir}/root-image/root-image-pkgs.txt"
-		
-	cp ${work_dir}/root-image/etc/locale.gen.bak ${work_dir}/root-image/etc/locale.gen
-	if [ -e ${work_dir}/root-image/boot/grub/grub.cfg ] ; then
-	    rm ${work_dir}/root-image/boot/grub/grub.cfg
-	fi
-	if [ -e ${work_dir}/root-image/etc/plymouth/plymouthd.conf ] ; then
-	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/root-image/etc/plymouth/plymouthd.conf
-	fi
-	if [ -e ${work_dir}/root-image/etc/lsb-release ] ; then
-	    sed -i -e "s/^.*DISTRIB_RELEASE.*/DISTRIB_RELEASE=${iso_version}/" ${work_dir}/root-image/etc/lsb-release
-	fi
-	if [ -e ${work_dir}/root-image/usr/bin/cupsd ] ; then
-	    mkdir -p "${work_dir}/root-image/etc/systemd/system/multi-user.target.wants"
-	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "${work_dir}/root-image/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
-	fi
-	if [ -e ${work_dir}/root-image/usr/bin/keyboardctl ] ; then
-	    mkdir -p "${work_dir}/root-image/etc/systemd/system/sysinit.target.wants"
-	    ln -sf '/usr/lib/systemd/system/keyboardctl.service' "${work_dir}/root-image/etc/systemd/system/sysinit.target.wants/keyboardctl.service"
-	fi
-	if [ -e ${work_dir}/root-image/usr/bin/tlp ] ; then
-	    mkdir -p "${work_dir}"/root-image/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
-	    ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "${work_dir}/root-image/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
-	    ln -sf '/usr/lib/systemd/system/tlp.service' "${work_dir}/root-image/etc/systemd/system/multi-user.target.wants/tlp.service"
-	fi
-	cp -LPr overlay/* ${work_dir}/root-image
-
-	# Clean up GnuPG keys
-	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
-
-	# Change to given branch in options.conf
-	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
-	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
-	
-	: > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
-    fi
-}
+load_desktop_definitions
 
 # Prepare ${install_dir}/boot/
 make_boot() {
@@ -137,7 +33,7 @@ make_boot() {
         fi
         msg2 "mount root-image"
         mount -t aufs -o br=${work_dir}/boot-image:${work_dir}/root-image=ro none ${work_dir}/boot-image
-        if [ ! -z "${de}" ] ; then
+        if [ ! -z "${desktop}" ] ; then
              msg2 "mount ${desktop}-image"
              mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/boot-image
         fi
@@ -321,8 +217,6 @@ display_settings(){
     msg2 "xorg_overlays: ${xorg_overlays}"
     msg2 "kde_lng_packages: ${kde_lng_packages}"
     msg2 "high_compression: ${high_compression}"
-    msg2 "create_args: ${create_args[*]}"
-    msg2 "iso_args: ${iso_args[*]}"
     
     msg "ISO SETTINGS:"
     msg2 "iso_label: ${iso_label}"
@@ -360,6 +254,51 @@ make_iso() {
     msg "Done"
 }
 
+# Base installation (root-image)
+make_root_image() {
+    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
+	msg "Base installation (root-image)"
+	mkiso ${create_args[*]} -p "${packages}" -i "root-image" create "${work_dir}"
+	
+	pacman -Qr "${work_dir}/root-image" > "${work_dir}/root-image/root-image-pkgs.txt"
+		
+	cp ${work_dir}/root-image/etc/locale.gen.bak ${work_dir}/root-image/etc/locale.gen
+	if [ -e ${work_dir}/root-image/boot/grub/grub.cfg ] ; then
+	    rm ${work_dir}/root-image/boot/grub/grub.cfg
+	fi
+	if [ -e ${work_dir}/root-image/etc/plymouth/plymouthd.conf ] ; then
+	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/root-image/etc/plymouth/plymouthd.conf
+	fi
+	if [ -e ${work_dir}/root-image/etc/lsb-release ] ; then
+	    sed -i -e "s/^.*DISTRIB_RELEASE.*/DISTRIB_RELEASE=${iso_version}/" ${work_dir}/root-image/etc/lsb-release
+	fi
+	if [ -e ${work_dir}/root-image/usr/bin/cupsd ] ; then
+	    mkdir -p "${work_dir}/root-image/etc/systemd/system/multi-user.target.wants"
+	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "${work_dir}/root-image/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
+	fi
+	if [ -e ${work_dir}/root-image/usr/bin/keyboardctl ] ; then
+	    mkdir -p "${work_dir}/root-image/etc/systemd/system/sysinit.target.wants"
+	    ln -sf '/usr/lib/systemd/system/keyboardctl.service' "${work_dir}/root-image/etc/systemd/system/sysinit.target.wants/keyboardctl.service"
+	fi
+	if [ -e ${work_dir}/root-image/usr/bin/tlp ] ; then
+	    mkdir -p "${work_dir}"/root-image/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
+	    ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "${work_dir}/root-image/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
+	    ln -sf '/usr/lib/systemd/system/tlp.service' "${work_dir}/root-image/etc/systemd/system/multi-user.target.wants/tlp.service"
+	fi
+	cp -LPr overlay/* ${work_dir}/root-image
+
+	# Clean up GnuPG keys
+	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
+
+	# Change to given branch in options.conf
+	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
+	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
+	
+	: > ${work_dir}/build.${FUNCNAME}
+	msg "Done"
+    fi
+}
+
 make_de_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "${desktop} installation (${desktop}-image)"
@@ -372,7 +311,7 @@ make_de_image() {
 	mkiso ${create_args[*]} -i "${desktop}-image" -p "${de_packages}" create "${work_dir}"
 
 	pacman -Qr "${work_dir}/${desktop}-image" > "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt"
-	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${target_dir}/${img_name}${de}-${iso_version}-${arch}-pkgs.txt
+	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}-pkgs.txt
 	
 	if [ -e ${desktop}-overlay ] ; then
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
@@ -405,7 +344,7 @@ make_pkgs_image() {
 	fi
 	msg2 "mount root-image"
 	mount -t aufs -o br=${work_dir}/pkgs-image:${work_dir}/root-image=ro none ${work_dir}/pkgs-image
-	if [ ! -z "${de}" ] ; then
+	if [ ! -z "${desktop}" ] ; then
 	    msg2 -"mount ${desktop}-image"
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
 	fi
@@ -455,7 +394,7 @@ make_pkgs_image() {
 	    fi
 	  msg2 "mount root-image"
 	    mount -t aufs -o br=${work_dir}/pkgs-free-overlay:${work_dir}/root-image=ro none ${work_dir}/pkgs-free-overlay
-	    if [ ! -z "${de}" ] ; then
+	    if [ ! -z "${desktop}" ] ; then
 	      msg2 "mount ${desktop}-image"
 	      mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-free-overlay
 	    fi
@@ -472,7 +411,7 @@ make_pkgs_image() {
 	    fi
 	    msg2 "mount root-image"
 	    mount -t aufs -o br=${work_dir}/pkgs-nonfree-overlay:${work_dir}/root-image=ro none ${work_dir}/pkgs-nonfree-overlay
-	    if [ ! -z "${de}" ] ; then
+	    if [ ! -z "${desktop}" ] ; then
 	      msg2 "mount ${desktop}-image"
 	      mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-nonfree-overlay
 	    fi
@@ -497,7 +436,7 @@ make_lng_image() {
 	fi
 	msg2 "mount root-image"
 	mount -t aufs -o br=${work_dir}/lng-image:${work_dir}/root-image=ro none ${work_dir}/lng-image
-	if [ ! -z "${de}" ] ; then
+	if [ ! -z "${desktop}" ] ; then
 	    msg2 "mount ${desktop}-image"
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/lng-image
 	fi
@@ -523,13 +462,11 @@ make_lng_image() {
 
 clean_first=false
 pretend=false
-high_compression=true
+high_compression=false
 verbose=false
 overwrite=false
 xorg_overlays=false
 kde_lng_packages=false
-
-create_args+=(-v)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
@@ -564,7 +501,7 @@ while getopts "${opts}" arg; do
 	c) clean_first=true ;;
 	v) verbose=true; iso_args+=(-v) ;;
 	f) overwrite=true; iso_args+=(-f) ;;
-	z) high_compression=false; iso_args+=(-x) ;;
+	z) high_compression=true; iso_args+=(-x) ;;
 	x) xorg_overlays=true ;;
 	k) kde_lng_packages=true ;;
 	i) pac_conf="$OPTARG" ;;
@@ -577,11 +514,11 @@ shift $(($OPTIND - 1))
 
 work_dir=${work_dir}/${desktop}/${arch}
 
-create_args+=(-a ${arch} -D ${install_dir} -C ${pac_conf})
+create_args+=(-v -a ${arch} -D ${install_dir} -C ${pac_conf})
 
 iso_args+=(-a ${arch} -D ${install_dir} -L ${iso_label} -c ${compression})
 
-iso_file="${target_dir}/${img_name}${de}-${iso_version}-${arch}.iso"
+iso_file="${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}.iso"
 
 check_root "$0" "${orig_argv[@]}"
 

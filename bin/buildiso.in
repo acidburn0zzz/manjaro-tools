@@ -326,7 +326,7 @@ make_de_image() {
 	fi
 	
 	# copy over manjaro-tools.conf
-	copy_manjaro_tools_conf
+	copy_manjaro_tools_conf "${work_dir}/${desktop}-image"
 	
 	umount -l ${work_dir}/${desktop}-image
 	rm -R ${work_dir}/${desktop}-image/.wh*

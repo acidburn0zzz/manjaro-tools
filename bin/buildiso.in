@@ -325,21 +325,27 @@ make_de_image() {
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf
 	fi
 	
-	local mtools=${work_dir}/${desktop}-image/etc/skel/.config
-	
 	# copy over manjaro-tools.conf
-	[[ ! -d ${mtools} ]] && mkdir ${mtools}
-	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
-	else
-	    cp /etc/manjaro-tools/manjaro-tools.conf ${mtools}/manjaro-tools.conf
-	fi
+	copy_manjaro_tools_conf
 	
 	umount -l ${work_dir}/${desktop}-image
 	rm -R ${work_dir}/${desktop}-image/.wh*
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi
+}
+
+copy_manjaro_tools_conf(){
+	local mtools=$1/etc/skel/.config
+	
+	[[ ! -d ${mtools} ]] && mkdir ${mtools}
+	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
+	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf ..."
+	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
+	else
+	    msg2 "Copying ${manjaro_tools_conf} ..."
+	    cp ${manjaro_tools_conf} ${mtools}/manjaro-tools.conf
+	fi
 }
 
 make_pkgs_image() {

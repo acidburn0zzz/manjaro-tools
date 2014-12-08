@@ -217,9 +217,9 @@ else
     USER_HOME=$HOME
 fi
 
-load_config "$USER_HOME/.config/.manjaro-tools.conf"  
+load_config "$USER_HOME/.config/manjaro-tools.conf"  
 
-load_vars "$USER_HOME/.config/.makepkg.conf"
+load_vars "$USER_HOME/.makepkg.conf"
 load_vars /etc/makepkg.conf
 
 pacman_conf_arch='default'

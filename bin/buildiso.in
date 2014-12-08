@@ -329,10 +329,10 @@ make_de_image() {
 	
 	# copy over manjaro-tools.conf
 	[[ ! -d ${mtools} ]] && mkdir ${mtools}
-	if [[ -f $USER_HOME/.config/.manjaro-tools.conf ]]; then
-	    cp $USER_HOME/.config/.manjaro-tools.conf ${mtools}/.manjaro-tools.conf
+	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
+	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
 	else
-	    cp /etc/manjaro-tools/manjaro-tools.conf ${mtools}/.manjaro-tools.conf
+	    cp /etc/manjaro-tools/manjaro-tools.conf ${mtools}/manjaro-tools.conf
 	fi
 	
 	umount -l ${work_dir}/${desktop}-image
@@ -467,7 +467,6 @@ make_lng_image() {
     fi
 }
 
-load_config '@sysconfdir@/manjaro-tools.conf' 
 
 iso_owner=${SUDO_USER:-$USER}
 
@@ -477,7 +476,8 @@ else
     USER_HOME=$HOME
 fi
 
-load_config "$USER_HOME/.config/.manjaro-tools.conf"  
+load_config "$USER_HOME/.config/manjaro-tools.conf"  
+load_config '@sysconfdir@/manjaro-tools.conf'
 
 load_desktop_definitions
 

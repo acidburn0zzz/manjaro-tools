@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source /home/manjaro/.config/manjaro-tools.conf
+source /opt/livecd/manjaro-tools.conf
 
 [[ -r /opt/livecd/util.sh ]] && source /opt/livecd/util.sh
 [[ -r /opt/livecd/util-lng.sh ]] && source /opt/livecd/util-lng.sh

@@ -165,7 +165,7 @@ load_config(){
 
     [[ -f $1 ]] || return 1
     
-    local manjaro_tools_conf="$1"
+    manjaro_tools_conf="$1"
 
     [[ -r ${manjaro_tools_conf} ]] && source ${manjaro_tools_conf}
     
@@ -322,11 +322,16 @@ load_config(){
 }
 
 load_pacman_conf(){
+
+    [[ -f $1 ]] || return 1
+    
     if [[ -n ${pacman_conf} ]];then
 	pacman_conf=${pacman_conf}
     else
 	pacman_conf="$1"
     fi
+    
+    return 0
 }
 
 load_sets(){

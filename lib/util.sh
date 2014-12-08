@@ -318,7 +318,7 @@ load_config(){
     if [[ -n ${pac_conf} ]];then
 	pac_conf=${pac_conf}
     else
-	pac_conf="$2/pacman-default.conf"
+	pac_conf="$2/pacman-mutilib.conf"
     fi
 }
 

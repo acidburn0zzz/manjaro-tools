@@ -325,7 +325,7 @@ make_de_image() {
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf
 	fi
 	
-	local mtools=${work_dir}/${desktop}-image/home/${username}/.config
+	local mtools=${work_dir}/${desktop}-image/etc/skel/.config
 	
 	# copy over manjaro-tools.conf
 	[[ ! -d ${mtools} ]] && mkdir ${mtools}

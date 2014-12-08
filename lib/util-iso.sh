@@ -158,26 +158,6 @@ make_isolinux() {
     fi
 }
 
-# Prepare overlay-image
-make_overlay() {
-    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare overlay-image"
-        mkdir -p ${work_dir}/overlay/etc/pacman.d
-        
-        cp -LPdr overlay-livecd/{etc,usr,var,root} ${work_dir}/overlay
-	cp -Lr overlay-livecd/opt ${work_dir}/overlay
-        
-        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
-        
-        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/^.*TITLE=.*/  TITLE=\"Manjaro Linux Installation Framework (v${iso_version})\"/g" ${work_dir}/overlay/opt/livecd/setup
-        #chmod -R 755 ${work_dir}/overlay/home
-        : > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
-    fi
-}
-
 # Process isomounts
 make_isomounts() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -244,7 +224,7 @@ make_root_image() {
 
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
-
+	
 	# Change to given branch in options.conf
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
@@ -284,27 +264,11 @@ make_de_image() {
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf
 	fi
 	
-	# copy over manjaro-tools.conf
-	copy_manjaro_tools_conf "${work_dir}/${desktop}-image"
-	
 	umount -l ${work_dir}/${desktop}-image
 	rm -R ${work_dir}/${desktop}-image/.wh*
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi
-}
-
-copy_manjaro_tools_conf(){
-	local mtools=$1/etc/skel/.config
-	
-	[[ ! -d ${mtools} ]] && mkdir ${mtools}
-	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf ..."
-	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
-	else
-	    msg2 "Copying ${manjaro_tools_conf} ..."
-	    cp ${manjaro_tools_conf} ${mtools}/manjaro-tools.conf
-	fi
 }
 
 make_pkgs_image() {

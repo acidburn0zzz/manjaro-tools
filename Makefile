@@ -54,6 +54,36 @@ CPIOINST = \
 	inst/miso_pxe_nbd \
 	inst/miso_kms
 	
+LIVECD = \
+	disable-dpms \
+	km-tr.lng \
+	mhwd \
+	setup-0.8-tr.lng \
+	setup-tr.lng \
+	util-lng.sh \
+	ejectcd \
+	lg \
+	pulseaudio-ctl-normal \
+	setup-0.9 \
+	simple-welcome \
+	util-mount.sh \
+	kbd-model-map \
+	lg-en.lng \
+	setup \
+	setup-0.9-en.lng \
+	update-setup \
+	util.sh \
+	km \
+	lg-tr.lng \
+	setup-0.8 \
+	setup-0.9-tr.lng \
+	update-setup-files \
+	km-en.lng \
+	livecd \
+	setup-0.8-en.lng \
+	setup-en.lng \
+	util-inst.sh
+
 all: $(BINPROGS) #bin/bash_completion bin/zsh_completion
 
 edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/manjaro-tools|g" \
@@ -88,7 +118,10 @@ install:
 	install -m0755 ${CPIOHOOKS} $(DESTDIR)$(PREFIX)/lib/initcpio/hooks
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/initcpio/install
 	install -m0755 ${CPIOINST} $(DESTDIR)$(PREFIX)/lib/initcpio/install
-
+	
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/manjaro-tools/livecd
+	install -m0644 ${LIVECD} $(DESTDIR)$(PREFIX)/share/manjaro-tools/livecd
+	
 	#install -Dm0644 bin/bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
 	#install -Dm0644 bin/zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
 	
@@ -107,6 +140,8 @@ uninstall:
 	
 	for f in ${CPIOHOOKS}; do rm -f $(DESTDIR)$(PREFIX)/lib/initcpio/hooks/$$f; done
 	for f in ${CPIOINST}; do rm -f $(DESTDIR)$(PREFIX)/lib/initcpio/install/$$f; done
+	
+	for f in ${LIVECD}; do rm -f $(DESTDIR)$(PREFIX)/share/manjaro-tools/livecd/$$f; done
 	
 	#rm $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
 	#rm $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools

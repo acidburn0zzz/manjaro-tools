@@ -51,6 +51,51 @@ display_settings(){
     msg2 "iso_file: ${iso_file}"
 }
 
+copy_manjaro_tools_conf(){
+	local mtools=$1
+	
+	[[ ! -d ${mtools} ]] && mkdir ${mtools}
+	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
+	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf ..."
+	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
+	else
+	    msg2 "Copying ${manjaro_tools_conf} ..."
+	    cp ${manjaro_tools_conf} ${mtools}/manjaro-tools.conf
+	fi
+}
+
+copy_livecd(){
+    local livecd=$1
+    [[ ! -d ${work_dir}/overlay/opt ]] mkdir -p ${work_dir}/overlay/opt
+    cp $1/livecd ${work_dir}/overlay/opt
+}
+
+# Prepare overlay-image
+make_overlay() {
+    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
+	msg "Prepare overlay-image"
+        mkdir -p ${work_dir}/overlay/etc/pacman.d
+      
+        cp -LPdr overlay-livecd/* ${work_dir}/overlay
+        
+	copy_livecd '@pkgdatadir@'
+	
+	#cp -Lr /usr/share/manjaro-tools/livecd ${work_dir}/overlay
+        
+        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
+        
+	# copy over manjaro-tools.conf
+	copy_manjaro_tools_conf "${work_dir}/overlay"
+        
+        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
+        sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
+        sed -i "s/^.*TITLE=.*/  TITLE=\"Manjaro Linux Installation Framework (v${iso_version})\"/g" ${work_dir}/overlay/opt/livecd/setup
+        #chmod -R 755 ${work_dir}/overlay/home
+        : > ${work_dir}/build.${FUNCNAME}
+	msg "Done"
+    fi
+}
+
 iso_owner=${SUDO_USER:-$USER}
 
 if [[ -n $SUDO_USER ]]; then

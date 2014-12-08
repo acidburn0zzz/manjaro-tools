@@ -329,7 +329,7 @@ make_de_image() {
 	
 	# copy over manjaro-tools.conf
 	[[ ! -d ${mtools} ]] && mkdir ${mtools}
-	if [[ -f $USER_HOME/.config/.manjaro-tools.conf ]]
+	if [[ -f $USER_HOME/.config/.manjaro-tools.conf ]]; then
 	    cp $USER_HOME/.config/.manjaro-tools.conf ${mtools}/.manjaro-tools.conf
 	else
 	    cp /etc/manjaro-tools/manjaro-tools.conf ${mtools}/.manjaro-tools.conf

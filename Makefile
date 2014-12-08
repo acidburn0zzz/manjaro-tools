@@ -55,34 +55,34 @@ CPIOINST = \
 	inst/miso_kms
 	
 LIVECD = \
-	disable-dpms \
-	km-tr.lng \
-	mhwd \
-	setup-0.8-tr.lng \
-	setup-tr.lng \
-	util-lng.sh \
-	ejectcd \
-	lg \
-	pulseaudio-ctl-normal \
-	setup-0.9 \
-	simple-welcome \
-	util-mount.sh \
-	kbd-model-map \
-	lg-en.lng \
-	setup \
-	setup-0.9-en.lng \
-	update-setup \
-	util.sh \
-	km \
-	lg-tr.lng \
-	setup-0.8 \
-	setup-0.9-tr.lng \
-	update-setup-files \
-	km-en.lng \
-	livecd \
-	setup-0.8-en.lng \
-	setup-en.lng \
-	util-inst.sh
+	livecd/disable-dpms \
+	livecd/km-tr.lng \
+	livecd/mhwd \
+	livecd/setup-0.8-tr.lng \
+	livecd/setup-tr.lng \
+	livecd/util-lng.sh \
+	livecd/ejectcd \
+	livecd/lg \
+	livecd/pulseaudio-ctl-normal \
+	livecd/setup-0.9 \
+	livecd/simple-welcome \
+	livecd/util-mount.sh \
+	livecd/kbd-model-map \
+	livecd/lg-en.lng \
+	livecd/setup \
+	livecd/setup-0.9-en.lng \
+	livecd/update-setup \
+	livecd/util.sh \
+	livecd/km \
+	livecd/lg-tr.lng \
+	livecd/setup-0.8 \
+	livecd/setup-0.9-tr.lng \
+	livecd/update-setup-files \
+	livecd/km-en.lng \
+	livecd/livecd \
+	livecd/setup-0.8-en.lng \
+	livecd/setup-en.lng \
+	livecd/util-inst.sh
 
 all: $(BINPROGS) #bin/bash_completion bin/zsh_completion
 

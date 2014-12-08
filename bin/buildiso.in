@@ -289,7 +289,7 @@ make_root_image() {
 	# Change to given branch in options.conf
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
-	
+		
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi
@@ -324,6 +324,17 @@ make_de_image() {
 	if [ -e ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf ] ; then
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf
 	fi
+	
+	local mtools=${work_dir}/${desktop}-image/home/${username}/.config
+	
+	# copy over manjaro-tools.conf
+	[[ ! -d ${mtools} ]] && mkdir ${mtools}
+	if [[ -f $USER_HOME/.config/.manjaro-tools.conf ]]
+	    cp $USER_HOME/.config/.manjaro-tools.conf ${mtools}/.manjaro-tools.conf
+	else
+	    cp /etc/manjaro-tools/manjaro-tools.conf ${mtools}/.manjaro-tools.conf
+	fi
+	
 	umount -l ${work_dir}/${desktop}-image
 	rm -R ${work_dir}/${desktop}-image/.wh*
 	: > ${work_dir}/build.${FUNCNAME}

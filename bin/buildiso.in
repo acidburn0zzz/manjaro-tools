@@ -537,6 +537,8 @@ shift $(($OPTIND - 1))
 
 work_dir=${work_dir}/${desktop}/${arch}
 
+load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
+
 create_args+=(-v -a ${arch} -D ${install_dir} -C ${pacman_conf})
 
 iso_args+=(-a ${arch} -D ${install_dir} -L ${iso_label} -c ${compression})
@@ -547,7 +549,6 @@ if [[ "$arch" == 'x86_64' ]]; then
     pacman_conf_arch='multilib'
 fi
 
-load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 
 check_root "$0" "${orig_argv[@]}"
 

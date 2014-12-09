@@ -59,7 +59,7 @@ copy_manjaro_tools_conf(){
 	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf ..."
 	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
 	else
-	    msg2 "Copying ${manjaro_tools_conf} ..."
+	    msg2 "Copying ${manjaro_tools_conf} to ${mtools}/manjaro-tools.conf ..."
 	    cp ${manjaro_tools_conf} ${mtools}/manjaro-tools.conf
 	fi
 }
@@ -89,7 +89,7 @@ make_overlay() {
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
         
 	# copy over manjaro-tools.conf
-	copy_manjaro_tools_conf "${work_dir}/overlay"
+	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
         
         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
         sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist

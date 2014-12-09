@@ -1,7 +1,7 @@
 # Maintainer: artoo <flower_of_life@gmx.net>
 
 pkgname=manjaro-tools-git
-pkgver=r174.1b6b789
+pkgver=r209.d95eeaa
 pkgrel=1
 pkgdesc='Development tools for Manjaro Linux'
 arch=('any')
@@ -14,7 +14,7 @@ optdepends=('qemu: quickly test isos' 'manjaroiso-profiles: Manjaro Linux ISO-Im
 provides=('devtools' 'arch-install-scripts' 'manjaro-tools' 'manjaroiso')
 conflicts=('devtools' 'arch-install-scripts' 'manjaro-tools' 'manjaroiso')
 backup=('etc/manjaro-tools/manjaro-tools.conf')
-source=("git+$url.git#branch=devel")
+source=("git+$url.git")
 sha256sums=('SKIP')
 
 pkgver() {

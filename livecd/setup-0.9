@@ -1,6 +1,8 @@
 #!/bin/bash
 
-source /opt/livecd/manjaro-tools.conf
+[[ -r /opt/livecd/util-config.sh ]] && source /opt/livecd/util-config.sh
+
+load_config "/opt/livecd/manjaro-tools.conf"
 
 # Basis settings
 TITLE="Manjaro Linux Installation Framework (testing)"

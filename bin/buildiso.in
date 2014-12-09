@@ -74,6 +74,12 @@ copy_livecd(){
     chmod +x ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
 }
 
+copy_util_sh(){
+    local util=$1
+    msg2 "Copying util.sh to livecd ..."
+    cp @libdir@/util.sh $1/util-config.sh
+}
+
 # Prepare overlay-image
 make_overlay() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -90,6 +96,8 @@ make_overlay() {
         
 	# copy over manjaro-tools.conf
 	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
+        
+        copy_util_sh "${work_dir}/overlay/opt/livecd"
         
         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
         sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist

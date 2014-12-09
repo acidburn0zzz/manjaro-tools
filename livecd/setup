@@ -12,7 +12,9 @@ ANSWER="/tmp/.setup"
 # main menu selection tracker
 CURRENT_SELECTION=""
 
-source /opt/livecd/manjaro-tools.conf
+[[ -r /opt/livecd/util-config.sh ]] && source /opt/livecd/util-config.sh
+
+load_config "/opt/livecd/manjaro-tools.conf"
 
 [[ -r /opt/livecd/util-mount.sh ]] && source /opt/livecd/util-mount.sh
 [[ -r /opt/livecd/util-inst.sh ]] && source /opt/livecd/util-inst.sh

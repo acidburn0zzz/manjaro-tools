@@ -69,6 +69,7 @@ copy_livecd(){
     msg2 "Copying $1/livecd to ${work_dir}/overlay/opt ..."
     [[ ! -d ${work_dir}/overlay/opt ]] && mkdir -p ${work_dir}/overlay/opt
     cp -r $1/livecd ${work_dir}/overlay/opt
+    msg2 "Fix livecd script permissions ..."
     chmod 755 ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
     chmod +x ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
 }

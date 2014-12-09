@@ -52,15 +52,15 @@ display_settings(){
 }
 
 copy_manjaro_tools_conf(){
-	local mtools=$1
+	local livecd=$1
 	
-	[[ ! -d ${mtools} ]] && mkdir ${mtools}
+	[[ ! -d ${livecd} ]] && mkdir ${livecd}
 	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${mtools}/manjaro-tools.conf ..."
-	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
+	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${livecd}/manjaro-tools.conf ..."
+	    cp $USER_HOME/.config/manjaro-tools.conf ${livecd}/manjaro-tools.conf
 	else
-	    msg2 "Copying ${manjaro_tools_conf} to ${mtools}/manjaro-tools.conf ..."
-	    cp ${manjaro_tools_conf} ${mtools}/manjaro-tools.conf
+	    msg2 "Copying ${manjaro_tools_conf} to ${livecd}/manjaro-tools.conf ..."
+	    cp ${manjaro_tools_conf} ${livecd}/manjaro-tools.conf
 	fi
 }
 

@@ -76,7 +76,7 @@ copy_livecd(){
 
 copy_util_sh(){
     local util=$1
-    msg2 "Copying util.sh to $1/util-config.sh ..."
+    msg2 "Copying @libdir@/util.sh to $1/util-config.sh ..."
     cp @libdir@/util.sh $1/util-config.sh
 }
 

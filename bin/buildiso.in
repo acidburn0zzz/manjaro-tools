@@ -66,10 +66,12 @@ copy_manjaro_tools_conf(){
 
 copy_livecd(){
     local livecd=$1
+    
     msg2 "Copying $1/livecd to ${work_dir}/overlay/opt ..."
     [[ ! -d ${work_dir}/overlay/opt ]] && mkdir -p ${work_dir}/overlay/opt
     cp -r $1/livecd ${work_dir}/overlay/opt
-    msg2 "Fix livecd script permissions ..."
+    
+    msg2 "Fixing livecd script permissions ..."
     chmod 755 ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
     chmod +x ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
 }
@@ -84,19 +86,20 @@ copy_util_sh(){
 make_overlay() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare overlay-image"
+	
         mkdir -p ${work_dir}/overlay/etc/pacman.d
       
+	msg2 "Copying overlay-livecd to ${work_dir}/overlay ..."
         cp -LPdr overlay-livecd/* ${work_dir}/overlay
         
 	copy_livecd '@pkgdatadir@'
-	
-	#cp -Lr /usr/share/manjaro-tools/livecd ${work_dir}/overlay
-        
+	        
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
         
 	# copy over manjaro-tools.conf
 	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
         
+        # copy over the config loader lib to load manjaro-tools.conf vars
         copy_util_sh "${work_dir}/overlay/opt/livecd"
         
         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist

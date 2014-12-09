@@ -56,7 +56,7 @@ copy_manjaro_tools_conf(){
 	
 	[[ ! -d ${mtools} ]] && mkdir ${mtools}
 	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf ..."
+	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${mtools}/manjaro-tools.conf ..."
 	    cp $USER_HOME/.config/manjaro-tools.conf ${mtools}/manjaro-tools.conf
 	else
 	    msg2 "Copying ${manjaro_tools_conf} to ${mtools}/manjaro-tools.conf ..."
@@ -76,7 +76,7 @@ copy_livecd(){
 
 copy_util_sh(){
     local util=$1
-    msg2 "Copying util.sh to livecd ..."
+    msg2 "Copying util.sh to $1/util-config.sh ..."
     cp @libdir@/util.sh $1/util-config.sh
 }
 

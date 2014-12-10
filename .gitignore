@@ -2,3 +2,6 @@
 *.tar.gz
 build
 *.tar.xz
+configs
+configs/*
+.kateproject.d

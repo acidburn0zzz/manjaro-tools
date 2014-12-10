@@ -19,6 +19,7 @@ version=@version@
 display_settings(){
     msg "manjaro-tools"
     msg2 "version: ${version}"
+    msg2 "manjaro_tools_conf: ${manjaro_tools_conf}"
     
     msg "OPTIONS:"
     msg2 "arch: ${arch}"
@@ -140,7 +141,8 @@ usage() {
     echo "    -b <branch>        Set branch [default: ${branch}]"
     echo "    -r <dir>           Work directory [default: ${work_dir}]"
     echo "    -t <dir>           Target iso directory [default: ${target_dir}]"
-    echo "    -i <file>          Config file for pacman [default: ${pacman_conf}]"
+    echo "    -i <file>          Config file for pacman"
+    echo "                       [default: @pkgdatadir@/pacman-${pacman_conf_arch}.conf]"
     echo '    -c                 Clean work dir'
     echo '    -v                 Verbose'
     echo '    -f                 Overwrite'

@@ -189,7 +189,8 @@ if [[ "$arch" == 'x86_64' ]]; then
     pacman_conf_arch='multilib'
 fi
 
-load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
+load_pacman_conf "${pacman_conf}"
+load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf" 
 
 create_args+=(-v -a ${arch} -D ${install_dir} -C ${pacman_conf})
 

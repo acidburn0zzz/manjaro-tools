@@ -14,7 +14,7 @@ set_dm(){
 
     # do_setuplightdm
     if [ -e "$1/usr/bin/lightdm" ] ; then
-	#mkdir -p /run/lightdm > /dev/null
+	mkdir -p /run/lightdm > /dev/null
 	#getent group lightdm > /dev/null 2>&1 || groupadd -g 620 lightdm
 	#getent passwd lightdm > /dev/null 2>&1 || useradd -c 'LightDM Display Manager' -u 620 -g lightdm -d /var/run/lightdm -s /usr/bin/nologin lightdm
 	#passwd -l lightdm > /dev/null
@@ -440,10 +440,10 @@ make_root_image() {
 	    echo ${hostname} > ${work_dir}/root-image/etc/hostname
 	fi
 	
-	# setup user
+	msg2 "Creating user ${username} ..."
 	local addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
-	chroot-run ${work_dir}/root-image useradd -m -p "" -g users -G $addgroups ${username}
-	chroot-run ${work_dir}/root-image echo "${username}:${username}" | chpasswd	
+	local pass=$(perl -e 'print crypt($ARGV[0], "password")' $username)
+	chroot-run ${work_dir}/root-image useradd -m -g users -G $addgroups -p $pass ${username}
 	
 	# Change to given branch in options.conf
 	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist

@@ -20,6 +20,9 @@ display_settings(){
     msg "manjaro-tools"
     msg2 "version: ${version}"
     msg2 "manjaro_tools_conf: ${manjaro_tools_conf}"
+    if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
+	msg2 "user_config: $USER_HOME/.config/manjaro-tools.conf"
+    fi
     
     msg "OPTIONS:"
     msg2 "arch: ${arch}"

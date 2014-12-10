@@ -192,7 +192,7 @@ load_config(){
     if [[ -n ${profiledir} ]];then
 	profiledir=${profiledir}
     else
-	profiledir="$1/sets"
+	profiledir="$(dirname $1)/sets"
     fi
 
     if [[ -n ${profile} ]];then

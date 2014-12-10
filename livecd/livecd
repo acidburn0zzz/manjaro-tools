@@ -74,9 +74,9 @@ fi
 echo "configure user" >> /tmp/livecd.log
 
 # do_makeuser
-addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
-useradd -m -p "" -g users -G $addgroups ${username}
-sed -i "s#${username}.*#${username}:\$1\$uYIrxnwJ\$a5wTa84YxxYmD.sKX/Lll1:14942:0:99999:7:::#" /etc/shadow
+#addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
+#useradd -m -p "" -g users -G $addgroups ${username}
+#sed -i "s#${username}.*#${username}:\$1\$uYIrxnwJ\$a5wTa84YxxYmD.sKX/Lll1:14942:0:99999:7:::#" /etc/shadow
 echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> /var/lib/AccountsService/users/${username}
 
 # do_configsforroot
@@ -84,7 +84,7 @@ cp -a /etc/skel/. /root/
 
 echo "configure display managers" >> /tmp/livecd.log
 
-set_dm
+#set_dm
 
 echo "configure AccountsService" >> /tmp/livecd.log
 

@@ -197,6 +197,8 @@ iso_args+=(-a ${arch} -D ${install_dir} -L ${iso_label} -c ${compression})
 
 iso_file="${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}.iso"
 
+iso_profile=${PWD##*/}
+
 check_root "$0" "${orig_argv[@]}"
 
 if [ "${arch}" == "i686" ]; then

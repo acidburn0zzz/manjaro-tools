@@ -15,17 +15,17 @@ version=@version@
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
 
 PKGLIST=""
-QUIET="y"
-FORCE="n"
+QUIET=true
+FORCE=false
 PACCONFIG="/etc/pacman.conf"
 export LABEL="MANJARO_$(date +%Y%m)"
 PUBLISHER="Manjaro Linux <http://www.manjaro.org>"
 APPLICATION="Manjaro Linux Live/Rescue CD"
 COMPRESSION="xz"
-CREATE_DEFAULT="n"
+CREATE_DEFAULT=false
 INSTALL_DIR="manjaro"
 IMAGE_FOLDER="root-image"
-
+BRANCH='stable'
 APPNAME=$(basename "${0}")
 
 # usage: usage <exitvalue>
@@ -51,6 +51,8 @@ usage ()
     echo "                      Default $IMAGE_FOLDER"
     echo "    -d                Create default user directory /home/manjaro"
     echo "    -v                Enable verbose output"
+    echo "    -b                Set branch"
+    echo "                      Default ${BRANCH}"
     echo "    -h                This message"
     echo " commands:"
     echo "   create <dir>"
@@ -63,7 +65,7 @@ usage ()
 
 orig_argv=("$@")
 
-while getopts 'p:C:L:P:A:a:c:D:i:dfvhx' arg; do
+while getopts 'p:C:L:P:A:a:c:b:D:i:dfvhx' arg; do
     case "${arg}" in
         p) PKGLIST="${PKGLIST} ${OPTARG}" ;;
         C) PACCONFIG="${OPTARG}" ;;
@@ -74,10 +76,11 @@ while getopts 'p:C:L:P:A:a:c:D:i:dfvhx' arg; do
         c) COMPRESSION="${OPTARG}" ;;
         D) INSTALL_DIR="${OPTARG}" ;;
         i) IMAGE_FOLDER="${OPTARG}" ;;
-        d) CREATE_DEFAULT="y" ;;
-        f) FORCE="y" ;;
+        d) CREATE_DEFAULT=true ;;
+        f) FORCE=true ;;
         x) HIGHCOMP=" -b 256K -Xbcj x86" ;;
-        v) QUIET="n" ;;
+        v) QUIET=false ;;
+        b) BRANCH="${OPTARG}" ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
     esac
@@ -120,70 +123,100 @@ msg2 "working directory: ${work_dir}"
 msg2 "image name: ${imgname}"
 
 # usage: _pacman <packages>...
-_pacman ()
-{
-    local ret
-    mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
-    if [ "${QUIET}" = "y" ]; then
-	# eventually replace it with mkchroot to get better mout handling
-        setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
-        # make the chroot compatible to use chroot-run
-        echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
-        ret=$?
-    else
-	# eventually replace it with mkchroot to get better mout handling
-        setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
-        # make the chroot compatible to use chroot-run
-        echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
-        ret=$?
-    fi
-
-    if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
-        cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
-    fi
-
-    # Cleanup
-    find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
-
-    if [ $ret -ne 0 ]; then
-        exit 1
-    fi
-}
-
-_mkchroot ()
-{
-    local ret
-    #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
-    if [ "${QUIET}" = "y" ]; then
-        setarch "${ARCH}" \
-	    mkchroot -C "${PACCONFIG}" "${work_dir}/${IMAGE_FOLDER}" "$@" &> /dev/null
-        ret=$?
-    else
-        setarch "${ARCH}" \
-	    mkchroot -C "${PACCONFIG}" "${work_dir}/${IMAGE_FOLDER}" "$@"
-        ret=$?
-    fi
-
-    if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
-        cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
-    fi
-
-    # Cleanup
-    find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
-
-    if [ $ret -ne 0 ]; then
-        exit 1
-    fi
-}
+# _pacman ()
+# {
+#     local ret
+#     mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
+#     if "${QUIET}"; then
+# 	# eventually replace it with mkchroot to get better mout handling
+#         setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
+#         # make the chroot compatible to use chroot-run
+#         echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
+#         ret=$?
+#     else
+# 	# eventually replace it with mkchroot to get better mout handling
+#         setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
+#         # make the chroot compatible to use chroot-run
+#         echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
+#         ret=$?
+#     fi
+# 
+#     if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
+#         cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
+#     fi
+# 
+#     # Cleanup
+#     find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+# 
+#     if [ $ret -ne 0 ]; then
+#         exit 1
+#     fi
+# }
+# 
+# _mkchroot ()
+# {
+#     local ret makepkg_conf="/usr/share/manjaro-tools/makepkg-${ARCH}.conf" \
+# 	  pm_conf="/usr/share/manjaro-tools/pacman-mirrors-${BRANCH}.conf"
+#     #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
+#     if "${QUIET}"; then
+#         setarch "${ARCH}" \
+# 	    mkchroot -C ${PACCONFIG} \
+# 	    -M ${makepkg_conf} -S ${pm_conf} \
+# 	    "${work_dir}/${IMAGE_FOLDER}" $* &> /dev/null
+#         ret=$?
+#     else
+#         setarch "${ARCH}" \
+# 	    mkchroot -C ${PACCONFIG} \
+# 	    -M ${makepkg_conf} -S ${pm_conf} \
+# 	    "${work_dir}/${IMAGE_FOLDER}" $*
+#         ret=$?
+#     fi
+# 
+#     if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
+#         cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
+#     fi
+# 
+#     # Cleanup
+#     find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+# 
+#     if [ $ret -ne 0 ]; then
+#         exit 1
+#     fi
+# }
 
 command_create () {
     msg "Creating working directory: ${work_dir}"
     mkdir -p "${work_dir}/iso/${INSTALL_DIR}/${ARCH}"
-    mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
+    #mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
 
     if [ ! -z "${PKGLIST}" ]; then
         msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-        _mkchroot "${PKGLIST}"
+#         _mkchroot "${PKGLIST}"
+	  local ret makepkg_conf="/usr/share/manjaro-tools/makepkg-${ARCH}.conf" \
+	  pm_conf="/usr/share/manjaro-tools/pacman-mirrors-${BRANCH}.conf"
+	  #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
+	  if "${QUIET}"; then
+	      setarch "${ARCH}" \
+		  mkchroot -C ${PACCONFIG} \
+		  -M ${makepkg_conf} -S ${pm_conf} \
+		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} &> /dev/null
+	      ret=$?
+	  else
+	      setarch "${ARCH}" \
+		  mkchroot -C ${PACCONFIG} \
+		  -M ${makepkg_conf} -S ${pm_conf} \
+		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST}
+	      ret=$?
+	  fi
+
+	  if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
+	      cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
+	  fi
+
+	  # Cleanup
+	  find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+
+    
 
         msg2 "Cleaning up what we can"
         if [ -d "${work_dir}/${IMAGE_FOLDER}/boot/" ]; then
@@ -191,7 +224,7 @@ command_create () {
             find "${work_dir}/${IMAGE_FOLDER}/boot" -name '*.img' -delete
         fi
 
-        if [ ${CREATE_DEFAULT} == "y" ]; then
+        if ${CREATE_DEFAULT}; then
             if [ -d "${work_dir}/${IMAGE_FOLDER}/home/" ]; then
                 msg2 "Creating default home directory"
                 install -d -o1000 -g100 -m0755 "${work_dir}/${IMAGE_FOLDER}/home/${username}"
@@ -237,7 +270,7 @@ _mksquash () {
 
     msg2 "Creating SquashFS image. This may take some time..."
     start=$(date +%s)
-    if [ "${QUIET}" = "y" ]; then
+    if "${QUIET}"; then
         mksquashfs "${1}" "${sqimg}" -noappend -comp "${COMPRESSION}" ${HIGHCOMP} >/dev/null
     else
         mksquashfs "${1}" "${sqimg}" -noappend -comp "${COMPRESSION}" ${HIGHCOMP}
@@ -269,7 +302,7 @@ _imgcommon () {
     fi
 
     if [ -e "${imgname}" ]; then
-        if [ "${FORCE}" = "y" ]; then
+        if "${FORCE}"; then
             msg2 "Removing existing bootable image..."
             rm -rf "${imgname}"
         else
@@ -305,7 +338,7 @@ command_iso () {
     msg "Creating ISO image..."
     ## Generate the BIOS+ISOHYBRID CD image using xorriso (extra/libisoburn package) in mkisofs emulation mode
     _qflag=""
-    if [ ${QUIET} == "y" ]; then
+    if ${QUIET}; then
         _qflag="-quiet"
     fi
     xorriso -as mkisofs ${_qflag} \

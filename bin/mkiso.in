@@ -191,9 +191,8 @@ command_create () {
 
     if [ ! -z "${PKGLIST}" ]; then
         msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-#         _mkchroot "${PKGLIST}"
-	  local ret makepkg_conf="/usr/share/manjaro-tools/makepkg-${ARCH}.conf" \
-	  pm_conf="/usr/share/manjaro-tools/pacman-mirrors-${BRANCH}.conf"
+	  local ret makepkg_conf="@pkgdatadir@/makepkg-${ARCH}.conf" \
+	  pm_conf="@pkgdatadir@/pacman-mirrors-${BRANCH}.conf"
 	  #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
 	  if "${QUIET}"; then
 	      setarch "${ARCH}" \

@@ -216,41 +216,6 @@ set_dm(){
     fi
 }
 
-# Prepare ${install_dir}/boot/
-make_boot() {
-    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare ${install_dir}/boot/"
-	mkdir -p ${work_dir}/iso/${install_dir}/boot/${arch}
-        cp ${work_dir}/root-image/boot/memtest86+/memtest.bin ${work_dir}/iso/${install_dir}/boot/${arch}/memtest
-	cp ${work_dir}/root-image/boot/vmlinuz* ${work_dir}/iso/${install_dir}/boot/${arch}/${manjaroiso}
-        mkdir -p ${work_dir}/boot-image
-        if [ ! -z "$(mount -l | grep boot-image)" ]; then
-           umount -l ${work_dir}/boot-image/{proc,sys,dev}
-           umount ${work_dir}/boot-image
-        fi
-        msg2 "mount root-image"
-        mount -t aufs -o br=${work_dir}/boot-image:${work_dir}/root-image=ro none ${work_dir}/boot-image
-        if [ ! -z "${desktop}" ] ; then
-             msg2 "mount ${desktop}-image"
-             mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/boot-image
-        fi
-        mount -t proc none ${work_dir}/boot-image/proc
-        mount -t sysfs none ${work_dir}/boot-image/sys
-        mount -o bind /dev ${work_dir}/boot-image/dev
-        cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
-        cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
-        cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
-        _kernver=$(cat ${work_dir}/boot-image/usr/lib/modules/*-MANJARO/version)
-        chroot ${work_dir}/boot-image /usr/bin/mkinitcpio -k ${_kernver} -c /etc/mkinitcpio-${manjaroiso}.conf -g /boot/${img_name}.img
-        mv ${work_dir}/boot-image/boot/${img_name}.img ${work_dir}/iso/${install_dir}/boot/${arch}/${img_name}.img
-        umount -l ${work_dir}/boot-image/{proc,sys,dev} 
-        umount ${work_dir}/boot-image
-        rm -R ${work_dir}/boot-image
-	: > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
-    fi
-}
-
 # Prepare /EFI
 make_efi() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -454,13 +419,56 @@ make_root_image() {
     fi
 }
 
+# Prepare ${install_dir}/boot/
+make_boot() {
+    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
+	msg "Prepare ${install_dir}/boot/"
+	mkdir -p ${work_dir}/iso/${install_dir}/boot/${arch}
+        
+        cp ${work_dir}/root-image/boot/memtest86+/memtest.bin ${work_dir}/iso/${install_dir}/boot/${arch}/memtest
+	
+	cp ${work_dir}/root-image/boot/vmlinuz* ${work_dir}/iso/${install_dir}/boot/${arch}/${manjaroiso}
+        mkdir -p ${work_dir}/boot-image
+        
+        if [ ! -z "$(mount -l | grep boot-image)" ]; then
+           umount -l ${work_dir}/boot-image/{proc,sys,dev}
+           umount ${work_dir}/boot-image
+        fi
+        
+        msg2 "mount root-image"
+        mount -t aufs -o br=${work_dir}/boot-image:${work_dir}/root-image=ro none ${work_dir}/boot-image
+        
+        if [ ! -z "${desktop}" ] ; then
+             msg2 "mount ${desktop}-image"
+             mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/boot-image
+        fi
+        
+        cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
+        cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
+        cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
+        
+        local _kernver=$(cat ${work_dir}/boot-image/usr/lib/modules/*-MANJARO/version)
+        chroot-run ${work_dir}/boot-image /usr/bin/mkinitcpio -k ${_kernver} -c /etc/mkinitcpio-${manjaroiso}.conf -g /boot/${img_name}.img
+        
+        mv ${work_dir}/boot-image/boot/${img_name}.img ${work_dir}/iso/${install_dir}/boot/${arch}/${img_name}.img
+                
+        umount ${work_dir}/boot-image
+        
+        rm -R ${work_dir}/boot-image
+	: > ${work_dir}/build.${FUNCNAME}
+	msg "Done"
+    fi
+}
+
 make_de_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "${desktop} installation (${desktop}-image)"
+	
 	mkdir -p ${work_dir}/${desktop}-image
 	if [ ! -z "$(mount -l | grep ${desktop}-image)" ]; then
 	    umount -l ${work_dir}/${desktop}-image
 	fi
+	
 	mount -t aufs -o br=${work_dir}/${desktop}-image:${work_dir}/root-image=ro none ${work_dir}/${desktop}-image
 
 	mkiso ${create_args[*]} -i "${desktop}-image" -p "${de_packages}" create "${work_dir}"
@@ -471,6 +479,7 @@ make_de_image() {
 	if [ -e ${desktop}-overlay ] ; then
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
 	fi
+	
 	if [ -e ${work_dir}/${desktop}-image/usr/bin/cupsd ] ; then
 	    mkdir -p "${work_dir}/${desktop}-image/etc/systemd/system/multi-user.target.wants"
 	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "${work_dir}/${desktop}-image/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
@@ -488,6 +497,7 @@ make_de_image() {
 	set_dm "${work_dir}/${desktop}-image"
 	
 	umount -l ${work_dir}/${desktop}-image
+	
 	rm -R ${work_dir}/${desktop}-image/.wh*
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
@@ -498,46 +508,58 @@ make_pkgs_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare pkgs-image"
 	mkdir -p ${work_dir}/pkgs-image/opt/livecd/pkgs
+	
 	if [ ! -z "$(mount -l | grep pkgs-image)" ]; then
 	    umount -l ${work_dir}/pkgs-image
 	fi
+	
 	msg2 "mount root-image"
 	mount -t aufs -o br=${work_dir}/pkgs-image:${work_dir}/root-image=ro none ${work_dir}/pkgs-image
+	
 	if [ ! -z "${desktop}" ] ; then
-	    msg2 -"mount ${desktop}-image"
+	    msg2 "mount ${desktop}-image"
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
 	fi
+	
 	pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/pkgs-image" --cache ${work_dir}/pkgs-image/opt/livecd/pkgs -Syw ${xorg_packages} --noconfirm
+	
 	if [ ! -z "${xorg_packages_cleanup}" ]; then
-	    for xorg_clean in ${xorg_packages_cleanup};
-	      do  rm ${work_dir}/pkgs-image/opt/livecd/pkgs/${xorg_clean}
-	      done
+	    for xorg_clean in ${xorg_packages_cleanup}; do  
+		rm ${work_dir}/pkgs-image/opt/livecd/pkgs/${xorg_clean}
+	    done
 	fi
+	
 	cp pacman-gfx.conf ${work_dir}/pkgs-image/opt/livecd
 	rm -r ${work_dir}/pkgs-image/var
+	
 	repo-add ${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs.db.tar.gz ${work_dir}/pkgs-image/opt/livecd/pkgs/*pkg*z
+	
 	# Disable Catalyst if not present
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep catalyst-utils 2> /dev/null)" ]; then
 	    msg "Disabling Catalyst driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/catalyst/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/catalyst/MHWDCONFIG
 	fi
+	
 	# Disable Nvidia if not present
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null)" ]; then
 	    msg "Disabling Nvidia driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia/MHWDCONFIG
 	fi
+	
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null)" ]; then
 	    msg "Disabling Nvidia Bumblebee driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/hybrid-intel-nvidia-bumblebee/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/hybrid-intel-nvidia-bumblebee/MHWDCONFIG
 	fi
+	
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-304xx-utils 2> /dev/null)" ]; then
 	    msg "Disabling Nvidia 304xx driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-304xx/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-304xx/MHWDCONFIG
 	fi
+	
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-340xx-utils 2> /dev/null)" ]; then
 	    msg "Disabling Nvidia 340xx driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-340xx/
@@ -545,40 +567,55 @@ make_pkgs_image() {
 	fi
 	umount -l ${work_dir}/pkgs-image
 	rm -R ${work_dir}/pkgs-image/.wh*
+	
 	if ${xorg_overlays}; then
 	    msg2 "Prepare pkgs-free-overlay"
 	    mkdir -p ${work_dir}/pkgs-free-overlay
 	    if [ ! -z "$(mount -l | grep pkgs-free-overlay)" ]; then
 	      umount -l ${work_dir}/pkgs-free-overlay
 	    fi
-	  msg2 "mount root-image"
+	    
+	    msg2 "mount root-image"
 	    mount -t aufs -o br=${work_dir}/pkgs-free-overlay:${work_dir}/root-image=ro none ${work_dir}/pkgs-free-overlay
+	    
 	    if [ ! -z "${desktop}" ] ; then
 	      msg2 "mount ${desktop}-image"
 	      mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-free-overlay
 	    fi
+	    
 	    mkiso ${create_args[*]} -i "pkgs-free-overlay" -p "${xorg_free_overlay}" create "${work_dir}"
+	    
 	    umount -l ${work_dir}/pkgs-free-overlay
+	    
 	    if [ -e ${work_dir}/pkgs-free-overlay/etc/modules-load.d/*virtualbox*conf ] ; then
 	      rm ${work_dir}/pkgs-free-overlay/etc/modules-load.d/*virtualbox*conf
 	    fi
+	    
 	    rm -R ${work_dir}/pkgs-free-overlay/.wh*
-	  msg2 "Prepare pkgs-nonfree-overlay"
+	    
+	    msg2 "Prepare pkgs-nonfree-overlay"
 	    mkdir -p ${work_dir}/pkgs-nonfree-overlay
+	   
 	    if [ ! -z "$(mount -l | grep pkgs-nonfree-overlay)" ]; then
 	      umount -l ${work_dir}/pkgs-nonfree-overlay
 	    fi
+	    
 	    msg2 "mount root-image"
 	    mount -t aufs -o br=${work_dir}/pkgs-nonfree-overlay:${work_dir}/root-image=ro none ${work_dir}/pkgs-nonfree-overlay
+	    
 	    if [ ! -z "${desktop}" ] ; then
 	      msg2 "mount ${desktop}-image"
 	      mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-nonfree-overlay
 	    fi
+	    
 	    mkiso ${create_args[*]} -i "pkgs-nonfree-overlay" -p "${xorg_nonfree_overlay}" create "${work_dir}"
+	    
 	    umount -l ${work_dir}/pkgs-nonfree-overlay
+	    
 	    if [ -e ${work_dir}/pkgs-nonfree-overlay/etc/modules-load.d/*virtualbox*conf ] ; then
 	      rm ${work_dir}/pkgs-nonfree-overlay/etc/modules-load.d/*virtualbox*conf
 	    fi
+	    
 	    rm -R ${work_dir}/pkgs-nonfree-overlay/.wh*
 	fi
 	: > ${work_dir}/build.${FUNCNAME}
@@ -590,29 +627,38 @@ make_lng_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare lng-image"
 	mkdir -p ${work_dir}/lng-image/opt/livecd/lng
+	
 	if [ ! -z "$(mount -l | grep lng-image)" ]; then
 	    umount -l ${work_dir}/lng-image
 	fi
+	
 	msg2 "mount root-image"
 	mount -t aufs -o br=${work_dir}/lng-image:${work_dir}/root-image=ro none ${work_dir}/lng-image
+	
 	if [ ! -z "${desktop}" ] ; then
 	    msg2 "mount ${desktop}-image"
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/lng-image
 	fi
+
 	if ${kde_lng_packages}; then
 	    pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} ${lng_packages_kde} --noconfirm
 	else
 	    pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} --noconfirm
 	fi
+	
 	if [ ! -z "${lng_packages_cleanup}" ]; then
-	    for lng_clean in ${lng_packages_cleanup};
-	      do  rm ${work_dir}/lng-image/opt/livecd/lng/${lng_clean}
-	      done
+	    for lng_clean in ${lng_packages_cleanup}; do
+		rm ${work_dir}/lng-image/opt/livecd/lng/${lng_clean}
+	    done
 	fi
+	
 	cp pacman-lng.conf ${work_dir}/lng-image/opt/livecd
 	rm -r ${work_dir}/lng-image/var
+	
 	repo-add ${work_dir}/lng-image/opt/livecd/lng/lng-pkgs.db.tar.gz ${work_dir}/lng-image/opt/livecd/lng/*pkg*z
+	
 	umount -l ${work_dir}/lng-image
+	
 	rm -R ${work_dir}/lng-image/.wh*
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"

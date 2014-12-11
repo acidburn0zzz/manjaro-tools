@@ -623,36 +623,21 @@ make_de_image() {
     fi
 }
 
-make_pkgs_image() {
-    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare pkgs-image"
-	mkdir -p ${work_dir}/pkgs-image/opt/livecd/pkgs
-	
-	if [ ! -z "$(mount -l | grep pkgs-image)" ]; then
-	    umount -l ${work_dir}/pkgs-image
-	fi
-	
-	msg2 "mount root-image"
-	mount -t aufs -o br=${work_dir}/pkgs-image:${work_dir}/root-image=ro none ${work_dir}/pkgs-image
-	
-	if [ ! -z "${desktop}" ] ; then
-	    msg2 "mount ${desktop}-image"
-	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
-	fi
-	
-	pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/pkgs-image" --cache ${work_dir}/pkgs-image/opt/livecd/pkgs -Syw ${xorg_packages} --noconfirm
-	
-	if [ ! -z "${xorg_packages_cleanup}" ]; then
-	    for xorg_clean in ${xorg_packages_cleanup}; do  
-		rm ${work_dir}/pkgs-image/opt/livecd/pkgs/${xorg_clean}
-	    done
-	fi
-	
-	cp pacman-gfx.conf ${work_dir}/pkgs-image/opt/livecd
-	rm -r ${work_dir}/pkgs-image/var
-	
-	repo-add ${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs.db.tar.gz ${work_dir}/pkgs-image/opt/livecd/pkgs/*pkg*z
-	
+# $1: work dir
+# $2: cahe dir
+# $3: pkglist
+downlad_to_cache(){
+    pacman -v --config "${pacman_conf}" \
+    --arch "${arch}" --root "$1" \
+    --cache $2 \
+    -Syw $3 --noconfirm
+}
+
+make_repo(){
+    repo-add ${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs.db.tar.gz ${work_dir}/pkgs-image/opt/livecd/pkgs/*pkg*z
+}
+
+configure_xorg_drivers(){
 	# Disable Catalyst if not present
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep catalyst-utils 2> /dev/null)" ]; then
 	    msg "Disabling Catalyst driver"
@@ -684,6 +669,41 @@ make_pkgs_image() {
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-340xx/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-340xx/MHWDCONFIG
 	fi
+}
+
+make_pkgs_image() {
+    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
+	msg "Prepare pkgs-image"
+	mkdir -p ${work_dir}/pkgs-image/opt/livecd/pkgs
+	
+	if [ ! -z "$(mount -l | grep pkgs-image)" ]; then
+	    umount -l ${work_dir}/pkgs-image
+	fi
+	
+	msg2 "mount root-image"
+	mount -t aufs -o br=${work_dir}/pkgs-image:${work_dir}/root-image=ro none ${work_dir}/pkgs-image
+	
+	if [ ! -z "${desktop}" ] ; then
+	    msg2 "mount ${desktop}-image"
+	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
+	fi
+		
+	downlad_to_cache "${work_dir}/pkgs-image" "${work_dir}/pkgs-image/opt/livecd/pkgs" "${xorg_packages}"
+	
+	if [ ! -z "${xorg_packages_cleanup}" ]; then
+	    for xorg_clean in ${xorg_packages_cleanup}; do  
+		rm ${work_dir}/pkgs-image/opt/livecd/pkgs/${xorg_clean}
+	    done
+	fi
+	
+	cp pacman-gfx.conf ${work_dir}/pkgs-image/opt/livecd
+	rm -r ${work_dir}/pkgs-image/var
+	
+# 	repo-add ${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs.db.tar.gz ${work_dir}/pkgs-image/opt/livecd/pkgs/*pkg*z
+	make_repo "${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs" "${work_dir}/pkgs-image/opt/livecd/pkgs"
+	
+	configure_xorg_drivers
+	
 	umount -l ${work_dir}/pkgs-image
 	rm -R ${work_dir}/pkgs-image/.wh*
 	
@@ -760,9 +780,9 @@ make_lng_image() {
 	fi
 
 	if ${kde_lng_packages}; then
-	    pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} ${lng_packages_kde} --noconfirm
+	    downlad_to_cache "${work_dir}/lng-image" "${work_dir}/lng-image/opt/livecd/lng" "${lng_packages} ${lng_packages_kde}"
 	else
-	    pacman -v --config "${pacman_conf}" --arch "${arch}" --root "${work_dir}/lng-image" --cache ${work_dir}/lng-image/opt/livecd/lng -Syw ${lng_packages} --noconfirm
+	    downlad_to_cache "${work_dir}/lng-image" "${work_dir}/lng-image/opt/livecd/lng" "${lng_packages}"
 	fi
 	
 	if [ ! -z "${lng_packages_cleanup}" ]; then
@@ -774,7 +794,7 @@ make_lng_image() {
 	cp pacman-lng.conf ${work_dir}/lng-image/opt/livecd
 	rm -r ${work_dir}/lng-image/var
 	
-	repo-add ${work_dir}/lng-image/opt/livecd/lng/lng-pkgs.db.tar.gz ${work_dir}/lng-image/opt/livecd/lng/*pkg*z
+	make_repo ${work_dir}/lng-image/opt/livecd/lng/lng-pkgs ${work_dir}/lng-image/opt/livecd/lng
 	
 	umount -l ${work_dir}/lng-image
 	

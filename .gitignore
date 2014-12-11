@@ -1,5 +1,4 @@
 *~
 *.tar.gz
-build
 *.tar.xz
 .kateproject.d

@@ -232,6 +232,7 @@ prepare_targetdir
 
 # install basic
 make_root_image
+make_overlay
 
 # install DE(s)
 if [ -e "${pkgsfile}" ] ; then
@@ -253,6 +254,6 @@ if [ "${arch}" == "x86_64" ]; then
     make_efiboot
 fi
 make_isolinux
-make_overlay
+
 make_isomounts
 make_iso

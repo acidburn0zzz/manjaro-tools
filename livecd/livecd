@@ -72,6 +72,7 @@ if [ -e "/usr/bin/mate-session" ] ; then
 fi
 
 echo "configure user" >> /tmp/livecd.log
+cp -a /etc/skel/. /home/${username}
 
 # do_configsforroot
 cp -a /etc/skel/. /root/

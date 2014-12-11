@@ -484,7 +484,6 @@ make_root_image() {
 	fi
 	cp -LPr overlay/* ${work_dir}/root-image
 
-	set_accountservice "${work_dir}/root-image"
 	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
@@ -557,9 +556,10 @@ make_de_image() {
 	pacman -Qr "${work_dir}/${desktop}-image" > "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt"
 	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}-pkgs.txt
 	
-	# set DM
+	# configure DM
 	set_dm "${work_dir}/${desktop}-image"
-	
+	set_accountservice "${work_dir}/${desktop}-image"
+
 	if [ -e ${desktop}-overlay ] ; then
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
 	fi

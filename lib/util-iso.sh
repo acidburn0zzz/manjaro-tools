@@ -255,6 +255,38 @@ set_dm(){
     fi
 }
 
+set_accountservice(){
+    #echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
+
+    if [ -d "$1/var/lib/AccountsService/users" ] ; then
+	echo "[User]" > $1/var/lib/AccountsService/users/${username}
+	if [ -e "/usr/bin/startxfce4" ] ; then
+	    echo "XSession=xfce" >> $1/var/lib/AccountsService/users/${username}
+	fi
+	if [ -e "/usr/bin/cinnamon-session" ] ; then
+	    echo "XSession=cinnamon" >> $1/var/lib/AccountsService/users/${username}
+	fi
+	if [ -e "/usr/bin/mate-session" ] ; then
+	    echo "XSession=mate" >> $1/var/lib/AccountsService/users/${username}
+	fi
+	if [ -e "/usr/bin/enlightenment_start" ] ; then
+	    echo "XSession=enlightenment" >> $1/var/lib/AccountsService/users/${username}
+	fi
+	if [ -e "/usr/bin/openbox-session" ] ; then
+	    echo "XSession=openbox" >> $1/var/lib/AccountsService/users/${username}
+	fi
+	if [ -e "/usr/bin/startlxde" ] ; then
+	    echo "XSession=LXDE" >> $1/var/lib/AccountsService/users/${username}
+	fi
+	if [ -e "/usr/bin/lxqt-session" ] ; then
+	    echo "XSession=LXQt" >> $1/var/lib/AccountsService/users/${username}
+	fi
+	echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
+    fi
+
+
+}
+
 # Prepare /EFI
 make_efi() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -400,6 +432,10 @@ make_iso() {
     msg "Done"
 }
 
+gen_pw(){
+  echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
+}
+
 # Base installation (root-image)
 make_root_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -408,6 +444,20 @@ make_root_image() {
 	mkiso ${create_args[*]} -p "${packages}" -i "root-image" create "${work_dir}"
 	
 	pacman -Qr "${work_dir}/root-image" > "${work_dir}/root-image/root-image-pkgs.txt"
+	
+	# set hostname
+	if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
+	    local _hostname='hostname="'${hostname}'"'
+	    sed -i -e "s|^.*hostname=.*|${_hostname}|" ${work_dir}/root-image/etc/conf.d/hostname
+	else
+	    echo ${hostname} > ${work_dir}/root-image/etc/hostname
+	fi
+	
+	# set up user and password
+	local pass=$(gen_pw)
+	msg2 "Creating user ${username} and crypt password ${password}: ${pass} ..."
+	chroot-run ${work_dir}/root-image useradd -m -g users -G ${addgroups} -p ${pass} ${username}
+	
 		
 	cp ${work_dir}/root-image/etc/locale.gen.bak ${work_dir}/root-image/etc/locale.gen
 	if [ -e ${work_dir}/root-image/boot/grub/grub.cfg ] ; then
@@ -434,25 +484,14 @@ make_root_image() {
 	fi
 	cp -LPr overlay/* ${work_dir}/root-image
 
+	set_accountservice "${work_dir}/root-image"
+	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
 	
-	# set hostname
-	if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
-	    local _hostname='hostname="'${hostname}'"'
-	    sed -i -e "s|^.*hostname=.*|${_hostname}|" ${work_dir}/root-image/etc/conf.d/hostname
-	else
-	    echo ${hostname} > ${work_dir}/root-image/etc/hostname
-	fi
-	
-	msg2 "Creating user ${username} ..."
-	local addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
-	local pass=$(perl -e 'print crypt($ARGV[0], "password")' $username)
-	chroot-run ${work_dir}/root-image useradd -m -g users -G $addgroups -p $pass ${username}
-	
 	# Change to given branch in options.conf
-	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
-	sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
+	#sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman.d/mirrorlist
+	#sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
 		
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
@@ -518,6 +557,9 @@ make_de_image() {
 	pacman -Qr "${work_dir}/${desktop}-image" > "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt"
 	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}-pkgs.txt
 	
+	# set DM
+	set_dm "${work_dir}/${desktop}-image"
+	
 	if [ -e ${desktop}-overlay ] ; then
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
 	fi
@@ -534,9 +576,6 @@ make_de_image() {
 	if [ -e ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf ] ; then
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf
 	fi
-	
-	# set DM
-	set_dm "${work_dir}/${desktop}-image"
 	
 	umount -l ${work_dir}/${desktop}-image
 	

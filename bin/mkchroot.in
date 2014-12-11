@@ -58,9 +58,10 @@ fi
 
 umask 0022
 
-[[ -e $working_dir ]] && die "Working directory '%s' already exists" "$working_dir"
+#[[ -e $working_dir ]] && die "Working directory '%s' already exists" "$working_dir"
 
-mkdir -p "$working_dir"
+#mkdir -p "$working_dir"
+[[ ! -d $working_dir ]] && mkdir -p "$working_dir"
 
 lock 9 "${working_dir}.lock" "Locking chroot"
 

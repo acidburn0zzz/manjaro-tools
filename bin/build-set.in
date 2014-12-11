@@ -36,7 +36,7 @@ display_settings(){
     msg2 "pkg_dir: ${pkg_dir}"
     msg2 "pacman_conf: ${pacman_conf}"
     msg2 "makepkg_conf: ${makepkg_conf}"
-    msg2 "pm_conf: ${pm_conf}"
+    msg2 "mirrors_conf: ${mirrors_conf}"
     
     msg "BLACKLIST:"
     msg2 "blacklist_trigger: ${blacklist_trigger[*]}"
@@ -154,9 +154,9 @@ pkg_dir="${pkg_dir}/${branch}/${arch}"
 
 load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
 makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
-pm_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
+mirrors_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
 
-mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${pm_conf})
+mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${mirrors_conf})
 
 mkchrootpkg_args+=(-r ${chrootdir})
 

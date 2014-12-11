@@ -318,6 +318,18 @@ load_config(){
 	compression=xz
     fi
     
+    if [[ -n ${password} ]];then
+	password=${password}
+    else
+	password="manjaro"
+    fi
+    
+    if [[ -n ${addgroups} ]];then
+	addgroups=${addgroups}
+    else
+	addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
+    fi
+    
     return 0
 }
 

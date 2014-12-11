@@ -51,8 +51,7 @@ usage ()
     echo "                      Default $IMAGE_FOLDER"
     echo "    -d                Create default user directory /home/manjaro"
     echo "    -v                Enable verbose output"
-    echo "    -b                Set branch"
-    echo "                      Default ${BRANCH}"
+    echo "    -M                Pass pacman-morrors.conf"
     echo "    -h                This message"
     echo " commands:"
     echo "   create <dir>"
@@ -65,7 +64,7 @@ usage ()
 
 orig_argv=("$@")
 
-while getopts 'p:C:L:P:A:a:c:b:D:i:dfvhx' arg; do
+while getopts 'p:C:L:P:A:a:c:M:D:i:dfvhx' arg; do
     case "${arg}" in
         p) PKGLIST="${PKGLIST} ${OPTARG}" ;;
         C) PACCONFIG="${OPTARG}" ;;
@@ -80,7 +79,7 @@ while getopts 'p:C:L:P:A:a:c:b:D:i:dfvhx' arg; do
         f) FORCE=true ;;
         x) HIGHCOMP=" -b 256K -Xbcj x86" ;;
         v) QUIET=false ;;
-        b) BRANCH="${OPTARG}" ;;
+        M) MIRRORS="${OPTARG}" ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
     esac
@@ -121,68 +120,40 @@ fi
 msg "${APPNAME} : Configuration Settings"
 msg2 "working directory: ${work_dir}"
 msg2 "image name: ${imgname}"
+msg2 "pacman_mirrors: ${MIRRORS}"
 
-# usage: _pacman <packages>...
-# _pacman ()
-# {
-#     local ret
-#     mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
-#     if "${QUIET}"; then
-# 	# eventually replace it with mkchroot to get better mout handling
-#         setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
-#         # make the chroot compatible to use chroot-run
-#         echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
-#         ret=$?
-#     else
-# 	# eventually replace it with mkchroot to get better mout handling
-#         setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
-#         # make the chroot compatible to use chroot-run
-#         echo "$version" > "${work_dir}/${IMAGE_FOLDER}/.manjaro-tools"
-#         ret=$?
-#     fi
-# 
-#     if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
-#         cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
-#     fi
-# 
-#     # Cleanup
-#     find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
-# 
-#     if [ $ret -ne 0 ]; then
-#         exit 1
-#     fi
-# }
-# 
-# _mkchroot ()
-# {
-#     local ret makepkg_conf="/usr/share/manjaro-tools/makepkg-${ARCH}.conf" \
-# 	  pm_conf="/usr/share/manjaro-tools/pacman-mirrors-${BRANCH}.conf"
-#     #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
-#     if "${QUIET}"; then
-#         setarch "${ARCH}" \
-# 	    mkchroot -C ${PACCONFIG} \
-# 	    -M ${makepkg_conf} -S ${pm_conf} \
-# 	    "${work_dir}/${IMAGE_FOLDER}" $* &> /dev/null
-#         ret=$?
-#     else
-#         setarch "${ARCH}" \
-# 	    mkchroot -C ${PACCONFIG} \
-# 	    -M ${makepkg_conf} -S ${pm_conf} \
-# 	    "${work_dir}/${IMAGE_FOLDER}" $*
-#         ret=$?
-#     fi
-# 
-#     if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
-#         cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
-#     fi
-# 
-#     # Cleanup
-#     find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
-# 
-#     if [ $ret -ne 0 ]; then
-#         exit 1
-#     fi
-# }
+clean_up(){
+    # Cleanup
+    find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+
+
+
+    msg2 "Cleaning up what we can"
+    if [ -d "${work_dir}/${IMAGE_FOLDER}/boot/" ]; then
+	# remove the initcpio images that were generated for the host system
+	find "${work_dir}/${IMAGE_FOLDER}/boot" -name '*.img' -delete
+    fi
+
+    if ${CREATE_DEFAULT}; then
+	if [ -d "${work_dir}/${IMAGE_FOLDER}/home/" ]; then
+	    msg2 "Creating default home directory"
+	    install -d -o1000 -g100 -m0755 "${work_dir}/${IMAGE_FOLDER}/home/${username}"
+	fi
+    fi
+
+    # Delete pacman database sync cache files (*.tar.gz)
+    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman" -maxdepth 1 -type f -delete >/dev/null
+    # Delete pacman database sync cache
+    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman/sync" -delete >/dev/null
+    # Delete pacman package cache
+    find "${work_dir}/${IMAGE_FOLDER}/var/cache/pacman/pkg" -type f -delete >/dev/null
+    # Delete all log files, keeps empty dirs.
+    find "${work_dir}/${IMAGE_FOLDER}/var/log" -type f -delete >/dev/null
+    # Delete all temporary files and dirs
+    find "${work_dir}/${IMAGE_FOLDER}/var/tmp" -mindepth 1 -delete >/dev/null
+    # Delete all temporary files and dirs
+    find "${work_dir}/${IMAGE_FOLDER}/tmp" -mindepth 1 -delete >/dev/null
+}
 
 command_create () {
     msg "Creating working directory: ${work_dir}"
@@ -191,57 +162,27 @@ command_create () {
 
     if [ ! -z "${PKGLIST}" ]; then
         msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-	  local ret makepkg_conf="@pkgdatadir@/makepkg-${ARCH}.conf" \
-	  pm_conf="@pkgdatadir@/pacman-mirrors-${BRANCH}.conf"
+	  local ret
 	  #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
 	  if "${QUIET}"; then
 	      setarch "${ARCH}" \
 		  mkchroot -C ${PACCONFIG} \
-		  -M ${makepkg_conf} -S ${pm_conf} \
+		  -S ${MIRRORS} \
 		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} &> /dev/null
 	      ret=$?
 	  else
 	      setarch "${ARCH}" \
 		  mkchroot -C ${PACCONFIG} \
-		  -M ${makepkg_conf} -S ${pm_conf} \
+		  -S ${MIRRORS} \
 		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST}
 	      ret=$?
 	  fi
-
+	  
+	  clean_up
+	  
 	  if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
 	      cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
 	  fi
-
-	  # Cleanup
-	  find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
-
-    
-
-        msg2 "Cleaning up what we can"
-        if [ -d "${work_dir}/${IMAGE_FOLDER}/boot/" ]; then
-            # remove the initcpio images that were generated for the host system
-            find "${work_dir}/${IMAGE_FOLDER}/boot" -name '*.img' -delete
-        fi
-
-        if ${CREATE_DEFAULT}; then
-            if [ -d "${work_dir}/${IMAGE_FOLDER}/home/" ]; then
-                msg2 "Creating default home directory"
-                install -d -o1000 -g100 -m0755 "${work_dir}/${IMAGE_FOLDER}/home/${username}"
-            fi
-        fi
-
-        # Delete pacman database sync cache files (*.tar.gz)
-        find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman" -maxdepth 1 -type f -delete >/dev/null
-        # Delete pacman database sync cache
-        find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman/sync" -delete >/dev/null
-        # Delete pacman package cache
-        find "${work_dir}/${IMAGE_FOLDER}/var/cache/pacman/pkg" -type f -delete >/dev/null
-        # Delete all log files, keeps empty dirs.
-        find "${work_dir}/${IMAGE_FOLDER}/var/log" -type f -delete >/dev/null
-        # Delete all temporary files and dirs
-        find "${work_dir}/${IMAGE_FOLDER}/var/tmp" -mindepth 1 -delete >/dev/null
-        # Delete all temporary files and dirs
-        find "${work_dir}/${IMAGE_FOLDER}/tmp" -mindepth 1 -delete >/dev/null
     fi
 }
 

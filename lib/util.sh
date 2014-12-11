@@ -330,6 +330,18 @@ load_config(){
 	addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
     fi
     
+    if [[ -n ${startservices_systemd} ]];then
+	startservices_systemd=${startservices_systemd}
+    else
+	startservices_systemd=('cupsd' 'tlp-sleep' 'tlp')
+    fi
+    
+    if [[ -n ${startservices_openrc} ]];then
+	startservices_openrc=${startservices_openrc}
+    else
+	startservices_openrc=('cupsd' 'fcron' 'metalog')
+    fi
+    
     return 0
 }
 

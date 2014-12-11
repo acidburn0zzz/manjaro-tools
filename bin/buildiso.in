@@ -56,6 +56,8 @@ display_settings(){
     msg2 "addgroups: ${addgroups}"
     msg2 "hostname: ${hostname}"
     msg2 "pacman_mirrors: ${mirrors_conf}"
+    msg2 "startservices_systemd: ${startservices_systemd[*]}"
+    msg2 "startservices_openrc: ${startservices_openrc[*]}"
 
     msg "ISOFILE:"
     msg2 "iso_file: ${iso_file}"

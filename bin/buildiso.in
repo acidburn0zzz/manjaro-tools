@@ -45,12 +45,18 @@ display_settings(){
     msg2 "manjaroiso: ${manjaroiso}"
     msg2 "code_name: ${code_name}"
     msg2 "img_name: ${img_name}"
-    msg2 "hostname: ${hostname}"
-    msg2 "username: ${username}"
     msg2 "install_dir: ${install_dir}"
     msg2 "plymouth_theme: ${plymouth_theme}"
     msg2 "compression: ${compression}"
     
+    msg "LIVECD:"
+    msg2 "username: ${usenername}"
+    msg2 "password: ${password}"
+    msg2 "encrypted password: $(gen_pw)"
+    msg2 "addgroups: ${addgroups}"
+    msg2 "hostname: ${hostname}"
+    msg2 "pacman_mirrors: ${mirrors_conf}"
+
     msg "ISOFILE:"
     msg2 "iso_file: ${iso_file}"
 }

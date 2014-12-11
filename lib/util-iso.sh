@@ -455,7 +455,7 @@ make_root_image() {
 	
 	# set up user and password
 	local pass=$(gen_pw)
-	msg2 "Creating user ${username} and crypt password ${password}: ${pass} ..."
+	msg2 "Creating user ${username} and password ${password}: ${pass} ..."
 	chroot-run ${work_dir}/root-image useradd -m -g users -G ${addgroups} -p ${pass} ${username}
 	
 		

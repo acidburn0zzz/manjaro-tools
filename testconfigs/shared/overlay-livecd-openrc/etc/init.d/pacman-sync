@@ -1,0 +1,15 @@
+#!/usr/bin/openrc-run
+# Distributed under the terms of the GNU General Public License v2
+
+description="Pacman sync script"
+
+depend() {
+	need pacman-init net
+}
+
+start() {
+	ebegin "Running livecd script"
+	/usr/bin/pacman-boot  &> /dev/null
+	eend $?
+}
+ 

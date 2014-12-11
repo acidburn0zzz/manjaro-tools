@@ -296,8 +296,8 @@ configue_accountsservice(){
 # $1: source image
 # $2: target image
 copy_userconfig(){	
-    msg2 "Copying $1/etc/skel/* $2/home/${username}"
-    cp -r $1/etc/skel/* $2/home/${username}
+    msg2 "Copying $1/etc/skel/. $2/home/${username}"
+    cp -r $1/etc/skel/. $2/home/${username}
     chroot-run $2 chown ${username}:users /home/${username}
     chroot-run $2 chmod -R 755 /home/${username}
 }

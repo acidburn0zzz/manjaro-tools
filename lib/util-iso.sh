@@ -338,10 +338,41 @@ configure_systemd(){
 	fi
 }
 
+configure_services(){
+   if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
+      for svc in ${startserives_openrc[@]}; do
+	  if [[ -f $1/usr/bin/$svc ]];then
+	      ln -sf /etc/init.d/$svc $1/etc/runlevels/default/$svc
+	  fi
+      done
+   else
+      for svc in ${startserives_systemd[@]}; do
+	   if [[ -f $1/usr/bin/$svc ]];then
+	      ln -sf $1/usr/lib/systemd/system/$svc.service $1/etc/systemd/system/multi-user.target.wants/$svc.service
+	   fi
+      done
+   fi
+}
+
 configure_openrc(){
 	msg2 "Congiguring OpenRC ...."
 	if [ -e $1/usr/bin/cupsd ] ; then
 	    ln -sf '/etc/init.d/cupsd' "$1/etc/runlevels/default/cupsd"
+	fi
+	if [ -e $1/usr/bin/fcron ] ; then
+	    ln -sf '/etc/init.d/crond' "$1/etc/runlevels/default/crond"
+	fi
+	if [ -e $1/usr/bin/metalog ] ; then
+	    ln -sf '/etc/init.d/metalog' "$1/etc/runlevels/default/metalog"
+	fi
+	if [ -e $1/usr/bin/livecd ] ; then
+	    ln -sf '/etc/init.d/livecd' "$1/etc/runlevels/default/livecd"
+	fi
+	if [ -e $1/usr/bin/mhwd ] ; then
+	    ln -sf '/etc/init.d/mhwd' "$1/etc/runlevels/default/mhwd"
+	fi
+	if [ -e $1/usr/bin/pacman-init ] ; then
+	    ln -sf '/etc/init.d/pacman-init' "$1/etc/runlevels/default/pacman-init"
 	fi
 }
 

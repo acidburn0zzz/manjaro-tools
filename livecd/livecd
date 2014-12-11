@@ -71,9 +71,6 @@ if [ -e "/usr/bin/mate-session" ] ; then
    sed -i -e "s~^.*Terminal=.*~Terminal=false~" "/etc/skel/Desktop/installer-launcher-cli.desktop"
 fi
 
-echo "configure user" >> /tmp/livecd.log
-cp -a /etc/skel/. /home/${username}
-
 # do_configsforroot
 cp -a /etc/skel/. /root/
 

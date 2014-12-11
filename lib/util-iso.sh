@@ -48,7 +48,12 @@ get_pkglist(){
     fi
 }
 
-set_dm(){
+gen_pw(){
+  echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
+}
+
+# $1: chroot
+configue_displaymanager(){
     local _dm
 
     # do_setuplightdm
@@ -255,7 +260,8 @@ set_dm(){
     fi
 }
 
-set_accountservice(){
+# $1: chroot
+configue_accountsservice(){
     #echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
 
     if [ -d "$1/var/lib/AccountsService/users" ] ; then
@@ -285,6 +291,24 @@ set_accountservice(){
     fi
 
 
+}
+
+# $1: chroot
+configure_user(){
+	# set up user and password
+	local pass=$(gen_pw)
+	msg2 "Creating user ${username} and password ${password}: ${pass} ..."
+	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
+}
+
+# $1: chroot
+configue_hostname(){
+	if [[ -f $1/usr/bin/openrc ]];then
+	    local _hostname='hostname="'${hostname}'"'
+	    sed -i -e "s|^.*hostname=.*|${_hostname}|" $1/etc/conf.d/hostname
+	else
+	    echo ${hostname} > $1/etc/hostname
+	fi
 }
 
 # Prepare /EFI
@@ -432,9 +456,6 @@ make_iso() {
     msg "Done"
 }
 
-gen_pw(){
-  echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
-}
 
 # Base installation (root-image)
 make_root_image() {
@@ -444,20 +465,6 @@ make_root_image() {
 	mkiso ${create_args[*]} -p "${packages}" -i "root-image" create "${work_dir}"
 	
 	pacman -Qr "${work_dir}/root-image" > "${work_dir}/root-image/root-image-pkgs.txt"
-	
-	# set hostname
-	if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
-	    local _hostname='hostname="'${hostname}'"'
-	    sed -i -e "s|^.*hostname=.*|${_hostname}|" ${work_dir}/root-image/etc/conf.d/hostname
-	else
-	    echo ${hostname} > ${work_dir}/root-image/etc/hostname
-	fi
-	
-	# set up user and password
-	local pass=$(gen_pw)
-	msg2 "Creating user ${username} and password ${password}: ${pass} ..."
-	chroot-run ${work_dir}/root-image useradd -m -g users -G ${addgroups} -p ${pass} ${username}
-	
 		
 	cp ${work_dir}/root-image/etc/locale.gen.bak ${work_dir}/root-image/etc/locale.gen
 	if [ -e ${work_dir}/root-image/boot/grub/grub.cfg ] ; then
@@ -484,6 +491,12 @@ make_root_image() {
 	fi
 	cp -LPr overlay/* ${work_dir}/root-image
 
+	# set hostname
+	configue_hostname "${work_dir}/root-image"
+	
+	# set up user and password
+	configure_user "${work_dir}/root-image"
+	
 	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
@@ -555,10 +568,6 @@ make_de_image() {
 
 	pacman -Qr "${work_dir}/${desktop}-image" > "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt"
 	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}-pkgs.txt
-	
-	# configure DM
-	set_dm "${work_dir}/${desktop}-image"
-	set_accountservice "${work_dir}/${desktop}-image"
 
 	if [ -e ${desktop}-overlay ] ; then
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
@@ -576,6 +585,11 @@ make_de_image() {
 	if [ -e ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf ] ; then
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf
 	fi
+	
+		
+	# configure DM & accountsservice
+	configue_displaymanager "${work_dir}/${desktop}-image"
+	configue_accountsservice "${work_dir}/${desktop}-image"
 	
 	umount -l ${work_dir}/${desktop}-image
 	

@@ -50,7 +50,7 @@ display_settings(){
     msg2 "compression: ${compression}"
     
     msg "LIVECD:"
-    msg2 "username: ${usenername}"
+    msg2 "username: ${username}"
     msg2 "password: ${password}"
     msg2 "encrypted password: $(gen_pw)"
     msg2 "addgroups: ${addgroups}"

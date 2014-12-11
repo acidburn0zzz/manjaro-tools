@@ -322,58 +322,28 @@ configue_hostname(){
 	fi
 }
 
-configure_systemd(){
-	msg2 "Congiguring SystemD ...."
-	if [ -e $1/usr/bin/cupsd ] ; then
-	    mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
-	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
-	fi
-	if [ -e $2/usr/bin/tlp ] ; then
-	    mkdir -p "$1"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
-	    ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "$1/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
-	    ln -sf '/usr/lib/systemd/system/tlp.service' "$1/etc/systemd/system/multi-user.target.wants/tlp.service"
-	fi
-	if [ -e $1/etc/plymouth/plymouthd.conf ] ; then
+configure_plymouth(){
+    if [ -e $1/etc/plymouth/plymouthd.conf ] ; then
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" $1/etc/plymouth/plymouthd.conf
-	fi
+    fi
 }
 
 configure_services(){
-   if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
+   if [[ -f $1/usr/bin/openrc ]];then
+      msg2 "Congiguring OpenRC ...."
       for svc in ${startserives_openrc[@]}; do
 	  if [[ -f $1/usr/bin/$svc ]];then
-	      ln -sf /etc/init.d/$svc $1/etc/runlevels/default/$svc
+	      chroot-run $1 rc-update add $svc default
 	  fi
       done
    else
+      msg2 "Congiguring SystemD ...."
       for svc in ${startserives_systemd[@]}; do
-	   if [[ -f $1/usr/bin/$svc ]];then
-	      ln -sf $1/usr/lib/systemd/system/$svc.service $1/etc/systemd/system/multi-user.target.wants/$svc.service
-	   fi
+	  if [[ -f $1/usr/bin/$svc ]];then
+	      chroot-run $1 systemctl enable $svc.service
+	  fi
       done
    fi
-}
-
-configure_openrc(){
-	msg2 "Congiguring OpenRC ...."
-	if [ -e $1/usr/bin/cupsd ] ; then
-	    ln -sf '/etc/init.d/cupsd' "$1/etc/runlevels/default/cupsd"
-	fi
-	if [ -e $1/usr/bin/fcron ] ; then
-	    ln -sf '/etc/init.d/crond' "$1/etc/runlevels/default/crond"
-	fi
-	if [ -e $1/usr/bin/metalog ] ; then
-	    ln -sf '/etc/init.d/metalog' "$1/etc/runlevels/default/metalog"
-	fi
-	if [ -e $1/usr/bin/livecd ] ; then
-	    ln -sf '/etc/init.d/livecd' "$1/etc/runlevels/default/livecd"
-	fi
-	if [ -e $1/usr/bin/mhwd ] ; then
-	    ln -sf '/etc/init.d/mhwd' "$1/etc/runlevels/default/mhwd"
-	fi
-	if [ -e $1/usr/bin/pacman-init ] ; then
-	    ln -sf '/etc/init.d/pacman-init' "$1/etc/runlevels/default/pacman-init"
-	fi
 }
 
 # Prepare /EFI
@@ -644,15 +614,13 @@ make_de_image() {
 	
 	copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/root-image"
 	
-	if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
-	    configure_openrc "${work_dir}/${desktop}-image"
-	else
-	    configure_systemd "${work_dir}/${desktop}-image" "${work_dir}/root-image"
-	fi
+	configure_services "${work_dir}/${desktop}-image"
 		
 	# configure DM & accountsservice
 	configue_displaymanager "${work_dir}/${desktop}-image"
 	configue_accountsservice "${work_dir}/${desktop}-image"
+	
+	configure_plymouth "${work_dir}/${desktop}-image"
 	
 	umount -l ${work_dir}/${desktop}-image
 	
@@ -841,3 +809,40 @@ make_lng_image() {
 	msg "Done"
     fi
 }
+
+
+# configure_systemd(){
+# 	msg2 "Congiguring SystemD ...."
+# 	if [ -e $1/usr/bin/cupsd ] ; then
+# 	    mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
+# 	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
+# 	fi
+# 	if [ -e $2/usr/bin/tlp ] ; then
+# 	    mkdir -p "$1"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
+# 	    ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "$1/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
+# 	    ln -sf '/usr/lib/systemd/system/tlp.service' "$1/etc/systemd/system/multi-user.target.wants/tlp.service"
+# 	fi
+# 	
+# }
+
+# configure_openrc(){
+# 	msg2 "Congiguring OpenRC ...."
+# 	if [ -e $1/usr/bin/cupsd ] ; then
+# 	    ln -sf '/etc/init.d/cupsd' "$1/etc/runlevels/default/cupsd"
+# 	fi
+# 	if [ -e $1/usr/bin/fcron ] ; then
+# 	    ln -sf '/etc/init.d/crond' "$1/etc/runlevels/default/crond"
+# 	fi
+# 	if [ -e $1/usr/bin/metalog ] ; then
+# 	    ln -sf '/etc/init.d/metalog' "$1/etc/runlevels/default/metalog"
+# 	fi
+# 	if [ -e $1/usr/bin/livecd ] ; then
+# 	    ln -sf '/etc/init.d/livecd' "$1/etc/runlevels/default/livecd"
+# 	fi
+# 	if [ -e $1/usr/bin/mhwd ] ; then
+# 	    ln -sf '/etc/init.d/mhwd' "$1/etc/runlevels/default/mhwd"
+# 	fi
+# 	if [ -e $1/usr/bin/pacman-init ] ; then
+# 	    ln -sf '/etc/init.d/pacman-init' "$1/etc/runlevels/default/pacman-init"
+# 	fi
+# }

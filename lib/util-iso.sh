@@ -55,7 +55,7 @@ gen_pw(){
 # $1: chroot
 configue_displaymanager(){
     local _dm
-
+    msg2 "Configuring Displaymanager ..."
     # do_setuplightdm
     if [ -e "$1/usr/bin/lightdm" ] ; then
 	mkdir -p /run/lightdm > /dev/null
@@ -263,7 +263,7 @@ configue_displaymanager(){
 # $1: chroot
 configue_accountsservice(){
     #echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
-
+    msg2 "Configuring AcooutsService ..."
     if [ -d "$1/var/lib/AccountsService/users" ] ; then
 	echo "[User]" > $1/var/lib/AccountsService/users/${username}
 	if [ -e "/usr/bin/startxfce4" ] ; then
@@ -293,16 +293,27 @@ configue_accountsservice(){
 
 }
 
+# $1: source image
+# $2: target image
+copy_userconfig(){	
+    msg2 "Copying $1/etc/skel/* $2/home/${username}"
+    cp -r $1/etc/skel/* $2/home/${username}
+    chroot-run $2 chown ${username}:users /home/${username}
+    chroot-run $2 chmod -R 755 /home/${username}
+}
+
+
 # $1: chroot
 configure_user(){
 	# set up user and password
 	local pass=$(gen_pw)
-	msg2 "Creating user ${username} and password ${password}: ${pass} ..."
+	msg2 "Creating user ${username} with password ${password} ..."
 	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
 }
 
 # $1: chroot
 configue_hostname(){
+	msg2 "Setting hostname ${hostname} ..."
 	if [[ -f $1/usr/bin/openrc ]];then
 	    local _hostname='hostname="'${hostname}'"'
 	    sed -i -e "s|^.*hostname=.*|${_hostname}|" $1/etc/conf.d/hostname
@@ -312,6 +323,7 @@ configue_hostname(){
 }
 
 configure_systemd(){
+	msg2 "Congiguring SystemD ...."
 	if [ -e $1/usr/bin/cupsd ] ; then
 	    mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
 	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
@@ -572,12 +584,6 @@ make_boot() {
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi
-}
-
-copy_userconfig(){
-    cp -r $1/etc/skel/* $2/home/${username}
-    chroot-run $2 chown ${username}:users /home/${username}
-    chroot-run $2 chmod 755 /home/${username}
 }
 
 make_de_image() {

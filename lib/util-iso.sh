@@ -311,6 +311,25 @@ configue_hostname(){
 	fi
 }
 
+configure_systemd(){
+	if [ -e $1/usr/bin/cupsd ] ; then
+	    mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
+	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
+	fi
+	if [ -e $2/usr/bin/tlp ] ; then
+	    mkdir -p "$1"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
+	    ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "$1/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
+	    ln -sf '/usr/lib/systemd/system/tlp.service' "$1/etc/systemd/system/multi-user.target.wants/tlp.service"
+	fi
+	if [ -e $1/etc/plymouth/plymouthd.conf ] ; then
+	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" $1/etc/plymouth/plymouthd.conf
+	fi
+}
+
+# configure_openrc(){
+# 
+# }
+
 # Prepare /EFI
 make_efi() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -456,7 +475,6 @@ make_iso() {
     msg "Done"
 }
 
-
 # Base installation (root-image)
 make_root_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
@@ -540,7 +558,11 @@ make_boot() {
         cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
         
         local _kernver=$(cat ${work_dir}/boot-image/usr/lib/modules/*-MANJARO/version)
-        chroot-run ${work_dir}/boot-image /usr/bin/mkinitcpio -k ${_kernver} -c /etc/mkinitcpio-${manjaroiso}.conf -g /boot/${img_name}.img
+        
+        chroot-run ${work_dir}/boot-image \
+		  /usr/bin/mkinitcpio -k ${_kernver} \
+		  -c /etc/mkinitcpio-${manjaroiso}.conf \
+		  -g /boot/${img_name}.img
         
         mv ${work_dir}/boot-image/boot/${img_name}.img ${work_dir}/iso/${install_dir}/boot/${arch}/${img_name}.img
                 
@@ -550,6 +572,12 @@ make_boot() {
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi
+}
+
+copy_userconfig(){
+    cp -r $1/etc/skel/* $2/home/${username}
+    chroot-run $2 chown ${username}:users /home/${username}
+    chroot-run $2 chmod 755 /home/${username}
 }
 
 make_de_image() {
@@ -573,19 +601,9 @@ make_de_image() {
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
 	fi
 	
-	if [ -e ${work_dir}/${desktop}-image/usr/bin/cupsd ] ; then
-	    mkdir -p "${work_dir}/${desktop}-image/etc/systemd/system/multi-user.target.wants"
-	    ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "${work_dir}/${desktop}-image/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
-	fi
-	if [ -e ${work_dir}/root-image/usr/bin/tlp ] ; then
-	    mkdir -p "${work_dir}/${desktop}-image"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
-	    ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "${work_dir}/${desktop}-image/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
-	    ln -sf '/usr/lib/systemd/system/tlp.service' "${work_dir}/${desktop}-image/etc/systemd/system/multi-user.target.wants/tlp.service"
-	fi
-	if [ -e ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf ] ; then
-	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" ${work_dir}/${desktop}-image/etc/plymouth/plymouthd.conf
-	fi
+	copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/root-image"
 	
+	configure_systemd "${work_dir}/${desktop}-image" "${work_dir}/root-image"
 		
 	# configure DM & accountsservice
 	configue_displaymanager "${work_dir}/${desktop}-image"

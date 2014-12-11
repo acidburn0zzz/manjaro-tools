@@ -544,7 +544,7 @@ make_de_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "${desktop} installation (${desktop}-image)"
 	
-	#mkdir -p ${work_dir}/${desktop}-image
+	mkdir -p ${work_dir}/${desktop}-image
 	
 	if [ ! -z "$(mount -l | grep ${desktop}-image)" ]; then
 	    umount -l ${work_dir}/${desktop}-image

@@ -338,9 +338,12 @@ configure_systemd(){
 	fi
 }
 
-# configure_openrc(){
-# 
-# }
+configure_openrc(){
+	msg2 "Congiguring OpenRC ...."
+	if [ -e $1/usr/bin/cupsd ] ; then
+	    ln -sf '/etc/init.d/cupsd' "$1/etc/runlevels/default/cupsd"
+	fi
+}
 
 # Prepare /EFI
 make_efi() {
@@ -607,9 +610,14 @@ make_de_image() {
 	    cp -LPr ${desktop}-overlay/* ${work_dir}/${desktop}-image
 	fi
 	
+	
 	copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/root-image"
 	
-	configure_systemd "${work_dir}/${desktop}-image" "${work_dir}/root-image"
+	if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
+	    configure_openrc "${work_dir}/${desktop}-image"
+	else
+	    configure_systemd "${work_dir}/${desktop}-image" "${work_dir}/root-image"
+	fi
 		
 	# configure DM & accountsservice
 	configue_displaymanager "${work_dir}/${desktop}-image"
@@ -699,7 +707,6 @@ make_pkgs_image() {
 	cp pacman-gfx.conf ${work_dir}/pkgs-image/opt/livecd
 	rm -r ${work_dir}/pkgs-image/var
 	
-# 	repo-add ${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs.db.tar.gz ${work_dir}/pkgs-image/opt/livecd/pkgs/*pkg*z
 	make_repo "${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs" "${work_dir}/pkgs-image/opt/livecd/pkgs"
 	
 	configure_xorg_drivers

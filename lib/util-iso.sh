@@ -141,7 +141,7 @@ configure_services_livecd(){
 # 	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
 # 	  fi
 	  if [[ -f $1/etc/systemd/system/$svc ]];then
-	      chroot-run $1 systemctl enable $svc
+	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
 	  fi
       done
    fi

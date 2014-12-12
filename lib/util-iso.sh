@@ -108,7 +108,9 @@ configure_services(){
 # 	      if [ -e $1/usr/bin/cupsd ] ; then
 # 		  mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
 # 		  ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
-		  chroot-run $1 systemctl enable $svc 
+		  if [[ -f $1/usr/lib/systemd/system/$svc ]];then
+		      chroot-run $1 systemctl enable $svc
+		  fi
 # 	      fi
 # 	      if [ -e ${work_dir}/root-image/usr/bin/tlp ] ; then
 # 		  mkdir -p "$1"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
@@ -133,10 +135,13 @@ configure_services_livecd(){
    else
       msg2 "Congiguring SystemD ...."
       for svc in ${startservices_livecd[@]}; do
-	  if [[ -f $1/etc/systemd/system/$svc ]]; then
-	      msg2 "Setting $svc ..."
-	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
-	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
+# 	  if [[ -f $1/etc/systemd/system/$svc ]]; then
+# 	      msg2 "Setting $svc ..."
+# 	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
+# 	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
+# 	  fi
+	  if [[ -f $1/etc/systemd/system/$svc ]];then
+	      chroot-run $1 systemctl enable $svc
 	  fi
       done
    fi

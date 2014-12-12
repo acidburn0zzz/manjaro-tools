@@ -87,9 +87,7 @@ make_overlay() {
 	copy_livecd_init "${work_dir}/overlay"
 	
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
-        
-        ${auto_svc_conf} && configure_services_livecd "${work_dir}/overlay"
-        
+               
 	# copy over manjaro-tools.conf
 	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
         

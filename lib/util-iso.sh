@@ -139,32 +139,6 @@ configure_services(){
    fi
 }
 
-configure_services_livecd(){
-   if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
-      msg2 "Congiguring OpenRC ...."
-      for svc in ${startservices_livecd[@]}; do
-	  if [[ -f $1/etc/init.d/$svc ]]; then
-	      msg2 "Setting $svc ..."
-	      [[ ! -d  $1/etc/runlevels/default ]] && mkdir -p $1/etc/runlevels/default
-	      ln -sf /etc/init.d/$svc $1/etc/runlevels/default/$svc
-	  fi
-      done
-   else
-      msg2 "Congiguring SystemD ...."
-      for svc in ${startservices_livecd[@]}; do
-	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
-	      if [[ -f $1/etc/systemd/system/$svc ]];then
-		  msg2 "Setting $svc ..."
-		  ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
-	      fi
-	      if [[ -f $1/usr/lib/systemd/system/$svc ]];then
-		  msg2 "Setting $svc ..."    
-		  ln -sf /usr/lib/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
-	      fi
-      done
-   fi
-}
-
 # $1: chroot
 configue_displaymanager(){
     local _dm

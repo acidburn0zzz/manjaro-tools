@@ -333,19 +333,13 @@ load_config(){
     if [[ -n ${startservices_systemd} ]];then
 	startservices_systemd=${startservices_systemd}
     else
-	startservices_systemd=('cronie' 'bluez' 'NetworkManager' 'ModemManager')
+	startservices_systemd=('cronie' 'bluez' 'tlp' 'tlp-sleep' 'NetworkManager' 'ModemManager' 'cupsd')
     fi
     
     if [[ -n ${startservices_openrc} ]];then
 	startservices_openrc=${startservices_openrc}
     else
 	startservices_openrc=('cupsd' 'fcron' 'metalog' 'cronie' 'bluetooth' 'connman' 'networkmanager')
-    fi
-    
-    if [[ -n ${startservices_livecd} ]];then
-	startservices_livecd=${startservices_livecd}
-    else
-	startservices_livecd=('mhwd' 'livecd' 'pacman-init' 'pacman-boot')
     fi
     
     return 0

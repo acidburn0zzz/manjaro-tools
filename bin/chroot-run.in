@@ -77,7 +77,7 @@ copy_hostconf () {
 	
 	host_mirror=$(echo "$host_mirror" | sed -E "s#/branch/#/${branch}/#")
 	
-	cp "$working_dir/etc/pacman.d/mirrorlist" "$working_dir/etc/pacman.d/mirrorlist.orig"
+	#cp "$working_dir/etc/pacman.d/mirrorlist" "$working_dir/etc/pacman.d/mirrorlist.orig"
 	
 	echo "Server = $host_mirror" >"$working_dir/etc/pacman.d/mirrorlist"
 	

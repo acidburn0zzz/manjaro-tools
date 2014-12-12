@@ -25,8 +25,8 @@ COMPRESSION="xz"
 CREATE_DEFAULT=false
 INSTALL_DIR="manjaro"
 IMAGE_FOLDER="root-image"
-BRANCH='stable'
 APPNAME=$(basename "${0}")
+MIRRORS=''
 
 # usage: usage <exitvalue>
 usage ()
@@ -110,12 +110,9 @@ case "${command_name}" in
     *) error "Invalid command name ${command_name}" && usage 1 ;;
 esac
 
-if [ -z "${ARCH}" ] ; then
-	error "You need to specify an architecture:\ni686\nx86_64" && usage 1
-fi
-
-[ "x${imgname}" = "x" ] && msg "Image name must be specified" && usage 1
-[ "x${work_dir}" = "x" ] && msg "Please specify a working directory" && usage 1
+[[ -z "${ARCH}" ]] && error "You need to specify an architecture:\ni686\nx86_64" && usage 1
+[[ -z "${imgname}" ]] && msg "Image name must be specified" && usage 1
+[[ -z "${work_dir}" ]] && msg "Please specify a working directory" && usage 1
 
 msg "${APPNAME} : Configuration Settings"
 msg2 "working directory: ${work_dir}"
@@ -156,25 +153,25 @@ clean_up(){
 }
 
 command_create () {
-    msg "Creating working directory: ${work_dir}"
+    #msg "Creating working directory: ${work_dir}"
     mkdir -p "${work_dir}/iso/${INSTALL_DIR}/${ARCH}"
     #mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
 
     if [ ! -z "${PKGLIST}" ]; then
-        msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
+        #msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
 	  local ret
 	  #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
 	  if "${QUIET}"; then
 	      setarch "${ARCH}" \
 		  mkchroot -C ${PACCONFIG} \
 		  -S ${MIRRORS} \
-		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} &> /dev/null
+		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} &> /dev/null || die "Error! Exiting."
 	      ret=$?
 	  else
 	      setarch "${ARCH}" \
 		  mkchroot -C ${PACCONFIG} \
 		  -S ${MIRRORS} \
-		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST}
+		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} || die "Error! Exiting."
 	      ret=$?
 	  fi
 	  
@@ -238,7 +235,7 @@ _imgcommon () {
 
     if [ ! -f "${work_dir}/iso/${INSTALL_DIR}/isomounts" ]; then
         error "The isomounts file doesn't exist. This image won't do anything"
-        abort "Protecting you from yourself and erroring out here..."
+        die "Protecting you from yourself and erroring out here..."
     fi
 
     if [ -e "${imgname}" ]; then

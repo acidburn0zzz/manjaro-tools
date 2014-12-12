@@ -58,34 +58,10 @@ display_settings(){
     msg2 "pacman_mirrors: ${mirrors_conf}"
     msg2 "startservices_systemd: ${startservices_systemd[*]}"
     msg2 "startservices_openrc: ${startservices_openrc[*]}"
-
+    msg2 "startservices_livecd: ${startservices_livecd[*]}"
+    
     msg "ISOFILE:"
     msg2 "iso_file: ${iso_file}"
-}
-
-copy_manjaro_tools_conf(){
-	local livecd=$1
-	
-	[[ ! -d ${livecd} ]] && mkdir ${livecd}
-	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${livecd}/manjaro-tools.conf ..."
-	    cp $USER_HOME/.config/manjaro-tools.conf ${livecd}/manjaro-tools.conf
-	else
-	    msg2 "Copying ${manjaro_tools_conf} to ${livecd}/manjaro-tools.conf ..."
-	    cp ${manjaro_tools_conf} ${livecd}/manjaro-tools.conf
-	fi
-}
-
-copy_livecd(){
-    local livecd=$1
-    
-    msg2 "Copying $1/livecd to ${work_dir}/overlay/opt ..."
-    [[ ! -d ${work_dir}/overlay/opt ]] && mkdir -p ${work_dir}/overlay/opt
-    cp -r $1/livecd ${work_dir}/overlay/opt
-    
-    msg2 "Fixing livecd script permissions ..."
-    chmod 755 ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
-    chmod +x ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
 }
 
 copy_util_sh(){
@@ -102,7 +78,7 @@ make_overlay() {
         mkdir -p ${work_dir}/overlay/etc/pacman.d
       
 	msg2 "Copying overlay-livecd to ${work_dir}/overlay ..."
-        cp -LPdr overlay-livecd/* ${work_dir}/overlay
+        cp -a overlay-livecd/* ${work_dir}/overlay
         
 	copy_livecd '@pkgdatadir@'
 	        

@@ -80,6 +80,15 @@ make_overlay() {
 	msg2 "Copying overlay-livecd to ${work_dir}/overlay ..."
         cp -a overlay-livecd/* ${work_dir}/overlay
         
+	if [[ -d overlay-livecd-openrc ]]; then
+	    msg2 "Copying overlay-livecd-openrc/ to ${work_dir}/overlay ..."
+	    cp -a overlay-livecd-openrc/* ${work_dir}/overlay
+        fi
+        if [[ -d overlay-livecd-systemd ]]; then
+	    msg2 "Copying overlay-livecd-systemd/ to ${work_dir}/overlay ..."
+	    cp -a overlay-livecd-systemd/* ${work_dir}/overlay
+	fi
+        
 	copy_livecd '@pkgdatadir@'
 	        
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist

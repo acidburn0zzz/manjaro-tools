@@ -147,7 +147,7 @@ configue_displaymanager(){
     msg2 "Configuring Displaymanager ..."
     # do_setuplightdm
     if [ -e "$1/usr/bin/lightdm" ] ; then
-	mkdir -p /run/lightdm > /dev/null
+	#mkdir -p /run/lightdm > /dev/null
 	#getent group lightdm > /dev/null 2>&1 || groupadd -g 620 lightdm
 	#getent passwd lightdm > /dev/null 2>&1 || useradd -c 'LightDM Display Manager' -u 620 -g lightdm -d /var/run/lightdm -s /usr/bin/nologin lightdm
 	#passwd -l lightdm > /dev/null
@@ -351,35 +351,32 @@ configue_displaymanager(){
 
 # $1: chroot
 configue_accountsservice(){
-    #echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
     msg2 "Configuring AcooutsService ..."
     if [ -d "$1/var/lib/AccountsService/users" ] ; then
 	echo "[User]" > $1/var/lib/AccountsService/users/${username}
-	if [ -e "/usr/bin/startxfce4" ] ; then
+	if [ -e "$1/usr/bin/startxfce4" ] ; then
 	    echo "XSession=xfce" >> $1/var/lib/AccountsService/users/${username}
 	fi
-	if [ -e "/usr/bin/cinnamon-session" ] ; then
+	if [ -e "$1/usr/bin/cinnamon-session" ] ; then
 	    echo "XSession=cinnamon" >> $1/var/lib/AccountsService/users/${username}
 	fi
-	if [ -e "/usr/bin/mate-session" ] ; then
+	if [ -e "$1/usr/bin/mate-session" ] ; then
 	    echo "XSession=mate" >> $1/var/lib/AccountsService/users/${username}
 	fi
-	if [ -e "/usr/bin/enlightenment_start" ] ; then
+	if [ -e "$1/usr/bin/enlightenment_start" ] ; then
 	    echo "XSession=enlightenment" >> $1/var/lib/AccountsService/users/${username}
 	fi
-	if [ -e "/usr/bin/openbox-session" ] ; then
+	if [ -e "$1/usr/bin/openbox-session" ] ; then
 	    echo "XSession=openbox" >> $1/var/lib/AccountsService/users/${username}
 	fi
-	if [ -e "/usr/bin/startlxde" ] ; then
+	if [ -e "$1/usr/bin/startlxde" ] ; then
 	    echo "XSession=LXDE" >> $1/var/lib/AccountsService/users/${username}
 	fi
-	if [ -e "/usr/bin/lxqt-session" ] ; then
+	if [ -e "$1/usr/bin/lxqt-session" ] ; then
 	    echo "XSession=LXQt" >> $1/var/lib/AccountsService/users/${username}
 	fi
 	echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
     fi
-
-
 }
 
 configure_xorg_drivers(){
@@ -556,39 +553,6 @@ clean_up(){
     if [[ -d ${work_dir} ]];then
 	msg "Removing work dir ${work_dir}"
 	rm -r ${work_dir}
-    fi
-}
-
-#$1: packages
-
-make_root(){
-    #msg "Creating working directory: ${work_dir}"
-    mkdir -p "${work_dir}/iso/${INSTALL_DIR}/${arch}"
-    #mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
-
-    if [ ! -z "${PKGLIST}" ]; then
-        #msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-	  local ret
-	  #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
-	  if "${QUIET}"; then
-	      setarch "${ARCH}" \
-		  mkchroot -C ${PACCONFIG} \
-		  -S ${MIRRORS} \
-		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} &> /dev/null || die "Error! Exiting."
-	      ret=$?
-	  else
-	      setarch "${ARCH}" \
-		  mkchroot -C ${PACCONFIG} \
-		  -S ${MIRRORS} \
-		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} || die "Error! Exiting."
-	      ret=$?
-	  fi
-	  
-	  clean_up
-	  
-	  if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
-	      cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
-	  fi
     fi
 }
 

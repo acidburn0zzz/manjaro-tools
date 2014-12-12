@@ -74,7 +74,11 @@ copy_hostconf () {
 	[[ -n $mirrors_conf ]] && cp ${mirrors_conf} "${working_dir}/etc/pacman-mirrors.conf"
 
 	local branch=$(cat "${working_dir}/etc/pacman-mirrors.conf" | grep '^Branch=' | sed 's/Branch=\s*//g')
+	
 	host_mirror=$(echo "$host_mirror" | sed -E "s#/branch/#/${branch}/#")
+	
+	cp "$working_dir/etc/pacman.d/mirrorlist" "$working_dir/etc/pacman.d/mirrorlist.orig"
+	
 	echo "Server = $host_mirror" >"$working_dir/etc/pacman.d/mirrorlist"
 	
 	sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n ${cache_dirs[@]})|g" -i "$working_dir/etc/pacman.conf"

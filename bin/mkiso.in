@@ -120,11 +120,6 @@ msg2 "image name: ${imgname}"
 msg2 "pacman_mirrors: ${MIRRORS}"
 
 clean_up(){
-    # Cleanup
-    find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
-
-
-
     msg2 "Cleaning up what we can"
     if [ -d "${work_dir}/${IMAGE_FOLDER}/boot/" ]; then
 	# remove the initcpio images that were generated for the host system
@@ -152,6 +147,35 @@ clean_up(){
     find "${work_dir}/${IMAGE_FOLDER}/tmp" -mindepth 1 -delete >/dev/null
 }
 
+_mkchroot(){
+	local ret
+	#mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
+	if "${QUIET}"; then
+	    setarch "${ARCH}" \
+		mkchroot -C ${PACCONFIG} \
+		-S ${MIRRORS} \
+		"${work_dir}/${IMAGE_FOLDER}" $@ &> /dev/null
+	    ret=$?
+	else
+	    setarch "${ARCH}" \
+		mkchroot -C ${PACCONFIG} \
+		-S ${MIRRORS} \
+		"${work_dir}/${IMAGE_FOLDER}" $@
+	    ret=$?
+	fi
+	
+	if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
+	    cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
+	fi
+	
+	 # Cleanup
+	find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+	
+	if [ $ret -ne 0 ]; then
+	    exit 1
+	fi
+}
+
 command_create () {
     #msg "Creating working directory: ${work_dir}"
     mkdir -p "${work_dir}/iso/${INSTALL_DIR}/${ARCH}"
@@ -159,28 +183,10 @@ command_create () {
 
     if [ ! -z "${PKGLIST}" ]; then
         #msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-	  local ret
-	  #mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
-	  if "${QUIET}"; then
-	      setarch "${ARCH}" \
-		  mkchroot -C ${PACCONFIG} \
-		  -S ${MIRRORS} \
-		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} &> /dev/null || die "Error! Exiting."
-	      ret=$?
-	  else
-	      setarch "${ARCH}" \
-		  mkchroot -C ${PACCONFIG} \
-		  -S ${MIRRORS} \
-		  "${work_dir}/${IMAGE_FOLDER}" ${PKGLIST} || die "Error! Exiting."
-	      ret=$?
-	  fi
-	  
-	  clean_up
-	  
-	  if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
-	      cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
-	  fi
+	_mkchroot "${PKGLIST}"
     fi
+    
+    clean_up
 }
 
 # _mksquash dirname

@@ -60,7 +60,6 @@ display_settings(){
     if ${auto_svc_conf};then
 	msg2 "startservices_systemd: ${startservices_systemd[*]}"
 	msg2 "startservices_openrc: ${startservices_openrc[*]}"
-	msg2 "startservices_livecd: ${startservices_livecd[*]}"
     fi
     
     msg "ISOFILE:"

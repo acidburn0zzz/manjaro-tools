@@ -101,19 +101,20 @@ configure_services(){
    else
       msg2 "Congiguring SystemD ...."
       for svc in ${startservices_systemd[@]}; do
-	  if [[ -f $1/etc/systemd/system/$svc ]]; then
+# 	  if [[ -f $1/etc/systemd/system/$svc ]] || [[ -f $1/usr/lib/systemd/system ]]; then
 	      msg2 "Setting $svc ..."
-	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
-	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
-	      if [ -e $1/usr/bin/cupsd ] ; then
-		  mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
-		  ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
-	      fi
-	      if [ -e ${work_dir}/root-image/usr/bin/tlp ] ; then
-		  mkdir -p "$1"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
-		  ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "$1/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
-		  ln -sf '/usr/lib/systemd/system/tlp.service' "$1/etc/systemd/system/multi-user.target.wants/tlp.service"
-	      fi
+# 	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
+# 	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
+# 	      if [ -e $1/usr/bin/cupsd ] ; then
+# 		  mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
+# 		  ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
+		  chroot-run $1 systemctl enable $svc 
+# 	      fi
+# 	      if [ -e ${work_dir}/root-image/usr/bin/tlp ] ; then
+# 		  mkdir -p "$1"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
+# 		  ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "$1/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
+# 		  ln -sf '/usr/lib/systemd/system/tlp.service' "$1/etc/systemd/system/multi-user.target.wants/tlp.service"
+# 	      fi
 	  fi
       done
    fi

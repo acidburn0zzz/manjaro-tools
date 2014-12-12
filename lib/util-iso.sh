@@ -63,6 +63,24 @@ copy_initcpio(){
         cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
 }
 
+copy_livecd_init(){
+	if [[ -d overlay-livecd-openrc ]]; then
+	    msg2 "Copying overlay-livecd-openrc/ to $1 ..."
+	    cp -a overlay-livecd-openrc/* $1
+        fi
+        
+        if [[ -d overlay-livecd-systemd ]]; then
+	    msg2 "Copying overlay-livecd-systemd/ to $1 ..."
+	    cp -a overlay-livecd-systemd/* $1
+	fi
+}
+
+copy_overlay_livecd(){
+	msg2 "Copying overlay-livecd to $1 ..."
+	cp -a overlay-livecd/* $1
+}
+
+
 # $1: chroot
 configure_user(){
 	# set up user and password
@@ -123,15 +141,15 @@ configure_services_livecd(){
    else
       msg2 "Congiguring SystemD ...."
       for svc in ${startservices_livecd[@]}; do
-# 	  
-	  if [[ -f $1/etc/systemd/system/$svc ]];then
+	  #if [[ -f $1/etc/systemd/system/$svc ]];then
 	      msg2 "Setting $svc ..."
 	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
 	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
-	  fi
+	  #fi
       done
    fi
 }
+
 
 # $1: chroot
 configue_displaymanager(){
@@ -422,7 +440,7 @@ make_efi() {
         # EFI Shell 1.0 for non UEFI 2.3+ ( http://sourceforge.net/apps/mediawiki/tianocore/index.php?title=Efi-shell )
         curl -k -o ${work_dir}/iso/EFI/shellx64_v1.efi https://svn.code.sf.net/p/edk2/code/trunk/edk2/EdkShellBinPkg/FullShell/X64/Shell_Full.efi
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
+	msg "Done ${install_dir}/boot/EFI"
     fi
 }
 
@@ -465,7 +483,7 @@ make_efiboot() {
 
         umount ${work_dir}/efiboot
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
+	msg "Done ${install_dir}/iso/EFI"
     fi
 }
 
@@ -504,7 +522,7 @@ make_isolinux() {
                 s|%INSTALL_DIR%|${install_dir}|g;
                 s|%ARCH%|${arch}|g" ${work_dir}/iso/isolinux/isolinux.cfg
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
+	msg "Done ${install_dir}/iso/isolinux"
     fi
 }
 
@@ -514,7 +532,7 @@ make_isomounts() {
 	msg "Process isomounts"
         sed "s|@ARCH@|${arch}|g" isomounts > ${work_dir}/iso/${install_dir}/isomounts
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
+	msg "Done processing isomounts"
     fi
 }
 

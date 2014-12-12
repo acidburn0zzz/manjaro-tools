@@ -82,7 +82,7 @@ make_overlay() {
       
 	copy_overlay_livecd "${work_dir}/overlay"
         
-	copy_livecd '/usr/share/manjaro-tools'
+	copy_livecd '@pkgdatadir@/livecd'
 	    
 	copy_livecd_init "${work_dir}/overlay"
 	

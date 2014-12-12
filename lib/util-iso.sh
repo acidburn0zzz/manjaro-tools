@@ -36,11 +36,10 @@ copy_manjaro_tools_conf(){
 }
 
 copy_livecd(){
-    local livecd=$1
     
-    msg2 "Copying $1/livecd to ${work_dir}/overlay/opt ..."
+    msg2 "Copying $1 to ${work_dir}/overlay/opt ..."
     [[ ! -d ${work_dir}/overlay/opt ]] && mkdir -p ${work_dir}/overlay/opt
-    cp -r $1/livecd ${work_dir}/overlay/opt
+    cp -r $1 ${work_dir}/overlay/opt
     
     msg2 "Fixing livecd script permissions ..."
     chmod 755 ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
@@ -72,6 +71,18 @@ copy_livecd_init(){
         if [[ -d overlay-livecd-systemd ]]; then
 	    msg2 "Copying overlay-livecd-systemd/ to $1 ..."
 	    cp -a overlay-livecd-systemd/* $1
+	fi
+}
+
+copy_overlay_init(){
+	if [[ -d overlay-openrc ]]; then
+	    msg2 "Copying overlay-openrc/ to $1 ..."
+	    cp -a overlay-openrc/* $1
+        fi
+        
+        if [[ -d overlay-systemd ]]; then
+	    msg2 "Copying overlay-systemd/ to $1 ..."
+	    cp -a overlay-systemd/* $1
 	fi
 }
 
@@ -153,7 +164,6 @@ configure_services_livecd(){
       done
    fi
 }
-
 
 # $1: chroot
 configue_displaymanager(){
@@ -650,6 +660,7 @@ make_root_image() {
 	fi
 	
 	copy_overlay "${work_dir}/root-image"
+	copy_overlay_init "${work_dir}/root-image"
 
 	# set hostname
 	configue_hostname "${work_dir}/root-image"

@@ -101,23 +101,11 @@ configure_services(){
    else
       msg2 "Congiguring SystemD ...."
       for svc in ${startservices_systemd[@]}; do
-# 	  if [[ -f $1/etc/systemd/system/$svc ]] || [[ -f $1/usr/lib/systemd/system ]]; then
 	      msg2 "Setting $svc ..."
-# 	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
-# 	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
-# 	      if [ -e $1/usr/bin/cupsd ] ; then
-# 		  mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
-# 		  ln -sf '/usr/lib/systemd/system/org.cups.cupsd.service' "$1/etc/systemd/system/multi-user.target.wants/org.cups.cupsd.service"
-		  if [[ -f $1/usr/lib/systemd/system/$svc ]];then
-		      chroot-run $1 systemctl enable $svc
-		  fi
-# 	      fi
-# 	      if [ -e ${work_dir}/root-image/usr/bin/tlp ] ; then
-# 		  mkdir -p "$1"/etc/systemd/system/{sleep.target.wants,multi-user.target.wants}
-# 		  ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "$1/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
-# 		  ln -sf '/usr/lib/systemd/system/tlp.service' "$1/etc/systemd/system/multi-user.target.wants/tlp.service"
-# 	      fi
-# 	  fi
+	      if [[ -f $1/usr/lib/systemd/system/$svc ]];then
+		  msg2 "Setting $svc ..."
+		  chroot-run $1 systemctl enable $svc
+	      fi
       done
    fi
 }
@@ -135,12 +123,10 @@ configure_services_livecd(){
    else
       msg2 "Congiguring SystemD ...."
       for svc in ${startservices_livecd[@]}; do
-# 	  if [[ -f $1/etc/systemd/system/$svc ]]; then
-# 	      msg2 "Setting $svc ..."
-# 	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
-# 	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
-# 	  fi
+# 	  
 	  if [[ -f $1/etc/systemd/system/$svc ]];then
+	      msg2 "Setting $svc ..."
+	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
 	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
 	  fi
       done
@@ -154,10 +140,7 @@ configue_displaymanager(){
     # do_setuplightdm
     if [ -e "$1/usr/bin/lightdm" ] ; then
 	#mkdir -p /run/lightdm > /dev/null
-	#getent group lightdm > /dev/null 2>&1 || groupadd -g 620 lightdm
-	#getent passwd lightdm > /dev/null 2>&1 || useradd -c 'LightDM Display Manager' -u 620 -g lightdm -d /var/run/lightdm -s /usr/bin/nologin lightdm
-	#passwd -l lightdm > /dev/null
-	#chown -R lightdm:lightdm /var/run/lightdm > /dev/null
+
 	if [ -e "$1/usr/bin/startxfce4" ] ; then
 	      sed -i -e 's/^.*user-session=.*/user-session=xfce/' $1/etc/lightdm/lightdm.conf
 	fi
@@ -185,6 +168,7 @@ configue_displaymanager(){
 	sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
 	sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
       #    sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
+      
 	chroot-run $1 groupadd autologin
 	chroot-run $1 gpasswd -a ${username} autologin
 	chroot-run $1 chmod +r /etc/lightdm/lightdm.conf
@@ -200,9 +184,7 @@ configue_displaymanager(){
 
     # do_setupkdm
     if [ -e "$1/usr/share/config/kdm/kdmrc" ] ; then
-	#getent group kdm >/dev/null 2>&1 || groupadd -g 135 kdm &>/dev/null
-	#getent passwd kdm >/dev/null 2>&1 || useradd -u 135 -g kdm -d /var/lib/kdm -s /bin/false -r -M kdm &>/dev/null
-	#chown -R 135:135 var/lib/kdm &>/dev/null
+
 	chroot-run $1 xdg-icon-resource forceupdate --theme hicolor &> /dev/null
 	if [ -e "$1/usr/bin/update-desktop-database" ] ; then
 	    chroot-run $1 update-desktop-database -q
@@ -215,10 +197,7 @@ configue_displaymanager(){
 
     # do_setupgdm
     if [ -e "$1/usr/bin/gdm" ] ; then
-	#getent group gdm >/dev/null 2>&1 || groupadd -g 120 gdm
-	#getent passwd gdm > /dev/null 2>&1 || usr/bin/useradd -c 'Gnome Display Manager' -u 120 -g gdm -d /var/lib/gdm -s /usr/bin/nologin gdm
-	#passwd -l gdm > /dev/null
-	#chown -R gdm:gdm /var/lib/gdm &> /dev/null
+
 	if [ -d "$1/var/lib/AccountsService/users" ] ; then
 	    echo "[User]" > $1/var/lib/AccountsService/users/gdm
 	    if [ -e "$1/usr/bin/startxfce4" ] ; then
@@ -249,11 +228,7 @@ configue_displaymanager(){
 
     # do_setupmdm
     if [ -e "$1/usr/bin/mdm" ] ; then
-	#getent group mdm >/dev/null 2>&1 || groupadd -g 128 mdm
-	#getent passwd mdm >/dev/null 2>&1 || usr/bin/useradd -c 'Linux Mint Display Manager' -u 128 -g mdm -d /var/lib/mdm -s /usr/bin/nologin mdm
-	#passwd -l mdm > /dev/null
-	#chown root:mdm /var/lib/mdm > /dev/null
-	#chmod 1770 /var/lib/mdm > /dev/null
+
 	if [ -e "$1/usr/bin/startxfce4" ] ; then
 	    sed -i 's|default.desktop|xfce.desktop|g' $1/etc/mdm/custom.conf
 	fi
@@ -280,11 +255,7 @@ configue_displaymanager(){
 
     # do_setupsddm
     if [ -e "$1/usr/bin/sddm" ] ; then
-	#getent group sddm > /dev/null 2>&1 || groupadd --system sddm
-	#getent passwd sddm > /dev/null 2>&1 || usr/bin/useradd -c "Simple Desktop Display Manager" --system -d /var/lib/sddm -s /usr/bin/nologin -g sddm sddm
-	#passwd -l sddm > /dev/null
-	#mkdir -p /var/lib/sddm
-	#chown -R sddm:sddm /var/lib/sddm > /dev/null
+
 	sed -i -e "s|^User=.*|User=${username}|" $1/etc/sddm.conf
 	if [ -e "$1/usr/bin/startxfce4" ] ; then
 	    sed -i -e 's|^Session=.*|Session=xfce.desktop|' $1/etc/sddm.conf
@@ -315,9 +286,7 @@ configue_displaymanager(){
 
     # do_setuplxdm
     if [ -e "$1/usr/bin/lxdm" ] ; then
-# 	if [ -z "`getent group "lxdm" 2> /dev/null`" ]; then
-# 	      groupadd --system lxdm > /dev/null
-# 	fi
+
 	sed -i -e "s/^.*autologin=.*/autologin=${username}/" $1/etc/lxdm/lxdm.conf
 	if [ -e "$1/usr/bin/startxfce4" ] ; then
 	    sed -i -e 's|^.*session=.*|session=/usr/bin/startxfce4|' $1/etc/lxdm/lxdm.conf
@@ -343,9 +312,7 @@ configue_displaymanager(){
 	if [ -e "$1/usr/bin/pekwm" ] ; then
 	    sed -i -e 's|^.*session=.*|session=/usr/bin/pekwm|' $1/etc/lxdm/lxdm.conf
 	fi
-	#chgrp -R lxdm /var/lib/lxdm > /dev/null
-	#chgrp lxdm /etc/lxdm/lxdm.conf > /dev/null
-	#chmod +r /etc/lxdm/lxdm.conf > /dev/null
+
 	_dm='lxdm'
     fi
     

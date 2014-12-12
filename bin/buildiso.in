@@ -56,9 +56,12 @@ display_settings(){
     msg2 "addgroups: ${addgroups}"
     msg2 "hostname: ${hostname}"
     msg2 "pacman_mirrors: ${mirrors_conf}"
-    msg2 "startservices_systemd: ${startservices_systemd[*]}"
-    msg2 "startservices_openrc: ${startservices_openrc[*]}"
-    msg2 "startservices_livecd: ${startservices_livecd[*]}"
+    
+    if ${auto_svc_conf};then
+	msg2 "startservices_systemd: ${startservices_systemd[*]}"
+	msg2 "startservices_openrc: ${startservices_openrc[*]}"
+	msg2 "startservices_livecd: ${startservices_livecd[*]}"
+    fi
     
     msg "ISOFILE:"
     msg2 "iso_file: ${iso_file}"
@@ -85,7 +88,7 @@ make_overlay() {
 	
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
         
-        configure_services_livecd "${work_dir}/overlay"
+        ${auto_svc_conf} && configure_services_livecd "${work_dir}/overlay"
         
 	# copy over manjaro-tools.conf
 	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
@@ -122,6 +125,7 @@ verbose=false
 overwrite=false
 xorg_overlays=false
 kde_lng_packages=false
+auto_svc_conf=false
 
 pacman_conf_arch='default'
 
@@ -139,6 +143,7 @@ usage() {
     echo '    -z                 High compression'
     echo '    -x                 Xorg overlays'
     echo '    -k                 kde lng packages'
+    echo '    -A                 Let buildiso configure services(experimental)'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
@@ -148,7 +153,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='a:b:r:t:i:cvfzqxkh'
+opts='a:b:r:t:i:cvfzqxkAh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -163,6 +168,7 @@ while getopts "${opts}" arg; do
 	x) xorg_overlays=true ;;
 	k) kde_lng_packages=true ;;
 	i) pacman_conf="$OPTARG" ;;
+	A) auto_svc_conf=true ;;
 	q) pretend=true ;;
 	h) usage ;;
     esac

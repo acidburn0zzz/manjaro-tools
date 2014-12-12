@@ -154,13 +154,13 @@ _mkchroot(){
 	    setarch "${ARCH}" \
 		mkchroot -C ${PACCONFIG} \
 		-S ${MIRRORS} \
-		"${work_dir}/${IMAGE_FOLDER}" $@ &> /dev/null
+		"${work_dir}/${IMAGE_FOLDER}" $@ &> /dev/null || abort "Failed to download all packages."
 	    ret=$?
 	else
 	    setarch "${ARCH}" \
 		mkchroot -C ${PACCONFIG} \
 		-S ${MIRRORS} \
-		"${work_dir}/${IMAGE_FOLDER}" $@
+		"${work_dir}/${IMAGE_FOLDER}" $@ || abort "Failed to download all packages."
 	    ret=$?
 	fi
 	
@@ -183,7 +183,7 @@ command_create () {
 
     if [ ! -z "${PKGLIST}" ]; then
         #msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-	_mkchroot "${PKGLIST}"
+	_mkchroot "${PKGLIST}" || abort "Failed to create chroot."
     fi
     
     clean_up

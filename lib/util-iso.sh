@@ -141,11 +141,15 @@ configure_services_livecd(){
    else
       msg2 "Congiguring SystemD ...."
       for svc in ${startservices_livecd[@]}; do
-	  #if [[ -f $1/etc/systemd/system/$svc ]];then
-	      msg2 "Setting $svc ..."
 	      [[ ! -d  $1/etc/systemd/system/multi-user.target.wants ]] && mkdir -p $1/etc/systemd/system/multi-user.target.wants
-	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
-	  #fi
+	      if [[ -f $1/etc/systemd/system/$svc ]];then
+		  msg2 "Setting $svc ..."
+		  ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
+	      fi
+	      if [[ -f $1/usr/lib/systemd/system/$svc ]];then
+		  msg2 "Setting $svc ..."    
+		  ln -sf /usr/lib/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
+	      fi
       done
    fi
 }
@@ -653,7 +657,7 @@ make_root_image() {
 	# set up user and password
 	configure_user "${work_dir}/root-image"
 	
-	configure_services "${work_dir}/root-image"
+	${auto_svc_conf} && configure_services "${work_dir}/root-image"
 	
 	configure_plymouth "${work_dir}/root-image"
 	
@@ -695,7 +699,7 @@ make_de_image() {
 	copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/root-image"
 	
 	# set up auto start services
-	configure_services "${work_dir}/${desktop}-image"
+	${auto_svc_conf} && configure_services "${work_dir}/${desktop}-image"
 		
 	# configure DM & accountsservice
 	configue_displaymanager "${work_dir}/${desktop}-image"

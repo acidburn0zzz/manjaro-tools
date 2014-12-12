@@ -329,18 +329,38 @@ configure_plymouth(){
 }
 
 configure_services(){
-   if [[ -f $1/usr/bin/openrc ]];then
+   if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
       msg2 "Congiguring OpenRC ...."
-      for svc in ${startserives_openrc[@]}; do
-	  if [[ -f $1/usr/bin/$svc ]];then
-	      chroot-run $1 rc-update add $svc default
+      for svc in ${startservices_openrc[@]}; do
+	  if [[ -f $1/etc/init.d/$svc ]]; then
+	       ln -sf /etc/init.d/$svc $1/etc/runlevels/default/$svc
 	  fi
       done
    else
       msg2 "Congiguring SystemD ...."
-      for svc in ${startserives_systemd[@]}; do
-	  if [[ -f $1/usr/bin/$svc ]];then
-	      chroot-run $1 systemctl enable $svc.service
+      for svc in ${startservices_systemd[@]}; do
+	  if [[ -f $1/etc/systemd/system/$svc ]]; then
+	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
+	  fi
+      done
+   fi
+}
+
+configure_services_livecd(){
+   if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
+      msg2 "Congiguring OpenRC ...."
+      for svc in ${startservices_livecd[@]}; do
+	  msg2 "Setting $svc ..."
+	  if [[ -f $1/etc/init.d/$svc ]]; then
+	      ln -sf /etc/init.d/$svc $1/etc/runlevels/default/$svc
+	  fi
+      done
+   else
+      msg2 "Congiguring SystemD ...."
+      for svc in ${startservices_livecd[@]}; do
+	  msg2 "Setting $svc ..."
+	  if [[ -f $1/etc/systemd/system/$svc ]]; then
+	      ln -sf /etc/systemd/system/$svc $1/etc/systemd/system/multi-user.target.wants/$svc
 	  fi
       done
    fi
@@ -531,6 +551,7 @@ make_root_image() {
 	# set up user and password
 	configure_user "${work_dir}/root-image"
 	
+	configure_services "${work_dir}/root-image"
 	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"

@@ -339,7 +339,13 @@ load_config(){
     if [[ -n ${startservices_openrc} ]];then
 	startservices_openrc=${startservices_openrc}
     else
-	startservices_openrc=('cupsd' 'fcron' 'metalog')
+	startservices_openrc=('cupsd' 'cronie' 'metalog')
+    fi
+    
+    if [[ -n ${startservices_livecd} ]];then
+	startservices_livecd=${startservices_livecd}
+    else
+	startservices_livecd=('mhwd' 'livecd' 'pacman-init' 'pacman-boot')
     fi
     
     return 0

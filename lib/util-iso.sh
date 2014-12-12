@@ -115,7 +115,7 @@ configure_services(){
 # 		  ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "$1/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
 # 		  ln -sf '/usr/lib/systemd/system/tlp.service' "$1/etc/systemd/system/multi-user.target.wants/tlp.service"
 # 	      fi
-	  fi
+# 	  fi
       done
    fi
 }

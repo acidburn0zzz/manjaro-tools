@@ -23,7 +23,7 @@ copy_initcpio(){
 # $2: target image
 copy_userconfig(){	
     msg2 "Copying $1/etc/skel/. $2/etc/skel"
-    cp -r $1/etc/skel/. $2/etc/skel
+    cp -a $1/etc/skel/. $2/etc/skel
 }
 
 copy_manjaro_tools_conf(){

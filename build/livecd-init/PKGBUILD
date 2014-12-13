@@ -1,0 +1,46 @@
+ 
+pkgbase=livecd-init
+pkgname=('livecd-openrc'
+	'livecd-systemd')
+pkgver=0.9.5
+pkgrel=1
+arch=('any')
+url=""
+license=('GPL')
+depends=('manjaro-tools' 'livecd')
+source=("$url")
+sha256sums=('')
+
+# pkgver() {
+# 	cd ${srcdir}/manjaro-tools
+# 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+# }
+
+build() {
+	cd ${srcdir}/${pkgname}-${pkgver}
+	make SYSCONFDIR=/etc \
+	    PREFIX=/usr \
+	    DATADIR=${PREFIX}/share/manjaro-tools \
+	    LIBDIR=${PREFIX}/lib/manjaro-tools \
+	    DESTDIR=${pkgdir}
+}
+
+package_livecd-openrc() {
+	cd ${srcdir}/${pkgname}-${pkgver}
+	make SYSCONFDIR=/etc \
+	    PREFIX=/usr \
+	    DATADIR=${PREFIX}/share/manjaro-tools \
+	    LIBDIR=${PREFIX}/lib/manjaro-tools \
+	    DESTDIR=${pkgdir} \
+	install
+}
+
+package_livecd-systemd() {
+	cd ${srcdir}/${pkgname}-${pkgver}
+	make SYSCONFDIR=/etc \
+	    PREFIX=/usr \
+	    DATADIR=${PREFIX}/share/manjaro-tools \
+	    LIBDIR=${PREFIX}/lib/manjaro-tools \
+	    DESTDIR=${pkgdir} \
+	install
+}

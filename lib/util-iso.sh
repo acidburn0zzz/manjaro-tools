@@ -878,3 +878,11 @@ get_pkglist(){
 	packages=$(sed "s|#.*||g" Packages | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
     fi
 }
+
+get_pkglist_overlay(){
+    if [ "${arch}" == "i686" ]; then
+	overlay_packages=$(sed "s|#.*||g" "Packages-Overlay" | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
+    elif [ "${arch}" == "x86_64" ]; then
+	overlay_packages=$(sed "s|#.*||g" "Packages-Overlay" | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
+    fi
+}

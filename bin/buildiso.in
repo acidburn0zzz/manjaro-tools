@@ -75,6 +75,35 @@ copy_util_sh(){
 # Prepare overlay-image
 make_overlay() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
+	msg "Prepare overlay"
+	        
+      	copy_overlay_livecd "${work_dir}/overlay"
+	
+        copy_livecd_init "${work_dir}/overlay"
+	
+	mkdir -p ${work_dir}/overlay/etc/pacman.d
+	
+	copy_livecd '@pkgdatadir@/livecd'
+	    
+        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
+        copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/overlay"      
+	# copy over manjaro-tools.conf
+	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
+        
+        # copy over the config loader lib to load manjaro-tools.conf vars
+        copy_util_sh "${work_dir}/overlay/opt/livecd"
+        
+        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
+        sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
+       
+        : > ${work_dir}/build.${FUNCNAME}
+	msg "Done overlay"
+    fi
+}
+
+# Prepare overlay-image
+make_overlay_image() {
+    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare overlay-image"
 	
 	######################## 
@@ -88,14 +117,12 @@ make_overlay() {
 	
 	mount -t aufs -o br=${work_dir}/overlay-image:${work_dir}/root-image=ro none ${work_dir}/overlay-image
 
-	mkiso ${create_args[*]} -i "overlay-image" -p "${de_packages}" create "${work_dir}"
+	mkiso ${create_args[*]} -i "overlay-image" -p "${overlay_packages}" create "${work_dir}"
 
 	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"
 	
 	####################
-	
-        mkdir -p ${work_dir}/overlay/etc/pacman.d
-        
+	        
       	copy_overlay_livecd "${work_dir}/overlay"
 	
         copy_livecd_init "${work_dir}/overlay"
@@ -124,7 +151,7 @@ make_overlay() {
 	rm -R ${work_dir}/overlay-image/.wh*
 	
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
+	msg "Done overlay-image"
     fi
 }
 
@@ -234,6 +261,10 @@ if [ -e "${pkgsfile}" ] ; then
     get_pkglist_de
 fi
 
+if [[ -f Packages-Overlay ]]; then
+    get_pkglist_overlay
+fi
+
 ${pretend} && display_settings && exit 1
 
 ${clean_first} && clean_up
@@ -263,7 +294,12 @@ if [ "${arch}" == "x86_64" ]; then
     make_efiboot
 fi
 make_isolinux
-make_overlay
+
+if [[ -f Packages-Overlay ]]; then
+    make_overlay-image
+else
+    make_overlay
+fi
 
 make_isomounts
 make_iso

@@ -93,7 +93,12 @@ if [ -e "/usr/bin/gnome-keyring-daemon" ] ; then
    setcap cap_ipc_lock=ep /usr/bin/gnome-keyring-daemon &> /dev/null
 fi
 
+echo "configure user" >> /tmp/livecd.log
+
 useradd -m -g users -G ${addgroups} -p $(gen_pw) ${username}
+
+# do_configsforroot
+cp -a /etc/skel/. /root/
 
 # configurate pacman
 #pacman-key --init

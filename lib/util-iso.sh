@@ -13,6 +13,12 @@ gen_pw(){
     echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
 }
 
+copy_initcpio(){
+        cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
+        cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
+        cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
+}
+
 # $1: source image
 # $2: target image
 copy_userconfig(){	
@@ -56,12 +62,6 @@ copy_overlay_desktop(){
     cp -a ${desktop}-overlay/* ${work_dir}/${desktop}-image
 }
 
-copy_initcpio(){
-        cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
-        cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
-        cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
-}
-
 copy_livecd_init(){
 	if [[ -d overlay-livecd-openrc ]]; then
 	    msg2 "Copying overlay-livecd-openrc/ to $1 ..."
@@ -90,7 +90,6 @@ copy_overlay_livecd(){
 	msg2 "Copying overlay-livecd to $1 ..."
 	cp -a overlay-livecd/* $1
 }
-
 
 # $1: chroot
 configure_user(){
@@ -180,7 +179,7 @@ configue_displaymanager(){
       #    sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
       
 	chroot-run $1 groupadd autologin
-	chroot-run $1 gpasswd -a ${username} autologin
+	chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
 	chroot-run $1 chmod +r /etc/lightdm/lightdm.conf
 	# livecd fix
 	mkdir -p $1/var/lib/lightdm-data

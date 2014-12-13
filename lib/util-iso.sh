@@ -44,6 +44,8 @@ copy_livecd(){
     msg2 "Fixing livecd script permissions ..."
     chmod 755 ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
     chmod +x ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
+    
+     sed -i "s/^.*TITLE=.*/  TITLE=\"Manjaro Linux Installation Framework (v${iso_version})\"/g" ${work_dir}/overlay/opt/livecd/setup
 }
 
 copy_overlay(){

@@ -77,6 +77,23 @@ make_overlay() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare overlay-image"
 	
+	######################## 
+	# create overlay chroot
+	
+	mkdir -p ${work_dir}/overlay-image
+	
+	if [ ! -z "$(mount -l | grep overlay-image)" ]; then
+	    umount -l ${work_dir}/overlay-image
+	fi
+	
+	mount -t aufs -o br=${work_dir}/overlay-image:${work_dir}/root-image=ro none ${work_dir}/overlay-image
+
+	mkiso ${create_args[*]} -i "overlay-image" -p "${de_packages}" create "${work_dir}"
+
+	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"
+	
+	####################
+	
         mkdir -p ${work_dir}/overlay/etc/pacman.d
         
       	copy_overlay_livecd "${work_dir}/overlay"
@@ -95,8 +112,17 @@ make_overlay() {
         
         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
         sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/^.*TITLE=.*/  TITLE=\"Manjaro Linux Installation Framework (v${iso_version})\"/g" ${work_dir}/overlay/opt/livecd/setup
-        #chmod -R 755 ${work_dir}/overlay/home
+       
+	
+	#########################
+	
+	# Clean up GnuPG keys?
+	#rm -rf "${work_dir}/${desktop}-image/etc/pacman.d/gnupg"
+	
+	umount -l ${work_dir}/overlay-image
+	
+	rm -R ${work_dir}/overlay-image/.wh*
+	
         : > ${work_dir}/build.${FUNCNAME}
 	msg "Done"
     fi

@@ -93,6 +93,14 @@ if [ -e "/usr/bin/gnome-keyring-daemon" ] ; then
    setcap cap_ipc_lock=ep /usr/bin/gnome-keyring-daemon &> /dev/null
 fi
 
+gen_pw(){
+    echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
+}
+
+useradd -m -g users -G ${addgroups} -p $(gen_pw) ${username}
+
+
+
 # configurate pacman
 #pacman-key --init
 #pacman-key --populate archlinux manjaro

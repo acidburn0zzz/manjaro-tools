@@ -9,10 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-gen_pw(){
-    echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
-}
-
 copy_initcpio(){
         cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
         cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
@@ -21,10 +17,10 @@ copy_initcpio(){
 
 # $1: source image
 # $2: target image
-copy_userconfig(){	
-    msg2 "Copying $1/etc/skel/. $2/etc/skel"
-    cp -a $1/etc/skel/. $2/etc/skel
-}
+# copy_userconfig(){	
+#     msg2 "Copying $1/etc/skel/. $2/etc/skel"
+#     cp -a $1/etc/skel/. $2/etc/skel
+# }
 
 copy_manjaro_tools_conf(){
 	local livecd=$1
@@ -90,12 +86,12 @@ copy_overlay_livecd(){
 }
 
 # $1: chroot
-configure_user(){
-	# set up user and password
-	local pass=$(gen_pw)
-	msg2 "Creating user ${username} with password ${password} ..."
-	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
-}
+# configure_user(){
+# 	# set up user and password
+# 	local pass=$(gen_pw)
+# 	msg2 "Creating user ${username} with password ${password} ..."
+# 	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
+# }
 
 # $1: chroot
 configue_hostname(){
@@ -675,11 +671,6 @@ make_de_image() {
 	if [ -e ${desktop}-overlay ] ; then
 	    copy_overlay_desktop
 	fi
-	
-	copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/root-image"
-
-	# set up user and password
-	configure_user "${work_dir}/root-image"
 
 	# set up auto start services
 	${auto_svc_conf} && configure_services "${work_dir}/${desktop}-image"

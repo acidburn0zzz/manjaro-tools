@@ -22,10 +22,8 @@ copy_initcpio(){
 # $1: source image
 # $2: target image
 copy_userconfig(){	
-    msg2 "Copying $1/etc/skel/. $2/home/${username}"
-    cp -r $1/etc/skel/. $2/home/${username}
-    chroot-run $2 chown ${username}:users /home/${username}
-    chroot-run $2 chmod -R 755 /home/${username}
+    msg2 "Copying $1/etc/skel/. $2/etc/skel"
+    cp -r $1/etc/skel/. $2/etc/skel
 }
 
 copy_manjaro_tools_conf(){
@@ -642,13 +640,8 @@ make_root_image() {
 	# set hostname
 	configue_hostname "${work_dir}/root-image"
 	
-	# set up user and password
-	configure_user "${work_dir}/root-image"
-	
 	${auto_svc_conf} && configure_services "${work_dir}/root-image"
-	
-	configure_plymouth "${work_dir}/root-image"
-	
+		
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
 	
@@ -683,9 +676,11 @@ make_de_image() {
 	    copy_overlay_desktop
 	fi
 	
-	# copy user home files
 	copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/root-image"
-	
+
+	# set up user and password
+	configure_user "${work_dir}/root-image"
+
 	# set up auto start services
 	${auto_svc_conf} && configure_services "${work_dir}/${desktop}-image"
 		

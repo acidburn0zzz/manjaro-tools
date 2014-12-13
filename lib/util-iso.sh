@@ -17,10 +17,10 @@ copy_initcpio(){
 
 # $1: source image
 # $2: target image
-# copy_userconfig(){	
-#     msg2 "Copying $1/etc/skel/. $2/etc/skel"
-#     cp -a $1/etc/skel/. $2/etc/skel
-# }
+copy_userconfig(){	
+    msg2 "Copying $1/etc/skel/. $2/etc/skel"
+    cp -a $1/etc/skel/. $2/etc/skel
+}
 
 copy_manjaro_tools_conf(){
 	local livecd=$1

@@ -115,8 +115,14 @@ make_overlay_image() {
 	    umount -l ${work_dir}/overlay-image
 	fi
 	
+	msg2 "mount root-image"
 	mount -t aufs -o br=${work_dir}/overlay-image:${work_dir}/root-image=ro none ${work_dir}/overlay-image
-
+	
+	if [ ! -z "${desktop}" ] ; then
+	    msg2 "mount ${desktop}-image"
+	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/overlay-image
+	fi
+	
 	mkiso ${create_args[*]} -i "overlay-image" -p "${overlay_packages}" create "${work_dir}"
 
 	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"

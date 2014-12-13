@@ -135,6 +135,10 @@ configure_services(){
 		  msg2 "Setting $svc ..."
 		  chroot-run $1 systemctl enable $svc
 	      fi
+	      if [[ -f $1/etc/systemd/system/$svc ]];then
+		  msg2 "Setting $svc ..."
+		  chroot-run $1 systemctl enable $svc
+	      fi
       done
    fi
 }

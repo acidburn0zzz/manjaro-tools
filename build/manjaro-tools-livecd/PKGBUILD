@@ -20,11 +20,6 @@ pkgver() {
 }
 
 package_manjaro-tools-livecd() {
-	depends=('manjaro-tools')
-	conflicts=('manjaroiso-profiles' 
-		  'manjaroiso-openrc-profiles' 
-		  'manjaroiso-community-profiles')
-		
 	cd ${srcdir}/${pkgbase} #-${pkgver}
 	install -dm 755 $pkgdir/opt
 	cp -a livecd $pkgdir/opt

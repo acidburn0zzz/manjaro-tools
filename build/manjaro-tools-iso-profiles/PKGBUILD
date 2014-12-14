@@ -7,7 +7,7 @@ pkgrel=1
 arch=('any')
 url="https://github.com/udeved/manjaro-tools-iso-profiles"
 license=('GPL')
-depends=('manjaro-tools-livecd')
+depends=('manjaro-tools')
 makedepends=('git')
 conflicts=('manjaroiso-profiles' 
 	  'manjaroiso-openrc-profiles' 

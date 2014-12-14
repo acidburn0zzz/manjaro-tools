@@ -88,6 +88,7 @@ CPIOINST = \
 all: $(BINPROGS) #bin/bash_completion bin/zsh_completion
 
 edit = sed -e "s|@pkgdatadir[@]|$(DESTDIR)$(PREFIX)/share/manjaro-tools|g" \
+	-e "s|@bindir[@]|$(DESTDIR)$(PREFIX)/bin|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/manjaro-tools|g" \
 	-e "s|@libdir[@]|$(DESTDIR)$(PREFIX)/lib/manjaro-tools|g" \
 	-e "s|@version@|${V}|"

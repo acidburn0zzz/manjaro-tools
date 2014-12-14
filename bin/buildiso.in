@@ -16,7 +16,6 @@ LIBDIR='@libdir@'
 PKGDATADIR='@pkgdatadir@'
 SYSCONFDIR='@sysconfdir@'
 
-
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 [[ -r ${LIBDIR}/util.sh ]] && source ${LIBDIR}/util.sh
 [[ -r ${LIBDIR}/util-iso.sh ]] && source ${LIBDIR}/util-iso.sh
@@ -171,7 +170,6 @@ iso_args+=(-a ${arch} -D ${install_dir} -L ${iso_label} -c ${compression})
 iso_file="${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}.iso"
 
 iso_profile=${PWD##*/}
-
 
 check_root "$0" "${orig_argv[@]}"
 

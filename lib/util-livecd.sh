@@ -280,7 +280,7 @@ configure_accountsservice(){
 }
 
 # $1: chroot
-configue_calamares(){
+configure_calamares(){
     msg2 "Configuring Calamares ..."
     mkdir -p ${work_dir}/overlay/etc/calamares/modules            
     local UNPACKFS="$1/overlay/etc/calamares/modules/unpackfs.conf"            

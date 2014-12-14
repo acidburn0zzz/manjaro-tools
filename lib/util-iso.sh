@@ -520,7 +520,6 @@ make_overlay_image() {
     fi
 }
 
-
 # $1: work dir
 # $2: cache dir
 # $3: pkglist

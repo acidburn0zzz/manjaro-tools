@@ -18,7 +18,7 @@ configure_user(){
 }
 
 # $1: chroot
-configue_hostname(){
+configure_hostname(){
 	msg2 "Setting hostname ${hostname} ..."
 	if [[ -f $1/usr/bin/openrc ]];then
 	    local _hostname='hostname="'${hostname}'"'
@@ -61,7 +61,7 @@ configure_services(){
 }
 
 # $1: chroot
-configue_displaymanager(){
+configure_displaymanager(){
     local _dm
     msg2 "Configuring Displaymanager ..."
     # do_setuplightdm
@@ -250,7 +250,7 @@ configue_displaymanager(){
 }
 
 # $1: chroot
-configue_accountsservice(){
+configure_accountsservice(){
     msg2 "Configuring AcooutsService ..."
     if [ -d "$1/var/lib/AccountsService/users" ] ; then
 	echo "[User]" > $1/var/lib/AccountsService/users/${username}
@@ -278,3 +278,53 @@ configue_accountsservice(){
 	echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
     fi
 }
+
+# $1: chroot
+configue_calamares(){
+    msg2 "Configuring Calamares ..."
+    mkdir -p ${work_dir}/overlay/etc/calamares/modules            
+    local UNPACKFS="$1/overlay/etc/calamares/modules/unpackfs.conf"            
+    if [ ! -e $UNPACKFS ] ; then                              
+        echo "---" > "$UNPACKFS"
+        echo "unpack:" >> "$UNPACKFS"
+        echo "    -   source: \"/bootmnt/${install_dir}/${arch}/root-image.sqfs\"" >> "$UNPACKFS"
+        echo "        sourcefs: \"squashfs\"" >> "$UNPACKFS"
+        echo "        destination: \"\"" >> "$UNPACKFS"
+        echo "    -   source: \"/bootmnt/${install_dir}/${arch}/${desktop}-image.sqfs\"" >> "$UNPACKFS"
+        echo "        sourcefs: \"squashfs\"" >> "$UNPACKFS"
+        echo "        destination: \"\"" >> "$UNPACKFS"                
+    fi
+    local DISPLAYMANAGER="$1/overlay/etc/calamares/modules/displaymanager.conf"
+    # TODO maybe add a configuration flag in manjaro-tools.conf for default displymanager
+    if [ ! -e $DISPLAYMANAGER ] ; then
+        echo "---" > "$DISPLAYMANAGER"
+        echo "displaymanagers:" >> "$DISPLAYMANAGER"
+        if [ -e "${work_dir}/${desktop}-image/usr/bin/lightdm" ] ; then
+            echo "  - lightdm" >> "$DISPLAYMANAGER"
+        fi
+        if [ -e "${work_dir}/${desktop}-image/usr/share/config/kdm/kdmrc" ] ; then
+            echo "  - kdm" >> "$DISPLAYMANAGER"
+        fi
+        if [ -e "${work_dir}/${desktop}-image/usr/bin/gdm" ] ; then
+            echo "  - gdm" >> "$DISPLAYMANAGER"
+        fi
+        if [ -e "${work_dir}/${desktop}-image/usr/bin/mdm" ] ; then
+            echo "  - mdm" >> "$DISPLAYMANAGER"
+        fi
+        if [ -e "${work_dir}/${desktop}-image/usr/bin/sddm" ] ; then
+            echo "  - sddm" >> "$DISPLAYMANAGER"
+        fi
+        if [ -e "${work_dir}/${desktop}-image/usr/bin/lxdm" ] ; then
+            echo "  - lxdm" >> "$DISPLAYMANAGER"
+        fi
+        if [ -e "${work_dir}/${desktop}-image/usr/bin/slim" ] ; then
+            echo "  - slim" >> "$DISPLAYMANAGER"
+        fi                
+    fi
+    local INITCPIO="$1/overlay/etc/calamares/modules/initcpio.conf"
+    if [ ! -e $INITCPIO ] ; then
+        echo "---" > "$INITCPIO"
+        echo "kernel: ${manjaro_kernel}" >> "$INITCPIO"
+    fi  
+}
+

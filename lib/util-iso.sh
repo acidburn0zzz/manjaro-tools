@@ -14,7 +14,7 @@
 # $2: target image
 copy_userconfig(){	
     msg2 "Copying $1/etc/skel/. $2/etc/skel"
-    cp -a $1/etc/skel/. $2/etc/skel
+    cp -a --no-preserve=ownership $1/etc/skel/. $2/etc/skel
 }
 
 copy_initcpio(){
@@ -25,17 +25,17 @@ copy_initcpio(){
 
 copy_overlay(){
     msg2 "Copying overlay to $1"
-    cp -a overlay/* $1
+    cp -a --no-preserve=ownership overlay/* $1
 }
 
 copy_overlay_desktop(){
     msg2 "Copying ${desktop}-overlay to ${work_dir}/${desktop}-image"
-    cp -a ${desktop}-overlay/* ${work_dir}/${desktop}-image
+    cp -a --no-preserve=ownership ${desktop}-overlay/* ${work_dir}/${desktop}-image
 }
 
 copy_overlay_livecd(){
 	msg2 "Copying overlay-livecd to $1 ..."
-	cp -a overlay-livecd/* $1
+	cp -a --no-preserve=ownership overlay-livecd/* $1
 }
 
 copy_livecd_helpers(){
@@ -189,10 +189,11 @@ make_efiboot() {
 make_isolinux() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare ${install_dir}/iso/isolinux"
-        cp -Lr isolinux ${work_dir}/iso
+	mkdir -p ${work_dir}/iso/isolinux
+        cp -a --no-preserve=ownership isolinux/* ${work_dir}/iso/isolinux
         if [[ -e isolinux-overlay ]]; then
 	    msg2 "isolinux overlay found. Overwriting files."
-            cp -a isolinux-overlay/* ${work_dir}/iso/isolinux
+            cp -a --no-preserve=ownership isolinux-overlay/* ${work_dir}/iso/isolinux
         fi
         if [[ -e ${work_dir}/root-image/usr/lib/syslinux/bios/ ]]; then
             cp ${work_dir}/root-image/usr/lib/syslinux/bios/isolinux.bin ${work_dir}/iso/isolinux/
@@ -430,7 +431,7 @@ make_free_overlay(){
 	msg "Done pkgs-free-overlay"
 }
 
-make_non_fee_overlay(){
+make_non_free_overlay(){
 	msg "Prepare pkgs-nonfree-overlay"
 	mkdir -p ${work_dir}/pkgs-nonfree-overlay
       
@@ -485,13 +486,15 @@ make_overlay_image() {
 	
 	configure_user "${work_dir}/overlay-image"
 	
-	configue_displaymanager "${work_dir}/overlay-image"
+	configure_displaymanager "${work_dir}/overlay-image"
 	
-	configue_accountsservice "${work_dir}/overlay-image"
+	configure_accountsservice "${work_dir}/overlay-image"
 	
 	configure_plymouth "${work_dir}/overlay-image"
 	
-	configue_hostname "${work_dir}/overlay-image"
+	configure_hostname "${work_dir}/overlay-image"
+	
+	configure_calamares "${work_dir}/overlay-image"
 	
 	${auto_svc_conf} && configure_services "${work_dir}/overlay-image"
 		        
@@ -566,7 +569,7 @@ make_pkgs_image() {
 	
 	if ${xorg_overlays}; then
 	    make_free_overlay
-	    make_non_fee_overlay
+	    make_non_free_overlay
 	fi
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done pkgs-image"

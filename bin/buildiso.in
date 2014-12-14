@@ -116,7 +116,7 @@ usage() {
     echo '    -z                 High compression'
     echo '    -x                 Xorg overlays'
     echo '    -k                 kde lng packages'
-    echo '    -R                 Rebuild overlays only'
+    echo '    -O                 Build overlays only'
     echo '    -G                 Generate iso only'
     echo '                       The custom cache will be cleaned if not set'
     echo '    -q                 Query settings and pretend build'
@@ -128,7 +128,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='a:b:r:t:i:cvfzqxkARGh'
+opts='a:b:r:t:i:cvfzqxkAOGh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -144,7 +144,7 @@ while getopts "${opts}" arg; do
 	k) kde_lng_packages=true ;;
 	i) pacman_conf="$OPTARG" ;;
 	A) auto_svc_conf=true ;;
-	R) rebuild=true ;;
+	O) overlays_only=true ;;
 	G) iso_only=true ;;
 	q) pretend=true ;;
 	h) usage ;;
@@ -199,7 +199,12 @@ fi
 
 prepare_buildiso
 
-if [[ ${rebuild} = "false" ]];then
+if ${iso_only}; then
+      make_iso
+      exit 1
+fi
+
+if [[ ${overlays_only} = "false" ]];then
     [[ $(check_cache pkgs-image) ]] && clean_cache_pkgs
     [[ $(check_cache lng-image) ]] && clean_cache_lng
 fi
@@ -235,15 +240,12 @@ make_overlays(){
     make_isomounts
 }
 
-if ${rebuild}; then
+if ${overlays_only}; then
     make_overlays
     die "Run again with -G switch to make iso only."
 else
     make_overlays
 fi
 
-if ${iso_only}; then
-      make_iso
-else
-      exit 1
-fi
+make_iso
+

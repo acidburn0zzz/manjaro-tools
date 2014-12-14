@@ -62,7 +62,7 @@ configure_services(){
 
 # $1: chroot
 configure_displaymanager(){
-    _displaymanager
+    _displaymanager=''
     msg2 "Configuring Displaymanager ..."
     # do_setuplightdm
     if [ -e "$1/usr/bin/lightdm" ] ; then
@@ -328,10 +328,9 @@ configure_calamares(){
 	      echo "displaymanagers:"
 	      echo "  - ${_displaymanager}" > "$DISPLAYMANAGER"
 	      
+	      echo '#executable: "startkde"' >> "$DISPLAYMANAGER"
+	      echo '#desktopFile: "plasma"' >> "$DISPLAYMANAGER"
 	      echo "basicSetup: false" >> "$DISPLAYMANAGER"
-	      echo '#executable: "startkde"'
-	      echo '#desktopFile: "plasma"'
-	      
 # 	fi
 	local INITCPIO="$1/usr/share/calamares/modules/initcpio.conf"
 	if [ ! -e $INITCPIO ] ; then

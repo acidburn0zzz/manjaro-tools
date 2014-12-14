@@ -14,7 +14,7 @@
 # $2: target image
 copy_userconfig(){	
     msg2 "Copying $1/etc/skel/. $2/etc/skel"
-    cp -R --preserve=links $1/etc/skel/. $2/etc/skel
+    cp -a --no-preserve=ownership $1/etc/skel/. $2/etc/skel
 }
 
 copy_initcpio(){
@@ -25,17 +25,17 @@ copy_initcpio(){
 
 copy_overlay(){
     msg2 "Copying overlay to $1"
-    cp -R --preserve=links overlay/* $1
+    cp -a --no-preserve=ownership overlay/* $1
 }
 
 copy_overlay_desktop(){
     msg2 "Copying ${desktop}-overlay to ${work_dir}/${desktop}-image"
-    cp -R --preserve=links ${desktop}-overlay/* ${work_dir}/${desktop}-image
+    cp -a --no-preserve=ownership ${desktop}-overlay/* ${work_dir}/${desktop}-image
 }
 
 copy_overlay_livecd(){
 	msg2 "Copying overlay-livecd to $1 ..."
-	cp -R --preserve=links overlay-livecd/* $1
+	cp -a --no-preserve=ownership overlay-livecd/* $1
 }
 
 copy_livecd_helpers(){
@@ -189,10 +189,11 @@ make_efiboot() {
 make_isolinux() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare ${install_dir}/iso/isolinux"
-        cp -R --preserve=links isolinux ${work_dir}/iso
+	mkdir -p ${work_dir}/iso/isolinux
+        cp -a --no-preserve=ownership isolinux/* ${work_dir}/iso
         if [[ -e isolinux-overlay ]]; then
 	    msg2 "isolinux overlay found. Overwriting files."
-            cp -R --preserve=links isolinux-overlay/* ${work_dir}/iso/isolinux
+            cp -a --no-preserve=ownership isolinux-overlay/* ${work_dir}/iso/isolinux
         fi
         if [[ -e ${work_dir}/root-image/usr/lib/syslinux/bios/ ]]; then
             cp ${work_dir}/root-image/usr/lib/syslinux/bios/isolinux.bin ${work_dir}/iso/isolinux/

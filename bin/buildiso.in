@@ -214,7 +214,7 @@ if [ "${arch}" == "x86_64" ]; then
 fi
 make_isolinux
 
-make_overlay-image
+make_overlay_image
 
 make_isomounts
 make_iso

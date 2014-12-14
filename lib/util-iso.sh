@@ -493,6 +493,8 @@ make_overlay_image() {
 	
 	configue_hostname "${work_dir}/overlay-image"
 	
+	configure_calamares "${work_dir}/overlay-image"
+	
 	${auto_svc_conf} && configure_services "${work_dir}/overlay-image"
 		        
       	copy_overlay_livecd "${work_dir}/overlay-image"

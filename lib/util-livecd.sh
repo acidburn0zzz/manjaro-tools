@@ -298,34 +298,40 @@ configure_calamares(){
 	local DISPLAYMANAGER="$1/usr/share/calamares/modules/displaymanager.conf"
 	# TODO maybe add a configuration flag in manjaro-tools.conf for default displymanager
 	
-	# use autodetected DM for the moment
-	sed -i -e "s|^.*-.*|- ${_displaymanager}|" $1/usr/share/calamares/modules/displaymanager.conf
 	
-	if [ ! -e $DISPLAYMANAGER ] ; then-
-	    echo "---" > "$DISPLAYMANAGER"
-	    echo "displaymanagers:" >> "$DISPLAYMANAGER"
-	    if [ -e "${work_dir}/${desktop}-image/usr/bin/lightdm" ] ; then
-		echo "  - lightdm" >> "$DISPLAYMANAGER"
-	    fi
-	    if [ -e "${work_dir}/${desktop}-image/usr/share/config/kdm/kdmrc" ] ; then
-		echo "  - kdm" >> "$DISPLAYMANAGER"
-	    fi
-	    if [ -e "${work_dir}/${desktop}-image/usr/bin/gdm" ] ; then
-		echo "  - gdm" >> "$DISPLAYMANAGER"
-	    fi
-	    if [ -e "${work_dir}/${desktop}-image/usr/bin/mdm" ] ; then
-		echo "  - mdm" >> "$DISPLAYMANAGER"
-	    fi
-	    if [ -e "${work_dir}/${desktop}-image/usr/bin/sddm" ] ; then
-		echo "  - sddm" >> "$DISPLAYMANAGER"
-	    fi
-	    if [ -e "${work_dir}/${desktop}-image/usr/bin/lxdm" ] ; then
-		echo "  - lxdm" >> "$DISPLAYMANAGER"
-	    fi
-	    if [ -e "${work_dir}/${desktop}-image/usr/bin/slim" ] ; then
-		echo "  - slim" >> "$DISPLAYMANAGER"
-	    fi                
-	fi
+# 	if [ ! -e $DISPLAYMANAGER ] ; then
+# 	    echo "---" > "$DISPLAYMANAGER"
+# 	    echo "displaymanagers:" >> "$DISPLAYMANAGER"
+# 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/lightdm" ] ; then
+# 		echo "  - lightdm" >> "$DISPLAYMANAGER"
+# 	    fi
+# 	    if [ -e "${work_dir}/${desktop}-image/usr/share/config/kdm/kdmrc" ] ; then
+# 		echo "  - kdm" >> "$DISPLAYMANAGER"
+# 	    fi
+# 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/gdm" ] ; then
+# 		echo "  - gdm" >> "$DISPLAYMANAGER"
+# 	    fi
+# 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/mdm" ] ; then
+# 		echo "  - mdm" >> "$DISPLAYMANAGER"
+# 	    fi
+# 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/sddm" ] ; then
+# 		echo "  - sddm" >> "$DISPLAYMANAGER"
+# 	    fi
+# 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/lxdm" ] ; then
+# 		echo "  - lxdm" >> "$DISPLAYMANAGER"
+# 	    fi
+# 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/slim" ] ; then
+# 		echo "  - slim" >> "$DISPLAYMANAGER"
+# 	    fi   
+# 	else
+	      # use autodetected DM for the moment
+	      echo "  - ${_displaymanager}" > "$DISPLAYMANAGER"
+	      
+	      echo "basicSetup: false" >> "$DISPLAYMANAGER"
+	      echo '#executable: "startkde"'
+	      echo '#desktopFile: "plasma"'
+	      
+# 	fi
 	local INITCPIO="$1/usr/share/calamares/modules/initcpio.conf"
 	if [ ! -e $INITCPIO ] ; then
 	    echo "---" > "$INITCPIO"

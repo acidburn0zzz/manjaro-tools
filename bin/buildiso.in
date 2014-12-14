@@ -118,6 +118,7 @@ usage() {
     echo '    -k                 kde lng packages'
     echo '    -I                 Build images only'
     echo '    -G                 Generate iso only'
+    echo '                       Requires pre built images'
     echo '                       The custom cache will be cleaned if not set'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
@@ -193,18 +194,13 @@ fi
 
 ${pretend} && display_settings && exit 1
 
-if ${clean_first};then
-    clean_up
-fi
+${iso_only} && compress_images && exit 1
+
+${clean_first} && clean_up
 
 prepare_buildiso
 
-if ${iso_only}; then
-      make_iso
-      exit 1
-fi
-
-if [[ ${images_only} = "false" ]];then
+if ! ${images_only}; then
     [[ $(check_cache pkgs-image) ]] && clean_cache_pkgs
     [[ $(check_cache lng-image) ]] && clean_cache_lng
 fi
@@ -236,8 +232,11 @@ make_images(){
     make_isolinux
 
     make_overlay_image
+}
 
+compress_images(){
     make_isomounts
+    make_iso
 }
 
 if ${images_only}; then
@@ -247,5 +246,7 @@ else
     make_images
 fi
 
-make_iso
+compress_images
+
+
 

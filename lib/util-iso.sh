@@ -494,12 +494,12 @@ make_overlay_image() {
 	
 	configure_hostname "${work_dir}/overlay-image"
 	
-	configure_calamares "${work_dir}/overlay-image"
-	
 	${auto_svc_conf} && configure_services "${work_dir}/overlay-image"
 		        
       	copy_overlay_livecd "${work_dir}/overlay-image"
 	    
+	configure_calamares "${work_dir}/overlay-image"
+	
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist    
         
         # copy over setup helpers and config loader

@@ -279,11 +279,24 @@ configure_accountsservice(){
     fi
 }
 
+write_calamares_dm_conf(){
+    # write the conf to overlay-image/etc/calamares ?
+    local DISPLAYMANAGER="$1/etc/calamares/modules/displaymanager.conf"
+    
+    echo "displaymanagers:" > "$DISPLAYMANAGER"
+    echo "  - ${_displaymanager}" >> "$DISPLAYMANAGER"
+    echo '' >> "$DISPLAYMANAGER"
+    echo '#executable: "startkde"' >> "$DISPLAYMANAGER"
+    echo '#desktopFile: "plasma"' >> "$DISPLAYMANAGER"
+    echo '' >> "$DISPLAYMANAGER"
+    echo "basicSetup: false" >> "$DISPLAYMANAGER"
+}
+
 # $1: chroot
 configure_calamares(){
     if [[ -f $1/usr/bin/calamares ]];then
 	msg2 "Configuring Calamares ..."
-	mkdir -p ${work_dir}/usr/share/calamares/modules            
+	mkdir -p ${work_dir}/etc/calamares/modules            
 	local UNPACKFS="$1/usr/share/calamares/modules/unpackfs.conf"            
 	if [ ! -e $UNPACKFS ] ; then                              
 	    echo "---" > "$UNPACKFS"
@@ -295,8 +308,12 @@ configure_calamares(){
 	    echo "        sourcefs: \"squashfs\"" >> "$UNPACKFS"
 	    echo "        destination: \"\"" >> "$UNPACKFS"                
 	fi
-	local DISPLAYMANAGER="$1/usr/share/calamares/modules/displaymanager.conf"
+	
 	# TODO maybe add a configuration flag in manjaro-tools.conf for default displymanager
+	
+	#local DISPLAYMANAGER="$1/etc/calamares/modules/displaymanager.conf"
+	
+	write_calamares_dm_conf $1
 	
 	
 # 	if [ ! -e $DISPLAYMANAGER ] ; then
@@ -323,14 +340,6 @@ configure_calamares(){
 # 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/slim" ] ; then
 # 		echo "  - slim" >> "$DISPLAYMANAGER"
 # 	    fi   
-# 	else
-	      # use autodetected DM for the moment
-	      echo "displaymanagers:" > "$DISPLAYMANAGER"
-	      echo "  - ${_displaymanager}" >> "$DISPLAYMANAGER"
-	      
-	      echo '#executable: "startkde"' >> "$DISPLAYMANAGER"
-	      echo '#desktopFile: "plasma"' >> "$DISPLAYMANAGER"
-	      echo "basicSetup: false" >> "$DISPLAYMANAGER"
 # 	fi
 	local INITCPIO="$1/usr/share/calamares/modules/initcpio.conf"
 	if [ ! -e $INITCPIO ] ; then

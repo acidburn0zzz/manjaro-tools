@@ -1,13 +1,13 @@
 #
 # maintainer: Philip Müller <philm[at]manjaro[dog]org>
 
-pkgname=iso-profiles
+pkgname=manjaro-tools-iso-profiles
 pkgver=0.8.11
 pkgrel=1
 arch=('any')
 url=""
 license=('GPL')
-depends=('manjaro-tools' 'livecd-openrc' 'livecd-init')
+depends=('manjaro-tools-livecd' 'manjaro-tools-livecd-init')
 makedepends=('git')
 source=()
 sha256sums=('')
@@ -26,7 +26,7 @@ build() {
 	    DESTDIR=${pkgdir}
 }
 
-package_livecd-openrc() {
+package() {
 	cd ${srcdir}/${pkgname}-${pkgver}
 	make SYSCONFDIR=/etc \
 	    PREFIX=/usr \

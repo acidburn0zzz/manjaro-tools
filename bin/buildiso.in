@@ -99,6 +99,7 @@ xorg_overlays=false
 kde_lng_packages=false
 auto_svc_conf=false
 rebuild=false
+iso_only=false
 
 pacman_conf_arch='default'
 
@@ -116,8 +117,8 @@ usage() {
     echo '    -z                 High compression'
     echo '    -x                 Xorg overlays'
     echo '    -k                 kde lng packages'
-    echo '    -A                 Let buildiso configure services(experimental)'
-    echo '    -R                 Rebuild iso xorg and lng overlay will use a defined cache'
+    echo '    -R                 Rebuild overlays only'
+    echo '    -G                 Generate iso only'
     echo '                       The custom cache will be cleaned if not set'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
@@ -128,7 +129,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='a:b:r:t:i:cvfzqxkARh'
+opts='a:b:r:t:i:cvfzqxkARGh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -145,6 +146,7 @@ while getopts "${opts}" arg; do
 	i) pacman_conf="$OPTARG" ;;
 	A) auto_svc_conf=true ;;
 	R) rebuild=true ;;
+	G) iso_only=true ;;
 	q) pretend=true ;;
 	h) usage ;;
     esac
@@ -204,31 +206,46 @@ if [[ ${rebuild} = "false" ]];then
     [[ $(check_cache lng-image) ]] && clean_cache_lng
 fi
 
-# install basic
-make_root_image
+make_overlays(){
 
-# install DE(s)
-if [ -e "${pkgsfile}" ] ; then
-    make_de_image
+    # install basic
+    make_root_image
+
+    # install DE(s)
+    if [ -e "${pkgsfile}" ] ; then
+	make_de_image
+    fi
+
+    # install xorg-drivers
+    if [ -e Packages-Xorg ] ; then
+	make_pkgs_image
+    fi
+    # install translations
+    if [ -e Packages-Lng ] ; then
+	make_lng_image
+    fi
+    # install common
+    make_boot
+    if [ "${arch}" == "x86_64" ]; then
+	make_efi
+	make_efiboot
+    fi
+    make_isolinux
+
+    make_overlay_image
+
+    make_isomounts
+}
+
+if ${rebuild}; then
+    make_overlays
+    die "Run again with -G switch to make iso only."
+else
+    make_overlays
 fi
 
-# install xorg-drivers
-if [ -e Packages-Xorg ] ; then
-    make_pkgs_image
+if ${iso_only}; then
+      make_iso
+else
+      exit 1
 fi
-# install translations
-if [ -e Packages-Lng ] ; then
-    make_lng_image
-fi
-# install common
-make_boot
-if [ "${arch}" == "x86_64" ]; then
-    make_efi
-    make_efiboot
-fi
-make_isolinux
-
-make_overlay_image
-
-make_isomounts
-make_iso

@@ -18,7 +18,7 @@ configure_user(){
 }
 
 # $1: chroot
-configue_hostname(){
+configure_hostname(){
 	msg2 "Setting hostname ${hostname} ..."
 	if [[ -f $1/usr/bin/openrc ]];then
 	    local _hostname='hostname="'${hostname}'"'
@@ -61,7 +61,7 @@ configure_services(){
 }
 
 # $1: chroot
-configue_displaymanager(){
+configure_displaymanager(){
     local _dm
     msg2 "Configuring Displaymanager ..."
     # do_setuplightdm
@@ -250,7 +250,7 @@ configue_displaymanager(){
 }
 
 # $1: chroot
-configue_accountsservice(){
+configure_accountsservice(){
     msg2 "Configuring AcooutsService ..."
     if [ -d "$1/var/lib/AccountsService/users" ] ; then
 	echo "[User]" > $1/var/lib/AccountsService/users/${username}

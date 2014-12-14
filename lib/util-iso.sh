@@ -430,7 +430,7 @@ make_free_overlay(){
 	msg "Done pkgs-free-overlay"
 }
 
-make_non_fee_overlay(){
+make_non_free_overlay(){
 	msg "Prepare pkgs-nonfree-overlay"
 	mkdir -p ${work_dir}/pkgs-nonfree-overlay
       
@@ -485,13 +485,13 @@ make_overlay_image() {
 	
 	configure_user "${work_dir}/overlay-image"
 	
-	configue_displaymanager "${work_dir}/overlay-image"
+	configure_displaymanager "${work_dir}/overlay-image"
 	
-	configue_accountsservice "${work_dir}/overlay-image"
+	configure_accountsservice "${work_dir}/overlay-image"
 	
 	configure_plymouth "${work_dir}/overlay-image"
 	
-	configue_hostname "${work_dir}/overlay-image"
+	configure_hostname "${work_dir}/overlay-image"
 	
 	configure_calamares "${work_dir}/overlay-image"
 	
@@ -568,7 +568,7 @@ make_pkgs_image() {
 	
 	if ${xorg_overlays}; then
 	    make_free_overlay
-	    make_non_fee_overlay
+	    make_non_free_overlay
 	fi
 	: > ${work_dir}/build.${FUNCNAME}
 	msg "Done pkgs-image"

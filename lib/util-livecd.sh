@@ -296,7 +296,7 @@ write_calamares_dm_conf(){
 configure_calamares(){
     if [[ -f $1/usr/bin/calamares ]];then
 	msg2 "Configuring Calamares ..."
-	mkdir -p ${work_dir}/etc/calamares/modules            
+	mkdir -p $1/etc/calamares/modules            
 	local UNPACKFS="$1/usr/share/calamares/modules/unpackfs.conf"            
 	if [ ! -e $UNPACKFS ] ; then                              
 	    echo "---" > "$UNPACKFS"

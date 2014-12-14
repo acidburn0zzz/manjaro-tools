@@ -1,3 +1,5 @@
+# Maintainer: Philip Müller <philm[at]manjaro[dog]org>
+# Contributor: artoo <flower_of_life@gmx.net>
  
 pkgbase=manjaro-tools-livecd
 pkgname=('manjaro-tools-livecd'

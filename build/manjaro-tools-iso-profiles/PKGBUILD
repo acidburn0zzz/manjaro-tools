@@ -1,5 +1,5 @@
-#
-# maintainer: Philip Müller <philm[at]manjaro[dog]org>
+# Maintainer: Philip Müller <philm[at]manjaro[dog]org>
+# Contributor: artoo <flower_of_life@gmx.net>
 
 pkgname=manjaro-tools-iso-profiles
 pkgver=0.8.11
@@ -15,10 +15,10 @@ conflicts=('manjaroiso-profiles'
 source=("git+$url.git")
 sha256sums=('SKIP')
 
-pkgver() {
-	cd ${srcdir}/manjaro-tools
-	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
-}
+# pkgver() {
+# 	cd ${srcdir}/manjaro-tools
+# 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+# }
 
 package() {
 	cd ${srcdir}/${pkgname} #-${pkgver}

@@ -325,6 +325,7 @@ configure_calamares(){
 # 	    fi   
 # 	else
 	      # use autodetected DM for the moment
+	      echo "displaymanagers:"
 	      echo "  - ${_displaymanager}" > "$DISPLAYMANAGER"
 	      
 	      echo "basicSetup: false" >> "$DISPLAYMANAGER"

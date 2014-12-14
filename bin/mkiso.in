@@ -134,17 +134,17 @@ clean_up(){
     fi
 
     # Delete pacman database sync cache files (*.tar.gz)
-    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman" -maxdepth 1 -type f -delete >/dev/null
+    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman" -maxdepth 1 -type f -delete &>/dev/null
     # Delete pacman database sync cache
-    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman/sync" -delete >/dev/null
+    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman/sync" -delete &>/dev/null
     # Delete pacman package cache
-    find "${work_dir}/${IMAGE_FOLDER}/var/cache/pacman/pkg" -type f -delete >/dev/null
+    find "${work_dir}/${IMAGE_FOLDER}/var/cache/pacman/pkg" -type f -delete &>/dev/null
     # Delete all log files, keeps empty dirs.
-    find "${work_dir}/${IMAGE_FOLDER}/var/log" -type f -delete >/dev/null
+    find "${work_dir}/${IMAGE_FOLDER}/var/log" -type f -delete &>/dev/null
     # Delete all temporary files and dirs
-    find "${work_dir}/${IMAGE_FOLDER}/var/tmp" -mindepth 1 -delete >/dev/null
+    find "${work_dir}/${IMAGE_FOLDER}/var/tmp" -mindepth 1 -delete &>/dev/null
     # Delete all temporary files and dirs
-    find "${work_dir}/${IMAGE_FOLDER}/tmp" -mindepth 1 -delete >/dev/null
+    find "${work_dir}/${IMAGE_FOLDER}/tmp" -mindepth 1 -delete &>/dev/null
 }
 
 _mkchroot(){

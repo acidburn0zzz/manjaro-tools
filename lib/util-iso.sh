@@ -47,7 +47,7 @@ copy_livecd_helpers(){
     cp ${BINDIR}/chroot-run $1
     
     # fix paths
-    sed -e "s|${LIBDIR}|/opt/livecd|g" -i $1/opt/livecd/chroot-run
+    sed -e "s|${LIBDIR}|/opt/livecd|g" -i $1/chroot-run
     
     if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
 	msg2 "Copying ${USER_CONFIG}/manjaro-tools.conf to $1/manjaro-tools.conf ..."

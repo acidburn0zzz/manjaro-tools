@@ -9,6 +9,165 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+load_desktop_definitions(){
+    if [ -e Packages-Xfce ] ; then
+	pkgsfile="Packages-Xfce"
+    fi
+    if [ -e Packages-Kde ] ; then
+    	pkgsfile="Packages-Kde"
+    fi
+    if [ -e Packages-Gnome ] ; then
+   	pkgsfile="Packages-Gnome" 
+    fi
+    if [ -e Packages-Cinnamon ] ; then
+   	pkgsfile="Packages-Cinnamon" 
+    fi
+    if [ -e Packages-Openbox ] ; then
+  	pkgsfile="Packages-Openbox"  
+    fi
+    if [ -e Packages-Lxde ] ; then
+ 	pkgsfile="Packages-Lxde"   
+    fi
+    if [ -e Packages-Lxqt ] ; then
+    	pkgsfile="Packages-Lxqt"
+    fi
+    if [ -e Packages-Mate ] ; then
+    	pkgsfile="Packages-Mate"
+    fi
+    if [ -e Packages-Enlightenment ] ; then
+    	pkgsfile="Packages-Enlightenment"
+    fi
+    if [ -e Packages-Net ] ; then
+   	pkgsfile="Packages-Net" 
+    fi
+    if [ -e Packages-PekWM ] ; then
+	pkgsfile="Packages-PekWM"
+    fi
+    if [ -e Packages-Custom ] ; then
+    	pkgsfile="Packages-Custom"
+    fi
+    desktop=${pkgsfile#*-}
+    desktop=${desktop,,}
+}
+
+configure_live_installer_live(){
+    if [ -e "/etc/live-installer/install.conf" ] ; then
+      _conf_file="/etc/live-installer/install.conf"
+    fi
+}
+
+configure_calamares_live() {
+    if [ -e "/usr/share/calamares/settings.conf" ] ; then
+	echo "configure calamares" >> /tmp/livecd.log
+	_conf_file="/usr/share/calamares/modules/unpackfs.conf"
+	sed -i "s|_root-image_|/bootmnt/${install_dir}/_ARCH_/root-image.sqfs|g" $_conf_file
+	sed -i "s|_kernel_|$manjaro_kernel|g" "/usr/share/calamares/modules/initcpio.conf"
+
+	if [ -e "/bootmnt/${install_dir}/${arch}/xfce-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/xfce-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/gnome-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/gnome-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/cinnamon-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/cinnamon-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/openbox-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/openbox-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/mate-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/mate-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/kde-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/kde-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/lxde-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/lxde-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/lxqt-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/lxqt-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/enlightenment-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/enlightenment-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/pekwm-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/pekwm-image.sqfs|g" $_conf_file
+	fi
+	if [ -e "/bootmnt/${install_dir}/${arch}/custom-image.sqfs" ] ; then
+	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/custom-image.sqfs|g" $_conf_file
+	fi
+	if [ "${arch}" == "i686" ] ; then
+	    sed -i "s|_ARCH_|i686|g" $_conf_file
+	else
+	    sed -i "s|_ARCH_|x86_64|g" $_conf_file
+	fi
+    fi
+}
+
+configure_thus_live(){
+  if [ -e "/etc/thus.conf" ] ; then
+      echo "configure thus" >> /tmp/livecd.log
+      _conf_file="/etc/thus.conf"
+  fi
+
+  if [ -e "$_conf_file" ] ; then
+    sed -i "s|_root-image_|/bootmnt/${install_dir}/_ARCH_/root-image.sqfs|g" $_conf_file
+    sed -i "s|_kernel_|$manjaro_kernel|g" $_conf_file
+    release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d= -f2)
+    sed -i "s|_version_|$release|g" $_conf_file
+
+    if [ -e "/bootmnt/${install_dir}/${arch}/xfce-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/xfce-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro XFCE Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/gnome-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/gnome-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro Gnome Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/cinnamon-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/cinnamon-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro Cinnamon Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/openbox-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/openbox-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro Openbox Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/mate-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/mate-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro MATE Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/kde-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/kde-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro KDE Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/lxde-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/lxde-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro LXDE Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/lxqt-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/lxqt-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro LXQt Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/enlightenment-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/enlightenment-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro Enlightenment Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/pekwm-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/pekwm-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro PekWM Edition|g" $_conf_file
+    fi
+    if [ -e "/bootmnt/${install_dir}/${arch}/custom-image.sqfs" ] ; then
+	sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/custom-image.sqfs|g" $_conf_file
+	sed -i "s|_title_|Manjaro Custom Edition|g" $_conf_file
+    fi
+    if [ "${arch}" == "i686" ] ; then
+	sed -i "s|_ARCH_|i686|g" $_conf_file
+    else
+	sed -i "s|_ARCH_|x86_64|g" $_conf_file
+    fi
+}
+
+
 # $1: chroot
 configure_user(){
 	# set up user and password
@@ -292,121 +451,6 @@ write_calamares_dm_conf(){
     echo "basicSetup: false" >> "$DISPLAYMANAGER"
 }
 
-setup_live_installer(){
-    if [ -e "/etc/live-installer/install.conf" ] ; then
-      _conf_file="/etc/live-installer/install.conf"
-    fi
-}
-
-setup_thus(){
-    if [ -e "/etc/thus.conf" ] ; then
-	_conf_file="/etc/thus.conf"
-    fi
-
-    if [ -e "$_conf_file" ] ; then
-	sed -i "s|_root-image_|/bootmnt/${install_dir}/_ARCH_/root-image.sqfs|g" $_conf_file
-	sed -i "s|_kernel_|$manjaro_kernel|g" $_conf_file
-	release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d= -f2)
-	sed -i "s|_version_|$release|g" $_conf_file
-
-	if [ -e "/bootmnt/${install_dir}/${arch}/xfce-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/xfce-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro XFCE Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/gnome-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/gnome-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro Gnome Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/cinnamon-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/cinnamon-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro Cinnamon Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/openbox-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/openbox-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro Openbox Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/mate-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/mate-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro MATE Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/kde-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/kde-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro KDE Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/lxde-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/lxde-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro LXDE Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/lxqt-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/lxqt-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro LXQt Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/enlightenment-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/enlightenment-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro Enlightenment Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/pekwm-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/pekwm-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro PekWM Edition|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/custom-image.sqfs" ] ; then
-	    sed -i "s|_desktop_|/bootmnt/${install_dir}/_ARCH_/custom-image.sqfs|g" $_conf_file
-	    sed -i "s|_title_|Manjaro Custom Edition|g" $_conf_file
-	fi
-	if [ "${arch}" == "i686" ] ; then
-	    sed -i "s|_ARCH_|i686|g" $_conf_file
-	else
-	    sed -i "s|_ARCH_|x86_64|g" $_conf_file
-	fi
-    fi
-}
-
-setup_calamares(){
-    if [ -e "/usr/share/calamares/settings.conf" ] ; then
-	_conf_file="/usr/share/calamares/modules/unpackfs.conf"
-	sed -i "s|_root-image_|/bootmnt/${install_dir}/_ARCH_/root-image.sqfs|g" $_conf_file
-	sed -i "s|_kernel_|$manjaro_kernel|g" "/usr/share/calamares/modules/initcpio.conf"
-
-	if [ -e "/bootmnt/${install_dir}/${arch}/xfce-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/xfce-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/gnome-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/gnome-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/cinnamon-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/cinnamon-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/openbox-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/openbox-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/mate-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/mate-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/kde-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/kde-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/lxde-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/lxde-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/lxqt-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/lxqt-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/enlightenment-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/enlightenment-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/pekwm-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/pekwm-image.sqfs|g" $_conf_file
-	fi
-	if [ -e "/bootmnt/${install_dir}/${arch}/custom-image.sqfs" ] ; then
-	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/custom-image.sqfs|g" $_conf_file
-	fi
-	if [ "${arch}" == "i686" ] ; then
-	    sed -i "s|_ARCH_|i686|g" $_conf_file
-	else
-	    sed -i "s|_ARCH_|x86_64|g" $_conf_file
-	fi
-    fi
-}
 # $1: chroot
 configure_calamares(){
     if [[ -f $1/usr/bin/calamares ]];then
@@ -456,6 +500,7 @@ configure_calamares(){
 # 		echo "  - slim" >> "$DISPLAYMANAGER"
 # 	    fi   
 # 	fi
+
 	local INITCPIO="$1/usr/share/calamares/modules/initcpio.conf"
 	if [ ! -e $INITCPIO ] ; then
 	    echo "---" > "$INITCPIO"

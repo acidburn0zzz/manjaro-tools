@@ -278,23 +278,3 @@ configue_accountsservice(){
 	echo "Icon=/var/lib/AccountsService/icons/${username}.png" >> $1/var/lib/AccountsService/users/${username}
     fi
 }
-
-# $1: source image
-# $2: target image
-copy_userconfig(){	
-    msg2 "Copying $1/etc/skel/. $2/etc/skel"
-    cp -a $1/etc/skel/. $2/etc/skel
-}
-
-copy_manjaro_tools_conf(){
-	local livecd=$1
-	
-	[[ ! -d ${livecd} ]] && mkdir ${livecd}
-	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${livecd}/manjaro-tools.conf ..."
-	    cp $USER_HOME/.config/manjaro-tools.conf ${livecd}/manjaro-tools.conf
-	else
-	    msg2 "Copying ${manjaro_tools_conf} to ${livecd}/manjaro-tools.conf ..."
-	    cp ${manjaro_tools_conf} ${livecd}/manjaro-tools.conf
-	fi
-}

@@ -9,24 +9,32 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+
+# $1: source image
+# $2: target image
+copy_userconfig(){	
+    msg2 "Copying $1/etc/skel/. $2/etc/skel"
+    cp -a $1/etc/skel/. $2/etc/skel
+}
+
+copy_manjaro_tools_conf(){
+	local livecd=$1
+	
+	[[ ! -d ${livecd} ]] && mkdir ${livecd}
+	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
+	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${livecd}/manjaro-tools.conf ..."
+	    cp $USER_HOME/.config/manjaro-tools.conf ${livecd}/manjaro-tools.conf
+	else
+	    msg2 "Copying ${manjaro_tools_conf} to ${livecd}/manjaro-tools.conf ..."
+	    cp ${manjaro_tools_conf} ${livecd}/manjaro-tools.conf
+	fi
+}
+
 copy_initcpio(){
         cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
         cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
         cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
 }
-
-# copy_livecd(){
-#     
-#     msg2 "Copying $1 to ${work_dir}/overlay/opt ..."
-#     [[ ! -d ${work_dir}/overlay/opt ]] && mkdir -p ${work_dir}/overlay/opt
-#     cp -r $1 ${work_dir}/overlay/opt
-#     
-#     msg2 "Fixing livecd script permissions ..."
-#     chmod 755 ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
-#     chmod +x ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
-#     
-#      sed -i "s/^.*TITLE=.*/  TITLE=\"Manjaro Linux Installation Framework (v${iso_version})\"/g" ${work_dir}/overlay/opt/livecd/setup
-# }
 
 copy_overlay(){
     msg2 "Copying overlay to $1"
@@ -43,14 +51,24 @@ copy_overlay_livecd(){
 	cp -a overlay-livecd/* $1
 }
 
-copy_config_loader(){
-    msg2 "Copying ${LIBDIR}/util.sh to $1/util-config.sh ..."
-    cp ${LIBDIR}/util.sh $1/util-config.sh
-}
-
-copy_setup_helpers(){
-    msg2 "Copying ${LIBDIR}/util.sh to $1/util-config.sh ..."
+copy_livecd_helpers(){
+    msg2 "Copying livecd helpers ..."
     cp ${LIBDIR}/util-livecd.sh $1
+    cp ${LIBDIR}/util-msg.sh $1
+    cp ${LIBDIR}/util-mount.sh $1
+    cp ${LIBDIR}/util.sh $1
+    cp ${BINDIR}/chroot-run $1
+    
+    # fix paths
+    sed -e "s|${LIBDIR}|/opt/livecd|g" -i $1/opt/livecd/chroot-run
+    
+    if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
+	msg2 "Copying ${USER_CONFIG}/manjaro-tools.conf to $1/manjaro-tools.conf ..."
+	cp ${USER_CONFIG}/manjaro-tools.conf $1
+    else
+	msg2 "Copying ${manjaro_tools_conf} to $1/manjaro-tools.conf ..."
+	cp ${manjaro_tools_conf} $1/manjaro-tools.conf
+    fi 
 }
 
 configure_xorg_drivers(){
@@ -440,9 +458,6 @@ make_overlay_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare overlay-image"
 	
-	######################## 
-	# create overlay chroot
-	
 	mkdir -p ${work_dir}/overlay-image
 	
 	if [ ! -z "$(mount -l | grep overlay-image)" ]; then
@@ -472,31 +487,17 @@ make_overlay_image() {
 	configue_hostname "${work_dir}/overlay-image"
 	
 	${auto_svc_conf} && configure_services "${work_dir}/overlay-image"
-	
-	####################
-	        
+		        
       	copy_overlay_livecd "${work_dir}/overlay"
 	    
-        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
+        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist    
         
-        #copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/overlay"      
-	
-	# copy over manjaro-tools.conf
-	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
-        
-        # copy over the config loader lib to load manjaro-tools.conf vars
-        copy_util_sh "${work_dir}/overlay/opt/livecd"
-        
-        # copy over setup helpers
-        #copy_util_sh "${work_dir}/overlay/opt/livecd"
-        
+        # copy over setup helpers and config loader
+        copy_livecd_helpers "${work_dir}/overlay/opt/livecd"
         
         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
         sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
-       
-	
-	#########################
-	
+       	
 	# Clean up GnuPG keys?
 	#rm -rf "${work_dir}/${desktop}-image/etc/pacman.d/gnupg"
 	
@@ -641,33 +642,3 @@ get_pkglist_overlay(){
 	overlay_packages=$(sed "s|#.*||g" "Packages-Overlay" | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
     fi
 }
-
-# # Prepare overlay-image
-# make_overlay() {
-#     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-# 	msg "Prepare overlay"
-# 	        
-#       	copy_overlay_livecd "${work_dir}/overlay"
-# 	
-#         #copy_livecd_init "${work_dir}/overlay"
-# 	
-# 	mkdir -p ${work_dir}/overlay/etc/pacman.d
-# 	
-# 	#copy_livecd "${PKGDATADIR}/livecd"
-# 	    
-#         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
-#         #copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/overlay"      
-# 	# copy over manjaro-tools.conf
-# 	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
-#         
-#         # copy over the config loader lib to load manjaro-tools.conf vars
-#         copy_util_sh "${work_dir}/overlay/opt/livecd"
-#         
-#         cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
-#         sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
-#        
-#         : > ${work_dir}/build.${FUNCNAME}
-# 	msg "Done overlay"
-#     fi
-# }
-

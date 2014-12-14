@@ -22,6 +22,6 @@ sha256sums=('SKIP')
 
 package() {
 	cd ${srcdir}/${pkgname} #-${pkgver}
-	install -d $pkgdir/usr/shared/manjaro-tools/iso-profiles
-	cp -a * $pkgdir/usr/shared/manjaro-tools/iso-profiles
+	install -d $pkgdir/usr/share/manjaro-tools/iso-profiles
+	cp -a * $pkgdir/usr/share/manjaro-tools/iso-profiles
 }

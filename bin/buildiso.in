@@ -180,7 +180,7 @@ if [ -e "${pkgsfile}" ] ; then
     get_pkglist_de
 fi
 
-if [[ -f Packages-Overlay ]]; then
+if [[ -f Packages-Livecd ]]; then
     get_pkglist_overlay
 fi
 
@@ -214,11 +214,7 @@ if [ "${arch}" == "x86_64" ]; then
 fi
 make_isolinux
 
-# if [[ -f Packages-Overlay ]]; then
 make_overlay-image
-# else
-#     make_overlay
-# fi
 
 make_isomounts
 make_iso

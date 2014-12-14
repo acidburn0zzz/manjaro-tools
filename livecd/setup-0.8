@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[[ -r /opt/livecd/util-config.sh ]] && source /opt/livecd/util-config.sh
+[[ -r /opt/livecd/util.sh ]] && source /opt/livecd/util.sh
 
 load_config "/opt/livecd/manjaro-tools.conf"
 
@@ -63,9 +63,9 @@ NEXTITEM=""
 
 # source /opt/livecd/functions
 [[ -r /opt/livecd/util-lng.sh ]] && source /opt/livecd/util-lng.sh
-[[ -r /opt/livecd/util-mount.sh ]] && source /opt/livecd/util-mount.sh
+[[ -r /opt/livecd/util-mnt.sh ]] && source /opt/livecd/util-mnt.sh
 [[ -r /opt/livecd/util-inst.sh ]] && source /opt/livecd/util-inst.sh
-[[ -r /opt/livecd/util.sh ]] && source /opt/livecd/util.sh
+[[ -r /opt/livecd/util-common.sh ]] && source /opt/livecd/util-common.sh
 
 finddisks() {
     workdir="$PWD"

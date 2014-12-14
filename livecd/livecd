@@ -1,10 +1,10 @@
 #!/bin/sh
 
-[[ -r /opt/livecd/util-config.sh ]] && source /opt/livecd/util-config.sh
+[[ -r /opt/livecd/util.sh ]] && source /opt/livecd/util.sh
 
 load_config "/opt/livecd/manjaro-tools.conf"  
 
-[[ -r /opt/livecd/util.sh ]] && source /opt/livecd/util.sh
+[[ -r /opt/livecd/util-common.sh ]] && source /opt/livecd/util-common.sh
 [[ -r /opt/livecd/util-lng.sh ]] && source /opt/livecd/util-lng.sh
 
 CONSOLEFONT="$(kernel_cmdline vconsole.font)"

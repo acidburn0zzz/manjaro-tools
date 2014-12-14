@@ -199,7 +199,7 @@ fi
 prepare_buildiso
 
 if [[ ${rebuild} = "false" ]];then
-    [[ $(check_cache pkgs-image) ]] clean_cache_pkgs
+    [[ $(check_cache pkgs-image) ]] && clean_cache_pkgs
     [[ $(check_cache lng-image) ]] && clean_cache_lng
 fi
 

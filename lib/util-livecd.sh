@@ -62,7 +62,7 @@ configure_services(){
 
 # $1: chroot
 configure_displaymanager(){
-    local _dm
+    _displaymanager
     msg2 "Configuring Displaymanager ..."
     # do_setuplightdm
     if [ -e "$1/usr/bin/lightdm" ] ; then
@@ -106,7 +106,7 @@ configure_displaymanager(){
 	    chroot-run $1 systemd-tmpfiles --create /usr/lib/tmpfiles.d/lightdm.conf
 	    chroot-run $1 systemd-tmpfiles --create --remove
 	fi
-	_dm='lightdm'
+	_displaymanager='lightdm'
     fi
 
     # do_setupkdm
@@ -119,7 +119,7 @@ configure_displaymanager(){
 	sed -i -e "s/^.*AutoLoginUser=.*/AutoLoginUser=${username}/" $1/usr/share/config/kdm/kdmrc
 	sed -i -e "s/^.*AutoLoginPass=.*/AutoLoginPass=${username}/" $1/usr/share/config/kdm/kdmrc
 	
-	_dm='kdm'
+	_displaymanager='kdm'
     fi
 
     # do_setupgdm
@@ -150,7 +150,7 @@ configure_displaymanager(){
 	    fi
 	    echo "Icon=" >> $1/var/lib/AccountsService/users/gdm
 	fi
-      _dm='gdm'
+      _displaymanager='gdm'
     fi
 
     # do_setupmdm
@@ -177,7 +177,7 @@ configure_displaymanager(){
 	if [ -e "$1/usr/bin/enlightenment_start" ] ; then
 	    sed -i 's|default.desktop|enlightenment.desktop|g' $1/etc/mdm/custom.conf
 	fi
-	_dm='mdm'
+	_displaymanager='mdm'
     fi
 
     # do_setupsddm
@@ -208,7 +208,7 @@ configure_displaymanager(){
 	if [ -e "$1/usr/bin/startkde" ] ; then
 	    sed -i -e 's|^Session=.*|Session=plasma.desktop|' $1/etc/sddm.conf
 	fi
-	_dm='sddm'
+	_displaymanager='sddm'
     fi
 
     # do_setuplxdm
@@ -240,11 +240,11 @@ configure_displaymanager(){
 	    sed -i -e 's|^.*session=.*|session=/usr/bin/pekwm|' $1/etc/lxdm/lxdm.conf
 	fi
 
-	_dm='lxdm'
+	_displaymanager='lxdm'
     fi
     
     if [[ -e $1/usr/bin/openrc ]];then
-	local _conf_xdm='DISPLAYMANAGER="'${_dm}'"'
+	local _conf_xdm='DISPLAYMANAGER="'${_displaymanager}'"'
 	sed -i -e "s|^.*DISPLAYMANAGER=.*|${_conf_xdm}|" $1/etc/conf.d/xdm
     fi
 }
@@ -283,8 +283,8 @@ configure_accountsservice(){
 configure_calamares(){
     if [[ -f $1/usr/bin/calamares ]];then
 	msg2 "Configuring Calamares ..."
-	mkdir -p ${work_dir}/etc/calamares/modules            
-	local UNPACKFS="$1/etc/calamares/modules/unpackfs.conf"            
+	mkdir -p ${work_dir}/usr/share/calamares/modules            
+	local UNPACKFS="$1/usr/share/calamares/modules/unpackfs.conf"            
 	if [ ! -e $UNPACKFS ] ; then                              
 	    echo "---" > "$UNPACKFS"
 	    echo "unpack:" >> "$UNPACKFS"
@@ -295,9 +295,13 @@ configure_calamares(){
 	    echo "        sourcefs: \"squashfs\"" >> "$UNPACKFS"
 	    echo "        destination: \"\"" >> "$UNPACKFS"                
 	fi
-	local DISPLAYMANAGER="$1/etc/calamares/modules/displaymanager.conf"
+	local DISPLAYMANAGER="$1/usr/share/calamares/modules/displaymanager.conf"
 	# TODO maybe add a configuration flag in manjaro-tools.conf for default displymanager
-	if [ ! -e $DISPLAYMANAGER ] ; then
+	
+	# use autodetected DM for the moment
+	sed -i -e "s|^.*-.*|- ${_displaymanager}|" $1/usr/share/calamares/modules/displaymanager.conf
+	
+	if [ ! -e $DISPLAYMANAGER ] ; then-
 	    echo "---" > "$DISPLAYMANAGER"
 	    echo "displaymanagers:" >> "$DISPLAYMANAGER"
 	    if [ -e "${work_dir}/${desktop}-image/usr/bin/lightdm" ] ; then
@@ -322,7 +326,7 @@ configure_calamares(){
 		echo "  - slim" >> "$DISPLAYMANAGER"
 	    fi                
 	fi
-	local INITCPIO="$1/etc/calamares/modules/initcpio.conf"
+	local INITCPIO="$1/usr/share/calamares/modules/initcpio.conf"
 	if [ ! -e $INITCPIO ] ; then
 	    echo "---" > "$INITCPIO"
 	    echo "kernel: ${manjaro_kernel}" >> "$INITCPIO"

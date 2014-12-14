@@ -190,7 +190,7 @@ make_isolinux() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare ${install_dir}/iso/isolinux"
 	mkdir -p ${work_dir}/iso/isolinux
-        cp -a --no-preserve=ownership isolinux/* ${work_dir}/iso
+        cp -a --no-preserve=ownership isolinux/* ${work_dir}/iso/isolinux
         if [[ -e isolinux-overlay ]]; then
 	    msg2 "isolinux overlay found. Overwriting files."
             cp -a --no-preserve=ownership isolinux-overlay/* ${work_dir}/iso/isolinux

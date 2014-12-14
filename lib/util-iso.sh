@@ -123,10 +123,11 @@ make_efiboot() {
 make_isolinux() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
 	msg "Prepare ${install_dir}/iso/isolinux"
-        cp -R --preserve=links isolinux ${work_dir}/iso
+	mkdir -p ${work_dir}/iso/isolinux
+        cp -a --no-preserve=ownership isolinux/* ${work_dir}/iso/isolinux
         if [[ -e isolinux-overlay ]]; then
 	    msg2 "isolinux overlay found. Overwriting files."
-            cp -R --preserve=links isolinux-overlay/* ${work_dir}/iso/isolinux
+            cp -a --no-preserve=ownership isolinux-overlay/* ${work_dir}/iso/isolinux
         fi
         if [[ -e ${work_dir}/root-image/usr/lib/syslinux/bios/ ]]; then
             cp ${work_dir}/root-image/usr/lib/syslinux/bios/isolinux.bin ${work_dir}/iso/isolinux/
@@ -220,7 +221,7 @@ make_root_image() {
 	    ln -sf '/usr/lib/systemd/system/tlp-sleep.service' "${work_dir}/root-image/etc/systemd/system/sleep.target.wants/tlp-sleep.service"
 	    ln -sf '/usr/lib/systemd/system/tlp.service' "${work_dir}/root-image/etc/systemd/system/multi-user.target.wants/tlp.service"
 	fi
-	cp -R --preserve=links overlay/* ${work_dir}/root-image
+	cp -a --no-preserve=ownership overlay/* ${work_dir}/root-image
 
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
@@ -249,7 +250,7 @@ make_de_image() {
 	cp "${work_dir}/${desktop}-image/${desktop}-image-pkgs.txt" ${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}-pkgs.txt
 	
 	if [ -e ${desktop}-overlay ] ; then
-	    cp -R --preserve=links ${desktop}-overlay/* ${work_dir}/${desktop}-image
+	    cp -a --no-preserve=ownership ${desktop}-overlay/* ${work_dir}/${desktop}-image
 	fi
 	if [ -e ${work_dir}/${desktop}-image/usr/bin/cupsd ] ; then
 	    mkdir -p "${work_dir}/${desktop}-image/etc/systemd/system/multi-user.target.wants"

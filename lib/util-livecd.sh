@@ -282,8 +282,8 @@ configure_accountsservice(){
 # $1: chroot
 configure_calamares(){
     msg2 "Configuring Calamares ..."
-    mkdir -p ${work_dir}/overlay/etc/calamares/modules            
-    local UNPACKFS="$1/overlay/etc/calamares/modules/unpackfs.conf"            
+    mkdir -p ${work_dir}/etc/calamares/modules            
+    local UNPACKFS="$1/etc/calamares/modules/unpackfs.conf"            
     if [ ! -e $UNPACKFS ] ; then                              
         echo "---" > "$UNPACKFS"
         echo "unpack:" >> "$UNPACKFS"
@@ -294,7 +294,7 @@ configure_calamares(){
         echo "        sourcefs: \"squashfs\"" >> "$UNPACKFS"
         echo "        destination: \"\"" >> "$UNPACKFS"                
     fi
-    local DISPLAYMANAGER="$1/overlay/etc/calamares/modules/displaymanager.conf"
+    local DISPLAYMANAGER="$1/etc/calamares/modules/displaymanager.conf"
     # TODO maybe add a configuration flag in manjaro-tools.conf for default displymanager
     if [ ! -e $DISPLAYMANAGER ] ; then
         echo "---" > "$DISPLAYMANAGER"
@@ -321,7 +321,7 @@ configure_calamares(){
             echo "  - slim" >> "$DISPLAYMANAGER"
         fi                
     fi
-    local INITCPIO="$1/overlay/etc/calamares/modules/initcpio.conf"
+    local INITCPIO="$1/etc/calamares/modules/initcpio.conf"
     if [ ! -e $INITCPIO ] ; then
         echo "---" > "$INITCPIO"
         echo "kernel: ${manjaro_kernel}" >> "$INITCPIO"

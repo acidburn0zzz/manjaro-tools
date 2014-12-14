@@ -251,12 +251,14 @@ check_cache(){
 
 clean_cache_lng(){
     msg "Cleaning ${cache_lng} ..."
-    rm ${cache_lng}/*
+    #rm ${cache_lng}/*
+    find "${cache_lng}" -name '*.pkg.tar.xz' -delete &>/dev/null
 }
 
 clean_cache_pkgs(){
     msg "Cleaning ${cache_pkgs} ..."
-    rm ${cache_pkgs}/*
+    #rm ${cache_pkgs}/*
+    find "${cache_pkgs}" -name '*.pkg.tar.xz' -delete &>/dev/null
 }
 
 clean_up(){

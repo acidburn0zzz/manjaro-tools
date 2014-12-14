@@ -325,8 +325,8 @@ configure_calamares(){
 # 	    fi   
 # 	else
 	      # use autodetected DM for the moment
-	      echo "displaymanagers:"
-	      echo "  - ${_displaymanager}" > "$DISPLAYMANAGER"
+	      echo "displaymanagers:" > "$DISPLAYMANAGER"
+	      echo "  - ${_displaymanager}" >> "$DISPLAYMANAGER"
 	      
 	      echo '#executable: "startkde"' >> "$DISPLAYMANAGER"
 	      echo '#desktopFile: "plasma"' >> "$DISPLAYMANAGER"

@@ -1,47 +1,47 @@
  
-pkgname=manjaro-tools-livecd
-pkgname=('manjaro-tools-livecd' 'manjaro-tools-livecd-init')
-pkgver=0.9.5
+pkgbase=manjaro-tools-livecd
+pkgname=('manjaro-tools-livecd'
+	'manjaro-tools-livecd-openrc' 
+	'manjaro-tools-livecd-systemd')
+pkgver=r2.771b681
 pkgrel=1
 arch=('any')
-url=""
+url="https://github.com/udeved/manjaro-tools-livecd"
 license=('GPL')
-source=("")
-sha256sums=('')
+makedepends=('git')
+source=("git+$url.git")
+sha256sums=('SKIP')
 
-# pkgver() {
-# 	cd ${srcdir}/${pkgname}
-# 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
-# }
-
-build() {
-	cd ${srcdir}/${pkgname}-${pkgver}
-	make SYSCONFDIR=/etc \
-	    PREFIX=/usr \
-	    DATADIR=${PREFIX}/share/manjaro-tools \
-	    LIBDIR=${PREFIX}/lib/manjaro-tools \
-	    DESTDIR=${pkgdir}
+pkgver() {
+	cd ${srcdir}/${pkgbase}
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 package_manjaro-tools-livecd() {
 	depends=('manjaro-tools')
-
-	cd ${srcdir}/${pkgname}-${pkgver}
-	make SYSCONFDIR=/etc \
-	    PREFIX=/usr \
-	    DATADIR=${PREFIX}/share/manjaro-tools \
-	    LIBDIR=${PREFIX}/lib/manjaro-tools \
-	    DESTDIR=${pkgdir} \
-	install
+	conflicts=('manjaroiso-profiles' 
+		  'manjaroiso-openrc-profiles' 
+		  'manjaroiso-community-profiles')
+		
+	cd ${srcdir}/${pkgbase} #-${pkgver}
+	install -dm 755 $pkgdir/opt
+	cp -a livecd $pkgdir/opt
 }
 
-package_manjaro-tools-livecd-init() {
-	cd ${srcdir}/${pkgname}-${pkgver}
-	depends=('manjaro-tools-livecd')
-	make SYSCONFDIR=/etc \
-	    PREFIX=/usr \
-	    DATADIR=${PREFIX}/share/manjaro-tools \
-	    LIBDIR=${PREFIX}/lib/manjaro-tools \
-	    DESTDIR=${pkgdir} \
-	install
+package_manjaro-tools-livecd-openrc() {
+	
+	depends=('openrc-core' 'manjaro-tools-livecd')
+	
+	cd ${srcdir}/${pkgbase} #-${pkgver}
+	install -dm 755 $pkgdir
+	cp -a init-openrc/* $pkgdir
+	
+}
+
+package_manjaro-tools-livecd-systemd() {
+	depends=('systemd' 'manjaro-tools-livecd')
+	
+	cd ${srcdir}/${pkgbase} #-${pkgver}
+	install -dm 755 $pkgdir
+	cp -a init-systemd/* $pkgdir
 }

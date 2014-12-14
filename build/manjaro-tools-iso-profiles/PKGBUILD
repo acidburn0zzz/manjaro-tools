@@ -5,32 +5,23 @@ pkgname=manjaro-tools-iso-profiles
 pkgver=0.8.11
 pkgrel=1
 arch=('any')
-url=""
+url="https://github.com/udeved/manjaro-tools-iso-profiles"
 license=('GPL')
-depends=('manjaro-tools-livecd' 'manjaro-tools-livecd-init')
+depends=('manjaro-tools-livecd')
 makedepends=('git')
-source=()
-sha256sums=('')
+conflicts=('manjaroiso-profiles' 
+	  'manjaroiso-openrc-profiles' 
+	  'manjaroiso-community-profiles')
+source=("git+$url.git")
+sha256sums=('SKIP')
 
-
-# pkgver() {
-# 	cd ${srcdir}/manjaro-tools
-# 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
-# }
-
-build() {
-	cd ${srcdir}/${pkgname}-${pkgver}
-	make SYSCONFDIR=/etc \
-	    PREFIX=/usr \
-	    DATADIR=${PREFIX}/share/manjaro-tools \
-	    DESTDIR=${pkgdir}
+pkgver() {
+	cd ${srcdir}/manjaro-tools
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 package() {
-	cd ${srcdir}/${pkgname}-${pkgver}
-	make SYSCONFDIR=/etc \
-	    PREFIX=/usr \
-	    DATADIR=${PREFIX}/share/manjaro-tools \
-	    DESTDIR=${pkgdir} \
-	install
+	cd ${srcdir}/${pkgname} #-${pkgver}
+	install -d $pkgdir/usr/shared/manjaro-tools/iso-profiles
+	cp -a * $pkgdir/usr/shared/manjaro-tools/iso-profiles
 }

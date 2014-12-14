@@ -65,7 +65,7 @@ copy_cache_lng(){
 
 copy_cache_pkgs(){
     msg2 "Copying pkgs cache ..."
-    cp ${cache_pkgs/* ${work_dir}/pkgs-image/opt/livecd/pkgs
+    cp ${cache_pkgs}/* ${work_dir}/pkgs-image/opt/livecd/pkgs
 }
 
 configure_xorg_drivers(){

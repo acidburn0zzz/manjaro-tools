@@ -54,6 +54,8 @@ display_settings(){
     msg2 "install_dir: ${install_dir}"
     msg2 "plymouth_theme: ${plymouth_theme}"
     msg2 "compression: ${compression}"
+    msg2 "cache_pkgs: ${cache_pkgs}"
+    msg2 "cache_lng: ${cache_lng}"
     
     msg "LIVECD:"
     msg2 "username: ${username}"
@@ -95,6 +97,7 @@ overwrite=false
 xorg_overlays=false
 kde_lng_packages=false
 auto_svc_conf=false
+rebuild=false
 
 pacman_conf_arch='default'
 
@@ -113,6 +116,8 @@ usage() {
     echo '    -x                 Xorg overlays'
     echo '    -k                 kde lng packages'
     echo '    -A                 Let buildiso configure services(experimental)'
+    echo '    -R                 Rebuild iso xorg and lng overlay will use a defined cache'
+    echo '                       The custom cache will be cleaned if not set'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
@@ -122,7 +127,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='a:b:r:t:i:cvfzqxkAh'
+opts='a:b:r:t:i:cvfzqxkARh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -138,6 +143,7 @@ while getopts "${opts}" arg; do
 	k) kde_lng_packages=true ;;
 	i) pacman_conf="$OPTARG" ;;
 	A) auto_svc_conf=true ;;
+	R) rebuild=true ;;
 	q) pretend=true ;;
 	h) usage ;;
     esac
@@ -186,9 +192,16 @@ fi
 
 ${pretend} && display_settings && exit 1
 
-${clean_first} && clean_up
+if ${clean_first};then
+    clean_up
+fi
 
-prepare_targetdir
+prepare_buildiso
+
+if [[ ${rebuild} = "false" ]];then
+    [[ $(check_cache pkgs-image) ]] clean_cache_pkgs
+    [[ $(check_cache lng-image) ]] && clean_cache_lng
+fi
 
 # install basic
 make_root_image

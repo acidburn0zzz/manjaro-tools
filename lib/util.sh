@@ -342,6 +342,18 @@ load_config(){
 	startservices_openrc=('cupsd' 'fcron' 'metalog' 'cronie' 'bluetooth' 'connman' 'networkmanager')
     fi
     
+    if [[ -n ${cache_lng} ]];then
+	cache_lng=${cache_lng}
+    else
+	cache_lng='/var/cache/manjaro-tools/lng'
+    fi
+    
+    if [[ -n ${cache_pkgs} ]];then
+	cache_pkgs=${cache_pkgs}
+    else
+	cache_pkgs='/var/cache/manjaro-tools/pkgs'
+    fi
+    
     return 0
 }
 

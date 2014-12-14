@@ -17,19 +17,6 @@ copy_userconfig(){
     cp -a $1/etc/skel/. $2/etc/skel
 }
 
-copy_manjaro_tools_conf(){
-	local livecd=$1
-	
-	[[ ! -d ${livecd} ]] && mkdir ${livecd}
-	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${livecd}/manjaro-tools.conf ..."
-	    cp $USER_HOME/.config/manjaro-tools.conf ${livecd}/manjaro-tools.conf
-	else
-	    msg2 "Copying ${manjaro_tools_conf} to ${livecd}/manjaro-tools.conf ..."
-	    cp ${manjaro_tools_conf} ${livecd}/manjaro-tools.conf
-	fi
-}
-
 copy_initcpio(){
         cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
         cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
@@ -69,6 +56,16 @@ copy_livecd_helpers(){
 	msg2 "Copying ${manjaro_tools_conf} to $1/manjaro-tools.conf ..."
 	cp ${manjaro_tools_conf} $1/manjaro-tools.conf
     fi 
+}
+
+copy_cache_lng(){
+    msg2 "Copying lng cache ..."
+    cp ${cache_lng}/* ${work_dir}/lng-image/opt/livecd/lng
+}
+
+copy_cache_pkgs(){
+    msg2 "Copying pkgs cache ..."
+    cp ${cache_pkgs/* ${work_dir}/pkgs-image/opt/livecd/pkgs
 }
 
 configure_xorg_drivers(){
@@ -237,8 +234,28 @@ make_isomounts() {
     fi
 }
 
-prepare_targetdir(){
+prepare_buildiso(){
     mkdir -p "${target_dir}"
+    mkdir -p "${cache_pkgs}"
+    mkdir -p "${cache_lng}"
+}
+
+check_cache(){
+    if [[ -n $(cat isomounts | grep -F $1) ]]; then 
+	echo true
+    else 
+	echo false
+    fi 
+}
+
+clean_cache_lng(){
+    msg "Cleaning ${cache_lng} ..."
+    rm ${cache_lng}/*
+}
+
+clean_cache_pkgs(){
+    msg "Cleaning ${cache_pkgs} ..."
+    rm ${cache_pkgs}/*
 }
 
 clean_up(){
@@ -246,16 +263,6 @@ clean_up(){
 	msg "Removing work dir ${work_dir}"
 	rm -r ${work_dir}
     fi
-}
-
-# $1: work dir
-# $2: cahe dir
-# $3: pkglist
-download_to_cache(){
-    pacman -v --config "${pacman_conf}" \
-	      --arch "${arch}" --root "$1" \
-	      --cache $2 \
-	      -Syw $3 --noconfirm
 }
 
 make_repo(){
@@ -488,15 +495,15 @@ make_overlay_image() {
 	
 	${auto_svc_conf} && configure_services "${work_dir}/overlay-image"
 		        
-      	copy_overlay_livecd "${work_dir}/overlay"
+      	copy_overlay_livecd "${work_dir}/overlay-image"
 	    
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist    
         
         # copy over setup helpers and config loader
-        copy_livecd_helpers "${work_dir}/overlay/opt/livecd"
+        copy_livecd_helpers "${work_dir}/overlay-image/opt/livecd"
         
-        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
+        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay-image/etc/pacman.d/mirrorlist
+        sed -i "s/#Server/Server/g" ${work_dir}/overlay-image/etc/pacman.d/mirrorlist
        	
 	# Clean up GnuPG keys?
 	#rm -rf "${work_dir}/${desktop}-image/etc/pacman.d/gnupg"
@@ -508,6 +515,17 @@ make_overlay_image() {
         : > ${work_dir}/build.${FUNCNAME}
 	msg "Done overlay-image"
     fi
+}
+
+
+# $1: work dir
+# $2: cache dir
+# $3: pkglist
+download_to_cache(){
+    pacman -v --config "${pacman_conf}" \
+	      --arch "${arch}" --root "$1" \
+	      --cache $2 \
+	      -Syw $3 --noconfirm
 }
 
 make_pkgs_image() {
@@ -527,7 +545,8 @@ make_pkgs_image() {
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
 	fi
 		
-	download_to_cache "${work_dir}/pkgs-image" "${work_dir}/pkgs-image/opt/livecd/pkgs" "${xorg_packages}"
+	download_to_cache "${work_dir}/pkgs-image" "${cache_pkgs}" "${xorg_packages}"
+	copy_cache_pkgs	
 	
 	if [ ! -z "${xorg_packages_cleanup}" ]; then
 	    for xorg_clean in ${xorg_packages_cleanup}; do  
@@ -572,9 +591,11 @@ make_lng_image() {
 	fi
 
 	if ${kde_lng_packages}; then
-	    download_to_cache "${work_dir}/lng-image" "${work_dir}/lng-image/opt/livecd/lng" "${lng_packages} ${lng_packages_kde}"
+	    download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages} ${lng_packages_kde}"
+	    copy_cache_lng
 	else
-	    download_to_cache "${work_dir}/lng-image" "${work_dir}/lng-image/opt/livecd/lng" "${lng_packages}"
+	    download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages}"
+	    copy_cache_lng
 	fi
 	
 	if [ ! -z "${lng_packages_cleanup}" ]; then

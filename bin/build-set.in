@@ -13,14 +13,22 @@ version=@version@
 
 shopt -s nullglob
 
-[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
-[[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
-[[ -r @libdir@/util-pkg.sh ]] && source @libdir@/util-pkg.sh
+LIBDIR='@libdir@'
+PKGDATADIR='@pkgdatadir@'
+SYSCONFDIR='@sysconfdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+[[ -r ${LIBDIR}/util.sh ]] && source ${LIBDIR}/util.sh
+[[ -r ${LIBDIR}/util-pkg.sh ]] && source ${LIBDIR}/util-pkg.sh
 
 display_settings(){
     msg "manjaro-tools"
     msg2 "version: ${version}"
-
+    msg2 "manjaro_tools_conf: ${manjaro_tools_conf}"
+    if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
+	msg2 "user_config: ${USER_CONFIG}/manjaro-tools.conf"
+    fi
+    
     msg "OPTIONS:"
     msg2 "arch: ${arch}"
     msg2 "branch: ${branch}"
@@ -81,8 +89,6 @@ display_settings(){
 
 export LC_MESSAGES=C
 
-load_config '@sysconfdir@/manjaro-tools.conf'
-
 pkg_owner=${SUDO_USER:-$USER}
 
 if [[ -n $SUDO_USER ]]; then
@@ -91,7 +97,10 @@ else
     USER_HOME=$HOME
 fi
 
-load_config "$USER_HOME/.config/manjaro-tools.conf"  
+USER_CONFIG="$USER_HOME/.config"
+
+load_config "${USER_CONFIG}/manjaro-tools.conf"  
+load_config "${SYSCONFDIR}/manjaro-tools.conf"
 
 load_vars "$USER_HOME/.makepkg.conf"
 load_vars /etc/makepkg.conf
@@ -152,9 +161,9 @@ chrootdir=${chroots}/${branch}/${arch}
 pkg_dir_loaded=${pkg_dir}
 pkg_dir="${pkg_dir}/${branch}/${arch}"
 
-load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf"
-makepkg_conf="@pkgdatadir@/makepkg-${arch}.conf"
-mirrors_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
+load_pacman_conf "${PKGDATADIR}/pacman-${pacman_conf_arch}.conf"
+makepkg_conf="${PKGDATADIR}/makepkg-${arch}.conf"
+mirrors_conf="${PKGDATADIR}/pacman-mirrors-${branch}.conf"
 
 mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -S ${mirrors_conf})
 

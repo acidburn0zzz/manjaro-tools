@@ -11,17 +11,23 @@
 
 version=@version@
 
-[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
-[[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
-[[ -r @libdir@/util-iso.sh ]] && source @libdir@/util-iso.sh
-# [[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
+LIBDIR='@libdir@'
+PKGDATADIR='@pkgdatadir@'
+SYSCONFDIR='@sysconfdir@'
+
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+[[ -r ${LIBDIR}/util.sh ]] && source ${LIBDIR}/util.sh
+[[ -r ${LIBDIR}/util-iso.sh ]] && source ${LIBDIR}/util-iso.sh
+[[ -r ${LIBDIR}/util-livecd.sh ]] && source ${LIBDIR}/util-livecd.sh
+# [[ -r ${LIBDIR}/util-mount.sh ]] && source ${LIBDIR}/util-mount.sh
 
 display_settings(){
     msg "manjaro-tools"
     msg2 "version: ${version}"
     msg2 "manjaro_tools_conf: ${manjaro_tools_conf}"
-    if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	msg2 "user_config: $USER_HOME/.config/manjaro-tools.conf"
+    if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
+	msg2 "user_config: ${USER_CONFIG}/manjaro-tools.conf"
     fi
     
     msg "OPTIONS:"
@@ -66,101 +72,6 @@ display_settings(){
     msg2 "iso_file: ${iso_file}"
 }
 
-copy_util_sh(){
-    local util=$1
-    msg2 "Copying @libdir@/util.sh to $1/util-config.sh ..."
-    cp @libdir@/util.sh $1/util-config.sh
-}
-
-# Prepare overlay-image
-make_overlay() {
-    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare overlay"
-	        
-      	copy_overlay_livecd "${work_dir}/overlay"
-	
-        copy_livecd_init "${work_dir}/overlay"
-	
-	mkdir -p ${work_dir}/overlay/etc/pacman.d
-	
-	copy_livecd '@pkgdatadir@/livecd'
-	    
-        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
-        copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/overlay"      
-	# copy over manjaro-tools.conf
-	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
-        
-        # copy over the config loader lib to load manjaro-tools.conf vars
-        copy_util_sh "${work_dir}/overlay/opt/livecd"
-        
-        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
-       
-        : > ${work_dir}/build.${FUNCNAME}
-	msg "Done overlay"
-    fi
-}
-
-# Prepare overlay-image
-make_overlay_image() {
-    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare overlay-image"
-	
-	######################## 
-	# create overlay chroot
-	
-	mkdir -p ${work_dir}/overlay-image
-	
-	if [ ! -z "$(mount -l | grep overlay-image)" ]; then
-	    umount -l ${work_dir}/overlay-image
-	fi
-	
-	msg2 "mount root-image"
-	mount -t aufs -o br=${work_dir}/overlay-image:${work_dir}/root-image=ro none ${work_dir}/overlay-image
-	
-	if [ ! -z "${desktop}" ] ; then
-	    msg2 "mount ${desktop}-image"
-	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/overlay-image
-	fi
-	
-	mkiso ${create_args[*]} -i "overlay-image" -p "${overlay_packages}" create "${work_dir}"
-
-	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"
-	
-	####################
-	        
-      	copy_overlay_livecd "${work_dir}/overlay"
-	
-        copy_livecd_init "${work_dir}/overlay"
-	
-	copy_livecd '@pkgdatadir@/livecd'
-	    
-        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
-        copy_userconfig "${work_dir}/${desktop}-image" "${work_dir}/overlay"      
-	# copy over manjaro-tools.conf
-	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
-        
-        # copy over the config loader lib to load manjaro-tools.conf vars
-        copy_util_sh "${work_dir}/overlay/opt/livecd"
-        
-        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
-       
-	
-	#########################
-	
-	# Clean up GnuPG keys?
-	#rm -rf "${work_dir}/${desktop}-image/etc/pacman.d/gnupg"
-	
-	umount -l ${work_dir}/overlay-image
-	
-	rm -R ${work_dir}/overlay-image/.wh*
-	
-        : > ${work_dir}/build.${FUNCNAME}
-	msg "Done overlay-image"
-    fi
-}
-
 iso_owner=${SUDO_USER:-$USER}
 
 if [[ -n $SUDO_USER ]]; then
@@ -169,8 +80,10 @@ else
     USER_HOME=$HOME
 fi
 
-load_config "$USER_HOME/.config/manjaro-tools.conf"  
-load_config '@sysconfdir@/manjaro-tools.conf'
+USER_CONFIG="$USER_HOME/.config"
+
+load_config "${USER_CONFIG}/manjaro-tools.conf"  
+load_config "${SYSCONFDIR}/manjaro-tools.conf"
 
 load_desktop_definitions
 
@@ -192,7 +105,7 @@ usage() {
     echo "    -r <dir>           Work directory [default: ${work_dir}]"
     echo "    -t <dir>           Target iso directory [default: ${target_dir}]"
     echo "    -i <file>          Config file for pacman"
-    echo "                       [default: @pkgdatadir@/pacman-${pacman_conf_arch}.conf]"
+    echo "                       [default: ${PKGDATADIR}/pacman-${pacman_conf_arch}.conf]"
     echo '    -c                 Clean work dir'
     echo '    -v                 Verbose'
     echo '    -f                 Overwrite'
@@ -239,8 +152,8 @@ if [[ "$arch" == 'x86_64' ]]; then
 fi
 
 load_pacman_conf "${pacman_conf}"
-load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf" 
-mirrors_conf="@pkgdatadir@/pacman-mirrors-${branch}.conf"
+load_pacman_conf "${PKGDATADIR}/pacman-${pacman_conf_arch}.conf" 
+mirrors_conf="${PKGDATADIR}/pacman-mirrors-${branch}.conf"
 
 create_args+=(-v -a ${arch} -D ${install_dir} -C ${pacman_conf} -M ${mirrors_conf})
 
@@ -301,11 +214,11 @@ if [ "${arch}" == "x86_64" ]; then
 fi
 make_isolinux
 
-if [[ -f Packages-Overlay ]]; then
-    make_overlay-image
-else
-    make_overlay
-fi
+# if [[ -f Packages-Overlay ]]; then
+make_overlay-image
+# else
+#     make_overlay
+# fi
 
 make_isomounts
 make_iso

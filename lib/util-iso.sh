@@ -48,6 +48,10 @@ copy_livecd_helpers(){
     cp ${PKGDATADIR}/scripts/livecd $1
     cp ${PKGDATADIR}/scripts/mhwd $1
     
+    # fix script permissions
+    chmod +x $1/livecd
+    chmod +x $1/mhwd
+    
     # fix paths
     sed -e "s|${LIBDIR}|/opt/livecd|g" -i $1/chroot-run
     

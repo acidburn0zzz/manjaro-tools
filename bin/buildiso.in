@@ -99,6 +99,8 @@ kde_lng_packages=false
 auto_svc_conf=false
 images_only=false
 iso_only=false
+is_cache_pkgs=false
+is_cache_lng=false
 
 pacman_conf_arch='default'
 
@@ -121,6 +123,8 @@ usage() {
     echo '                       Requires pre built images'
     echo '                       The custom cache will be cleaned if not set'
     echo '    -q                 Query settings and pretend build'
+    echo '    -P                 Use custom pkgs cache, no download'
+    echo '    -L                 Use custom lng cache, no download'
     echo '    -h                 This help'
     echo ''
     echo ''
@@ -129,7 +133,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='a:b:r:t:i:cvfzqxkAIGh'
+opts='a:b:r:t:i:cvfzqxkAIGPLh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -147,6 +151,8 @@ while getopts "${opts}" arg; do
 	A) auto_svc_conf=true ;;
 	I) images_only=true ;;
 	G) iso_only=true ;;
+	P) is_cache_pkgs=true ;;
+	L) is_cache_lng=true ;;
 	q) pretend=true ;;
 	h) usage ;;
     esac
@@ -194,16 +200,20 @@ fi
 
 ${pretend} && display_settings && exit 1
 
-${iso_only} && compress_images && exit 1
+if ${iso_only}; then
+    [[ ! -d ${work_dir} ]] && die "You need to breate images first"
+    compress_images 
+    exit 1
+fi
 
 ${clean_first} && clean_up
 
 prepare_buildiso
 
-if ! ${images_only}; then
-    [[ $(check_cache pkgs-image) ]] && clean_cache_pkgs
-    [[ $(check_cache lng-image) ]] && clean_cache_lng
-fi
+# if ! ${images_only}; then
+#     [[ $(check_cache pkgs-image) ]] && clean_cache_pkgs
+#     [[ $(check_cache lng-image) ]] && clean_cache_lng
+# fi
 
 make_images(){
 
@@ -243,7 +253,7 @@ compress_images(){
 
 if ${images_only}; then
     make_images
-    die "Run again with -G switch to make iso only."
+    exit 1
 else
     make_images
 fi

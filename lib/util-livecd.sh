@@ -523,7 +523,9 @@ configure_displaymanager(){
       
 	chroot-run $1 groupadd autologin
 	chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
-	#chroot-run $1 chmod +r /etc/lightdm/lightdm.conf
+	
+	chmod +r $1/etc/lightdm/lightdm.conf
+
 	# livecd fix
 	#mkdir -p $1/var/lib/lightdm-data
 	

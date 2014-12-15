@@ -50,11 +50,11 @@ copy_livecd_helpers(){
     sed -e "s|${LIBDIR}|/opt/livecd|g" -i $1/chroot-run
     
     if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
-	msg2 "Copying ${USER_CONFIG}/manjaro-tools.conf to $1/manjaro-tools.conf ..."
+	msg2 "Copying ${USER_CONFIG}/manjaro-tools.conf to $1 ..."
 	cp ${USER_CONFIG}/manjaro-tools.conf $1
     else
-	msg2 "Copying ${manjaro_tools_conf} to $1/manjaro-tools.conf ..."
-	cp ${manjaro_tools_conf} $1/manjaro-tools.conf
+	msg2 "Copying ${manjaro_tools_conf} to $1 ..."
+	cp ${manjaro_tools_conf} $1
     fi 
 }
 
@@ -485,6 +485,8 @@ make_overlay_image() {
 	mkiso ${create_args[*]} -i "overlay-image" -p "${overlay_packages}" create "${work_dir}"
 
 	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"
+	
+	configure_user_root "${work_dir}/overlay-image"
 	
 	configure_user "${work_dir}/overlay-image"
 	

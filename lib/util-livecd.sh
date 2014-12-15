@@ -50,6 +50,12 @@ load_desktop_definitions(){
     desktop=${desktop,,}
 }
 
+################################################################
+######### Borrowed from livecd; needs sorting out ##############
+################################################################
+
+# this util-livecd.sh gets copied to overlay-image
+
 # ping_check=$(LC_ALL=C ping -c 1 www.manjaro.org | grep "1 received")
 
 install_localization(){
@@ -397,6 +403,9 @@ configure_thus_live(){
     fi
 }
 
+######################################
+######### end livecd #################
+######################################
 
 # $1: chroot
 configure_user(){
@@ -404,6 +413,14 @@ configure_user(){
 	local pass=$(gen_pw)
 	msg2 "Creating user ${username} with password ${password} ..."
 	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
+}
+
+# $1: chroot
+configure_user_root(){
+	# set up user and password
+	local pass=$(gen_pw)
+	msg2 "Setting root password ${password} ..."
+	echo "${password}" | chroot-run $1 chpasswd 
 }
 
 # $1: chroot
@@ -417,6 +434,7 @@ configure_hostname(){
 	fi
 }
 
+# $1: chroot
 configure_plymouth(){
     if [ -e $1/etc/plymouth/plymouthd.conf ] ; then
 	    sed -i -e "s/^.*Theme=.*/Theme=$plymouth_theme/" $1/etc/plymouth/plymouthd.conf
@@ -483,15 +501,15 @@ configure_displaymanager(){
 	fi
 	sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
 	sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
-      #    sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
+        #sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
       
 	chroot-run $1 groupadd autologin
 	chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
-	chroot-run $1 chmod +r /etc/lightdm/lightdm.conf
+	#chroot-run $1 chmod +r /etc/lightdm/lightdm.conf
 	# livecd fix
-	mkdir -p $1/var/lib/lightdm-data
+	#mkdir -p $1/var/lib/lightdm-data
 	
-	if [[ -e /run/systemd ]]; then
+	if [[ -e $1/usr/bin/systemd ]]; then
 	    chroot-run $1 systemd-tmpfiles --create /usr/lib/tmpfiles.d/lightdm.conf
 	    chroot-run $1 systemd-tmpfiles --create --remove
 	fi
@@ -635,6 +653,8 @@ configure_displaymanager(){
     if [[ -e $1/usr/bin/openrc ]];then
 	local _conf_xdm='DISPLAYMANAGER="'${_displaymanager}'"'
 	sed -i -e "s|^.*DISPLAYMANAGER=.*|${_conf_xdm}|" $1/etc/conf.d/xdm
+    else
+	chroot-run $1 systemctl enable ${_displaymanager}
     fi
 }
 

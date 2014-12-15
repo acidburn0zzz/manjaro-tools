@@ -1,0 +1,119 @@
+#!/bin/sh
+
+[[ -r /opt/livecd/util.sh ]] && source /opt/livecd/util.sh
+
+load_config "/opt/livecd/manjaro-tools.conf"  
+
+[[ -r /opt/livecd/util-lng.sh ]] && source /opt/livecd/util-lng.sh
+[[ -r /opt/livecd/util-livecd.sh ]] && source /opt/livecd/util-livecd.sh
+
+CONSOLEFONT="$(kernel_cmdline vconsole.font)"
+CONSOLEMAP="$(kernel_cmdline vconsole.font.map)"
+PACMAN_LNG="pacman --config /opt/livecd/pacman-lng.conf --noconfirm --noprogressbar"
+arch=$(uname -m)
+_kernver=$(uname -r)
+_kernver=${_kernver%%-*}
+_kernver=${_kernver%%.[00-99].[00-99]}
+EXTRAMODULES=extramodules-${_kernver}-MANJARO
+
+echo "update fstab for swap" > /tmp/livecd.log
+
+## Systemd should do it
+# scan_swap
+swapdev="$(fdisk -l 2>/dev/null | grep swap | cut -d' ' -f1)"
+if [ -e "${swapdev}" ]; then
+	swapon ${swapdev}
+	echo "${swapdev} swap swap defaults 0 0 #configured by manjaroiso" >>/etc/fstab
+fi
+
+echo "set locale" >> /tmp/livecd.log
+
+# set_locale
+set_locale
+locale-gen
+
+echo "configure alsa" >> /tmp/livecd.log
+
+# configure alsa
+set_alsa
+
+# configure pulse
+if [ -e "/usr/bin/pulseaudio-ctl" ] ; then
+    pulseaudio-ctl normal
+fi
+
+# save settings
+alsactl -f /etc/asound.state store &>/dev/null
+
+echo "enable default mirror" >> /tmp/livecd.log
+
+# enable default mirror
+#cp -f /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+#if [ ! -z "$ping_check" ] ; then
+#   pacman-mirrors -g &>/dev/null
+#fi
+
+echo "configure system" >> /tmp/livecd.log
+
+# add BROWSER var
+echo "BROWSER=/usr/bin/xdg-open" >> /etc/environment
+echo "BROWSER=/usr/bin/xdg-open" >> /etc/skel/.bashrc
+echo "BROWSER=/usr/bin/xdg-open" >> /etc/profile
+# add TERM var
+if [ -e "/usr/bin/mate-session" ] ; then
+    echo "TERM=mate-terminal" >> /etc/environment
+    echo "TERM=mate-terminal" >> /etc/profile
+fi	
+
+## FIXME - Workaround to launch mate-terminal
+if [ -e "/usr/bin/mate-session" ] ; then
+   sed -i -e "s~^.*Exec=.*~Exec=mate-terminal -e 'sudo setup'~" "/etc/skel/Desktop/installer-launcher-cli.desktop"
+   sed -i -e "s~^.*Terminal=.*~Terminal=false~" "/etc/skel/Desktop/installer-launcher-cli.desktop"
+fi
+
+# do_configsforroot
+cp -a /etc/skel/. /root/
+
+echo "configure sudoers" >> /tmp/livecd.log
+
+# do_fix_perms
+chown root:root /etc/sudoers
+sed -i -e 's|# %wheel ALL=(ALL) ALL|%wheel ALL=(ALL) ALL|g' /etc/sudoers
+chmod 440 /etc/sudoers
+
+echo "configure applications" >> /tmp/livecd.log
+
+# fix_gnome_apps
+glib-compile-schemas /usr/share/glib-2.0/schemas
+gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
+if [ -e "/usr/bin/dconf" ] ; then
+   dconf update
+fi
+if [ -e "/usr/bin/gnome-keyring-daemon" ] ; then
+   setcap cap_ipc_lock=ep /usr/bin/gnome-keyring-daemon &> /dev/null
+fi
+
+# fix_ping_installation
+setcap cap_net_raw=ep /usr/bin/ping &> /dev/null
+setcap cap_net_raw=ep /usr/bin/ping6 &> /dev/null
+
+install_localization
+
+# set unique machine-id
+#dbus-uuidgen --ensure=/etc/machine-id
+#dbus-uuidgen --ensure=/var/lib/dbus/machine-id
+
+# depmod extramodules
+depmod $(cat /usr/lib/modules/$EXTRAMODULES/version)
+
+# check if we are running inside a virtual machine and unistall kalu
+DESTDIR="/"
+if [ -e "/usr/bin/kalu" ] ; then
+   _rm_kalu
+fi
+
+configure_live_installer_live
+
+configure_thus_live
+
+configure_calamares_live

@@ -18,9 +18,9 @@ copy_userconfig(){
 }
 
 copy_initcpio(){
-        cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
-        cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
-        cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
+    cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
+    cp /usr/lib/initcpio/install/miso* ${work_dir}/boot-image/usr/lib/initcpio/install
+    cp mkinitcpio.conf ${work_dir}/boot-image/etc/mkinitcpio-${manjaroiso}.conf
 }
 
 copy_overlay(){
@@ -205,7 +205,9 @@ make_de_image() {
 	    copy_overlay_desktop
 	fi
 	
-	configure_plymouth "${work_dir}/overlay-image"
+	configure_displaymanager "${work_dir}/${desktop}-image"
+	
+	configure_plymouth "${work_dir}/${desktop}-image"
 	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/${desktop}-image/etc/pacman.d/gnupg"

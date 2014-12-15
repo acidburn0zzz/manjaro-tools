@@ -488,10 +488,9 @@ configure_services(){
 # $1: chroot
 configure_displaymanager(){
     _displaymanager=''
-    msg2 "Configuring Displaymanager ..."
     # do_setuplightdm
+    msg2 "Configuring Displaymanager ..."
     if [ -e "$1/usr/bin/lightdm" ] ; then
-	#mkdir -p /run/lightdm > /dev/null
 
 	if [ -e "$1/usr/bin/startxfce4" ] ; then
 	      sed -i -e 's/^.*user-session=.*/user-session=xfce/' $1/etc/lightdm/lightdm.conf
@@ -517,18 +516,24 @@ configure_displaymanager(){
 	if [ -e "$1/usr/bin/pekwm" ] ; then
 	      sed -i -e 's/^.*user-session=.*/user-session=pekwm/' $1/etc/lightdm/lightdm.conf
 	fi
-	sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
-	sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
-        #sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
-      
+	
 	chroot-run $1 groupadd autologin
-	chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
 	
-	chmod +r $1/etc/lightdm/lightdm.conf
-
-	# livecd fix
-	#mkdir -p $1/var/lib/lightdm-data
+	if [[ $1 != "${work_dir}/${desktop}-image" ]]; then
 	
+	    #mkdir -p /run/lightdm > /dev/null
+	
+	    sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
+	    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
+	    #sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
+	    
+	    chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
+	   
+	   # livecd fix
+	    mkdir -p $1/var/lib/lightdm-data
+	fi
+	#chmod +r $1/etc/lightdm/lightdm.conf
+		
 	if [[ -e $1/usr/bin/systemd ]]; then
 	    chroot-run $1 systemd-tmpfiles --create /usr/lib/tmpfiles.d/lightdm.conf
 	    chroot-run $1 systemd-tmpfiles --create --remove

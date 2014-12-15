@@ -11,11 +11,11 @@ BINPROGS = \
 	bin/signpkgs \
 	bin/mkchroot \
 	bin/mkchrootpkg \
-	bin/build-set \
+	bin/buildpkg \
 	bin/basestrap \
 	bin/manjaro-chroot \
 	bin/fstabgen \
-	bin/make-set \
+	bin/mkset \
 	bin/chroot-run \
 	bin/mkiso \
 	bin/buildiso \

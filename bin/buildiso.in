@@ -87,7 +87,7 @@ USER_CONFIG="$USER_HOME/.config"
 load_config "${USER_CONFIG}/manjaro-tools.conf"  
 load_config "${SYSCONFDIR}/manjaro-tools.conf"
 
-load_desktop_definitions
+load_desktop_definition
 
 clean_first=false
 pretend=false

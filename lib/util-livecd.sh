@@ -9,47 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-load_desktop_definitions(){
-    if [ -e Packages-Xfce ] ; then
-	pkgsfile="Packages-Xfce"
-    fi
-    if [ -e Packages-Kde ] ; then
-    	pkgsfile="Packages-Kde"
-    fi
-    if [ -e Packages-Gnome ] ; then
-   	pkgsfile="Packages-Gnome" 
-    fi
-    if [ -e Packages-Cinnamon ] ; then
-   	pkgsfile="Packages-Cinnamon" 
-    fi
-    if [ -e Packages-Openbox ] ; then
-  	pkgsfile="Packages-Openbox"  
-    fi
-    if [ -e Packages-Lxde ] ; then
- 	pkgsfile="Packages-Lxde"   
-    fi
-    if [ -e Packages-Lxqt ] ; then
-    	pkgsfile="Packages-Lxqt"
-    fi
-    if [ -e Packages-Mate ] ; then
-    	pkgsfile="Packages-Mate"
-    fi
-    if [ -e Packages-Enlightenment ] ; then
-    	pkgsfile="Packages-Enlightenment"
-    fi
-    if [ -e Packages-Net ] ; then
-   	pkgsfile="Packages-Net" 
-    fi
-    if [ -e Packages-PekWM ] ; then
-	pkgsfile="Packages-PekWM"
-    fi
-    if [ -e Packages-Custom ] ; then
-    	pkgsfile="Packages-Custom"
-    fi
-    desktop=${pkgsfile#*-}
-    desktop=${desktop,,}
-}
-
 ################################################################
 ######### Borrowed from livecd; needs sorting out ##############
 ################################################################
@@ -58,89 +17,7 @@ load_desktop_definitions(){
 
 # ping_check=$(LC_ALL=C ping -c 1 www.manjaro.org | grep "1 received")
 
-install_localization(){
-    if [ -e "/bootmnt/${install_dir}/${arch}/lng-image.sqfs" ] ; then
-      echo "install translation packages" >> /tmp/livecd.log
-      _configure_translation_pkgs
-      ${PACMAN_LNG} -Sy
-      if [ -e "/bootmnt/${install_dir}/${arch}/kde-image.sqfs" ] ; then
-	  ${PACMAN_LNG} -S ${KDE_LNG_INST} &> /dev/null
-      fi
-      if [ -e "/usr/bin/firefox" ] ; then
-	  ${PACMAN_LNG} -S ${FIREFOX_LNG_INST} &> /dev/null
-      fi
-      if [ -e "/usr/bin/thunderbird" ] ; then
-	  ${PACMAN_LNG} -S ${THUNDER_LNG_INST} &> /dev/null
-      fi
-      if [ -e "/usr/bin/libreoffice" ] ; then
-	  ${PACMAN_LNG} -S ${LIBRE_LNG_INST} &> /dev/null
-      fi
-      if [ -e "/usr/bin/hunspell" ] ; then
-	  ${PACMAN_LNG} -S ${HUNSPELL_LNG_INST} &> /dev/null
-      fi
-    fi
-}
-
-set_alsa ()
-{
-#set_alsa
-    # amixer binary
-    local alsa_amixer="chroot ${DESTDIR} /usr/bin/amixer"
-
-    # enable all known (tm) outputs
-    $alsa_amixer -c 0 sset "Master" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Front" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Side" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Surround" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Center" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "LFE" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Headphone" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Speaker" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "PCM" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Line" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "External" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "FM" 50% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Master Mono" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Master Digital" 70% unmute &>/dev/null
-    $alsa_amixer -c 0 sset "Analog Mix" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Aux" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Aux2" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "PCM Center" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "PCM Front" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "PCM LFE" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "PCM Side" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "PCM Surround" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Playback" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "PCM,1" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "DAC" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "DAC,0" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "DAC,0" -12dB &> /dev/null
-    $alsa_amixer -c 0 sset "DAC,1" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "DAC,1" -12dB &> /dev/null
-    $alsa_amixer -c 0 sset "Synth" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "CD" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Wave" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Music" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "AC97" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "Analog Front" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "VIA DXS,0" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "VIA DXS,1" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "VIA DXS,2" 70% unmute &> /dev/null
-    $alsa_amixer -c 0 sset "VIA DXS,3" 70% unmute &> /dev/null
-
-    # set input levels
-    $alsa_amixer -c 0 sset "Mic" 70% mute &>/dev/null
-    $alsa_amixer -c 0 sset "IEC958" 70% mute &>/dev/null
-
-    # special stuff
-    $alsa_amixer -c 0 sset "Master Playback Switch" on &>/dev/null
-    $alsa_amixer -c 0 sset "Master Surround" on &>/dev/null
-    $alsa_amixer -c 0 sset "SB Live Analog/Digital Output Jack" off &>/dev/null
-    $alsa_amixer -c 0 sset "Audigy Analog/Digital Output Jack" off &>/dev/null
-}
-
-_configure_translation_pkgs()
-{
+configure_translation_pkgs_live(){
     # Determind which language we are using
     local LNG_INST=$(cat ${DESTDIR}/etc/locale.conf | grep LANG= | cut -d= -f2 | cut -d. -f1)
 
@@ -285,13 +162,142 @@ _configure_translation_pkgs()
     esac
 }
 
+install_localization_live(){
+    if [ -e "/bootmnt/${install_dir}/${arch}/lng-image.sqfs" ] ; then
+      echo "install translation packages" >> /tmp/livecd.log
+      configure_translation_pkgs_live
+      ${PACMAN_LNG} -Sy
+      if [ -e "/bootmnt/${install_dir}/${arch}/kde-image.sqfs" ] ; then
+	  ${PACMAN_LNG} -S ${KDE_LNG_INST} &> /dev/null
+      fi
+      if [ -e "/usr/bin/firefox" ] ; then
+	  ${PACMAN_LNG} -S ${FIREFOX_LNG_INST} &> /dev/null
+      fi
+      if [ -e "/usr/bin/thunderbird" ] ; then
+	  ${PACMAN_LNG} -S ${THUNDER_LNG_INST} &> /dev/null
+      fi
+      if [ -e "/usr/bin/libreoffice" ] ; then
+	  ${PACMAN_LNG} -S ${LIBRE_LNG_INST} &> /dev/null
+      fi
+      if [ -e "/usr/bin/hunspell" ] ; then
+	  ${PACMAN_LNG} -S ${HUNSPELL_LNG_INST} &> /dev/null
+      fi
+    fi
+}
+
+configure_swap_live(){
+    local swapdev="$(fdisk -l 2>/dev/null | grep swap | cut -d' ' -f1)"
+    if [ -e "${swapdev}" ]; then
+	swapon ${swapdev}
+	echo "${swapdev} swap swap defaults 0 0 #configured by manjaroiso" >>/etc/fstab
+    fi
+}
+
+configure_ping_live(){
+    setcap cap_net_raw=ep /usr/bin/ping &> /dev/null
+    setcap cap_net_raw=ep /usr/bin/ping6 &> /dev/null
+}
+
+configure_gnome_live(){
+    glib-compile-schemas /usr/share/glib-2.0/schemas
+    gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
+    if [ -e "/usr/bin/dconf" ] ; then
+      dconf update
+    fi
+    if [ -e "/usr/bin/gnome-keyring-daemon" ] ; then
+      setcap cap_ipc_lock=ep /usr/bin/gnome-keyring-daemon &> /dev/null
+    fi
+}
+
+configure_sudo_live(){
+    chown root:root /etc/sudoers
+    sed -i -e 's|# %wheel ALL=(ALL) ALL|%wheel ALL=(ALL) ALL|g' /etc/sudoers
+    chmod 440 /etc/sudoers
+}
+
+configure_env_live(){
+    echo "BROWSER=/usr/bin/xdg-open" >> /etc/environment
+    echo "BROWSER=/usr/bin/xdg-open" >> /etc/skel/.bashrc
+    echo "BROWSER=/usr/bin/xdg-open" >> /etc/profile
+    
+    # add TERM var
+    
+    if [ -e "/usr/bin/mate-session" ] ; then
+	echo "TERM=mate-terminal" >> /etc/environment
+	echo "TERM=mate-terminal" >> /etc/profile
+    fi
+    
+    ## FIXME - Workaround to launch mate-terminal
+    if [ -e "/usr/bin/mate-session" ] ; then
+	sed -i -e "s~^.*Exec=.*~Exec=mate-terminal -e 'sudo setup'~" "/etc/skel/Desktop/installer-launcher-cli.desktop"
+	sed -i -e "s~^.*Terminal=.*~Terminal=false~" "/etc/skel/Desktop/installer-launcher-cli.desktop"
+    fi
+}
+
+configure_alsa_live(){
+    #set_alsa
+    # amixer binary
+    local alsa_amixer="chroot ${DESTDIR} /usr/bin/amixer"
+
+    # enable all known (tm) outputs
+    $alsa_amixer -c 0 sset "Master" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Front" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Side" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Surround" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Center" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "LFE" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Headphone" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Speaker" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "PCM" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Line" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "External" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "FM" 50% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Master Mono" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Master Digital" 70% unmute &>/dev/null
+    $alsa_amixer -c 0 sset "Analog Mix" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Aux" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Aux2" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "PCM Center" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "PCM Front" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "PCM LFE" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "PCM Side" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "PCM Surround" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Playback" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "PCM,1" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "DAC" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "DAC,0" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "DAC,0" -12dB &> /dev/null
+    $alsa_amixer -c 0 sset "DAC,1" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "DAC,1" -12dB &> /dev/null
+    $alsa_amixer -c 0 sset "Synth" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "CD" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Wave" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Music" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "AC97" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "Analog Front" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "VIA DXS,0" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "VIA DXS,1" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "VIA DXS,2" 70% unmute &> /dev/null
+    $alsa_amixer -c 0 sset "VIA DXS,3" 70% unmute &> /dev/null
+
+    # set input levels
+    $alsa_amixer -c 0 sset "Mic" 70% mute &>/dev/null
+    $alsa_amixer -c 0 sset "IEC958" 70% mute &>/dev/null
+
+    # special stuff
+    $alsa_amixer -c 0 sset "Master Playback Switch" on &>/dev/null
+    $alsa_amixer -c 0 sset "Master Surround" on &>/dev/null
+    $alsa_amixer -c 0 sset "SB Live Analog/Digital Output Jack" off &>/dev/null
+    $alsa_amixer -c 0 sset "Audigy Analog/Digital Output Jack" off &>/dev/null
+}
+
 configure_live_installer_live(){
     if [ -e "/etc/live-installer/install.conf" ] ; then
       _conf_file="/etc/live-installer/install.conf"
     fi
 }
 
-configure_calamares_live() {
+configure_calamares_live(){
     if [ -e "/usr/share/calamares/settings.conf" ] ; then
 	echo "configure calamares" >> /tmp/livecd.log
 	_conf_file="/usr/share/calamares/modules/unpackfs.conf"
@@ -406,6 +412,10 @@ configure_thus_live(){
 ######################################
 ######### end livecd #################
 ######################################
+
+gen_pw(){
+    echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
+}
 
 # $1: chroot
 configure_machine_id(){
@@ -766,4 +776,3 @@ configure_calamares(){
 	fi  
     fi
 }
-

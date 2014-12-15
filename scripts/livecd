@@ -20,11 +20,7 @@ echo "update fstab for swap" > /tmp/livecd.log
 
 ## Systemd should do it
 # scan_swap
-swapdev="$(fdisk -l 2>/dev/null | grep swap | cut -d' ' -f1)"
-if [ -e "${swapdev}" ]; then
-	swapon ${swapdev}
-	echo "${swapdev} swap swap defaults 0 0 #configured by manjaroiso" >>/etc/fstab
-fi
+configure_swap_live
 
 echo "set locale" >> /tmp/livecd.log
 
@@ -35,7 +31,7 @@ locale-gen
 echo "configure alsa" >> /tmp/livecd.log
 
 # configure alsa
-set_alsa
+configure_alsa_live
 
 # configure pulse
 if [ -e "/usr/bin/pulseaudio-ctl" ] ; then
@@ -45,7 +41,7 @@ fi
 # save settings
 alsactl -f /etc/asound.state store &>/dev/null
 
-echo "enable default mirror" >> /tmp/livecd.log
+#echo "enable default mirror" >> /tmp/livecd.log
 
 # enable default mirror
 #cp -f /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
@@ -56,20 +52,7 @@ echo "enable default mirror" >> /tmp/livecd.log
 echo "configure system" >> /tmp/livecd.log
 
 # add BROWSER var
-echo "BROWSER=/usr/bin/xdg-open" >> /etc/environment
-echo "BROWSER=/usr/bin/xdg-open" >> /etc/skel/.bashrc
-echo "BROWSER=/usr/bin/xdg-open" >> /etc/profile
-# add TERM var
-if [ -e "/usr/bin/mate-session" ] ; then
-    echo "TERM=mate-terminal" >> /etc/environment
-    echo "TERM=mate-terminal" >> /etc/profile
-fi	
-
-## FIXME - Workaround to launch mate-terminal
-if [ -e "/usr/bin/mate-session" ] ; then
-   sed -i -e "s~^.*Exec=.*~Exec=mate-terminal -e 'sudo setup'~" "/etc/skel/Desktop/installer-launcher-cli.desktop"
-   sed -i -e "s~^.*Terminal=.*~Terminal=false~" "/etc/skel/Desktop/installer-launcher-cli.desktop"
-fi
+configure_env_live
 
 # do_configsforroot
 cp -a /etc/skel/. /root/
@@ -77,27 +60,17 @@ cp -a /etc/skel/. /root/
 echo "configure sudoers" >> /tmp/livecd.log
 
 # do_fix_perms
-chown root:root /etc/sudoers
-sed -i -e 's|# %wheel ALL=(ALL) ALL|%wheel ALL=(ALL) ALL|g' /etc/sudoers
-chmod 440 /etc/sudoers
+configure_sudo_live
 
 echo "configure applications" >> /tmp/livecd.log
 
 # fix_gnome_apps
-glib-compile-schemas /usr/share/glib-2.0/schemas
-gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
-if [ -e "/usr/bin/dconf" ] ; then
-   dconf update
-fi
-if [ -e "/usr/bin/gnome-keyring-daemon" ] ; then
-   setcap cap_ipc_lock=ep /usr/bin/gnome-keyring-daemon &> /dev/null
-fi
+configure_gnome_live
 
 # fix_ping_installation
-setcap cap_net_raw=ep /usr/bin/ping &> /dev/null
-setcap cap_net_raw=ep /usr/bin/ping6 &> /dev/null
+configure_ping_live
 
-install_localization
+install_localization_live
 
 # # set unique machine-id
 # dbus-uuidgen --ensure=/etc/machine-id

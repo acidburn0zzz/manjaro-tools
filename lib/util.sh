@@ -370,10 +370,6 @@ load_pacman_conf(){
     return 0
 }
 
-gen_pw(){
-    echo $(perl -e 'print crypt($ARGV[0], "password")' ${password})
-}
-
 load_sets(){
     local prof temp
     for item in $(ls ${profiledir}/*.set); do

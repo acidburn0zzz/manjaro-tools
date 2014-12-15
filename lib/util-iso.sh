@@ -631,6 +631,47 @@ make_lng_image() {
     fi
 }
 
+load_desktop_definition(){
+    if [ -e Packages-Xfce ] ; then
+	pkgsfile="Packages-Xfce"
+    fi
+    if [ -e Packages-Kde ] ; then
+    	pkgsfile="Packages-Kde"
+    fi
+    if [ -e Packages-Gnome ] ; then
+   	pkgsfile="Packages-Gnome" 
+    fi
+    if [ -e Packages-Cinnamon ] ; then
+   	pkgsfile="Packages-Cinnamon" 
+    fi
+    if [ -e Packages-Openbox ] ; then
+  	pkgsfile="Packages-Openbox"  
+    fi
+    if [ -e Packages-Lxde ] ; then
+ 	pkgsfile="Packages-Lxde"   
+    fi
+    if [ -e Packages-Lxqt ] ; then
+    	pkgsfile="Packages-Lxqt"
+    fi
+    if [ -e Packages-Mate ] ; then
+    	pkgsfile="Packages-Mate"
+    fi
+    if [ -e Packages-Enlightenment ] ; then
+    	pkgsfile="Packages-Enlightenment"
+    fi
+    if [ -e Packages-Net ] ; then
+   	pkgsfile="Packages-Net" 
+    fi
+    if [ -e Packages-PekWM ] ; then
+	pkgsfile="Packages-PekWM"
+    fi
+    if [ -e Packages-Custom ] ; then
+    	pkgsfile="Packages-Custom"
+    fi
+    desktop=${pkgsfile#*-}
+    desktop=${desktop,,}
+}
+
 get_pkglist_xorg(){
     if [ "${arch}" == "i686" ]; then
 	xorg_packages=$(sed "s|#.*||g" Packages-Xorg | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|>free_x64.*||g" | sed "s|>free_uni||g" | sed "s|>nonfree_x64.*||g" | sed "s|>nonfree_uni||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')

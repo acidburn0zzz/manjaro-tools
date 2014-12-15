@@ -420,7 +420,7 @@ configure_user_root(){
 	# set up user and password
 	local pass=$(gen_pw)
 	msg2 "Setting root password ${password} ..."
-	echo "${password}" | chroot-run $1 chpasswd 
+	echo "${pass}" | chroot-run $1 chpasswd 
 }
 
 # $1: chroot

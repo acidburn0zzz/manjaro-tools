@@ -485,6 +485,15 @@ configure_services(){
    fi
 }
 
+fix_lightdm(){
+      getent group lightdm > /dev/null 2>&1 || groupadd -g 620 lightdm
+      getent passwd lightdm > /dev/null 2>&1 || useradd -c 'LightDM Display Manager' -u 620 -g lightdm -d /var/run/lightdm -s /usr/bin/nologin lightdm
+      passwd -l lightdm > /dev/null
+      chown -R lightdm:lightdm /var/run/lightdm > /dev/null
+      mkdir -p /run/lightdm > /dev/null
+      mkdir -p $1/var/lib/lightdm-data
+}
+
 # $1: chroot
 configure_displaymanager(){
     _displaymanager=''
@@ -530,7 +539,7 @@ configure_displaymanager(){
 	    chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
 	   
 	   # livecd fix
-	    mkdir -p $1/var/lib/lightdm-data
+	    #mkdir -p $1/var/lib/lightdm-data
 	fi
 	#chmod +r $1/etc/lightdm/lightdm.conf
 		

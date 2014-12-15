@@ -388,6 +388,8 @@ make_pkgs_image() {
 	if ! ${is_cache_pkgs};then
 	    download_to_cache "${work_dir}/pkgs-image" "${cache_pkgs}" "${xorg_packages}"
 	    copy_cache_pkgs	
+	else
+	    copy_cache_pkgs
 	fi
 	
 	if [ ! -z "${xorg_packages_cleanup}" ]; then
@@ -436,10 +438,14 @@ make_lng_image() {
 	    if ! ${is_cache_lng};then
 		download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages} ${lng_packages_kde}"
 		copy_cache_lng
+	    else
+		copy_cache_lng
 	    fi
 	else
 	    if ! ${is_cache_lng};then
 		download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages}"
+		copy_cache_lng
+	    else
 		copy_cache_lng
 	    fi
 	fi

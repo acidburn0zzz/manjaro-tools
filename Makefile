@@ -55,7 +55,7 @@ CPIOINST = \
 	inst/miso_pxe_nbd \
 	inst/miso_kms
 	
-LIVECD = \
+SCRIPTS = \
 	livecd/mhwd \
 	livecd/livecd
 
@@ -95,8 +95,8 @@ install:
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/initcpio/install
 	install -m0755 ${CPIOINST} $(DESTDIR)$(PREFIX)/lib/initcpio/install
 	
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/manjaro-tools/livecd
-	install -m0644 ${LIVECD} $(DESTDIR)$(PREFIX)/share/manjaro-tools/livecd
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/manjaro-tools/scripts
+	install -m0644 ${SCRIPTS} $(DESTDIR)$(PREFIX)/share/manjaro-tools/scripts
 	
 	#install -Dm0644 bin/bash_completion $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
 	#install -Dm0644 bin/zsh_completion $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools
@@ -117,7 +117,7 @@ uninstall:
 	for f in ${CPIOHOOKS}; do rm -f $(DESTDIR)$(PREFIX)/lib/initcpio/hooks/$$f; done
 	for f in ${CPIOINST}; do rm -f $(DESTDIR)$(PREFIX)/lib/initcpio/install/$$f; done
 	
-	for f in ${LIVECD}; do rm -f $(DESTDIR)$(PREFIX)/share/manjaro-tools/livecd/$$f; done
+	for f in ${SCRIPTS}; do rm -f $(DESTDIR)$(PREFIX)/share/manjaro-tools/scripts/$$f; done
 	
 	#rm $(DESTDIR)/$(PREFIX)/share/bash-completion/completions/manjaro_tools
 	#rm $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_manjaro_tools

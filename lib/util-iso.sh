@@ -45,6 +45,8 @@ copy_livecd_helpers(){
     cp ${LIBDIR}/util-mount.sh $1
     cp ${LIBDIR}/util.sh $1
     cp ${BINDIR}/chroot-run $1
+    cp ${PKGDATADIR}/scripts/livecd $1
+    cp ${PKGDATADIR}/scripts/mhwd $1
     
     # fix paths
     sed -e "s|${LIBDIR}|/opt/livecd|g" -i $1/chroot-run

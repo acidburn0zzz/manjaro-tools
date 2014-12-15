@@ -56,8 +56,8 @@ CPIOINST = \
 	inst/miso_kms
 	
 SCRIPTS = \
-	livecd/mhwd \
-	livecd/livecd
+	scripts/mhwd \
+	scripts/livecd
 
 all: $(BINPROGS) #bin/bash_completion bin/zsh_completion
 

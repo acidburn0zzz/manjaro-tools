@@ -422,7 +422,7 @@ configure_machine_id(){
 # set unique machine-id
     msg2 "Setting machine-id ..."
     chroot-run $1 dbus-uuidgen --ensure=/etc/machine-id
-    chroot-run $1 dbus-uuidgen --ensure=/var/lib/dbus/machine-id
+    #chroot-run $1 dbus-uuidgen --ensure=/var/lib/dbus/machine-id
 }
 
 # $1: chroot

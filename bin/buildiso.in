@@ -223,6 +223,10 @@ make_images(){
     if [ -e Packages-Lng ] ; then
 	make_lng_image
     fi
+    
+    if [[ -f Packages-Livecd ]]; then
+	make_overlay_image
+    fi
     # install common
     make_boot
     if [ "${arch}" == "x86_64" ]; then
@@ -230,8 +234,6 @@ make_images(){
 	make_efiboot
     fi
     make_isolinux
-
-    make_overlay_image
 }
 
 compress_images(){

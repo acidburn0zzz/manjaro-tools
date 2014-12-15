@@ -408,6 +408,14 @@ configure_thus_live(){
 ######################################
 
 # $1: chroot
+configure_machine_id(){
+# set unique machine-id
+    msg2 "Setting machine-id ..."
+    chroot-run $1 dbus-uuidgen --ensure=/etc/machine-id
+    chroot-run $1 dbus-uuidgen --ensure=/var/lib/dbus/machine-id
+}
+
+# $1: chroot
 configure_user(){
 	# set up user and password
 	local pass=$(gen_pw)
@@ -417,10 +425,10 @@ configure_user(){
 
 # $1: chroot
 configure_user_root(){
-	# set up user and password
+	# set up root password
 	local pass=$(gen_pw)
 	msg2 "Setting root password ${password} ..."
-	echo "${pass}" | chroot-run $1 chpasswd 
+	chroot-run $1 echo "root:${pass}" | chpasswd 
 }
 
 # $1: chroot

@@ -363,7 +363,7 @@ make_root_image() {
 	fi
 	
 	copy_overlay "${work_dir}/root-image"
-		
+	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
 	
@@ -495,6 +495,8 @@ make_overlay_image() {
 	configure_user_root "${work_dir}/overlay-image"
 	
 	configure_user "${work_dir}/overlay-image"
+	
+	configure_machine_id "${work_dir}/overlay-image"
 	
 	configure_displaymanager "${work_dir}/overlay-image"
 	

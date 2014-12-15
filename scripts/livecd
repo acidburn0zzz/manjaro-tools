@@ -99,9 +99,9 @@ setcap cap_net_raw=ep /usr/bin/ping6 &> /dev/null
 
 install_localization
 
-# set unique machine-id
-#dbus-uuidgen --ensure=/etc/machine-id
-#dbus-uuidgen --ensure=/var/lib/dbus/machine-id
+# # set unique machine-id
+# dbus-uuidgen --ensure=/etc/machine-id
+# dbus-uuidgen --ensure=/var/lib/dbus/machine-id
 
 # depmod extramodules
 depmod $(cat /usr/lib/modules/$EXTRAMODULES/version)

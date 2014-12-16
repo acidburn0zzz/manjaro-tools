@@ -25,14 +25,15 @@ configure_user(){
 	# set up user and password
 	local pass=$(gen_pw)
 	msg2 "Creating user: ${username} password: ${password} ..."
-	chroot $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
+	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
 }
 
 # $1: chroot
 configure_user_root(){
 	# set up root password
 	msg2 "Setting root password: ${password} ..."
-	echo "root:$(gen_pw)" | chroot $1 chpasswd
+	# currently disabled again, still not working, still screws up real root pw
+	#echo "root:$(gen_pw)" | chroot-run $1 chpasswd
 }
 
 # $1: chroot

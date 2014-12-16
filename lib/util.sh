@@ -161,6 +161,14 @@ load_vars() {
     return 0
 }
 
+get_displaymanager(){
+    if [[ -f ${work_dir}/displaymanager ]];then
+	echo $(cat ${work_dir}/displaymanager)
+    else
+	echo "none"
+    fi
+}
+
 load_config(){
 
     [[ -f $1 ]] || return 1
@@ -352,6 +360,12 @@ load_config(){
 	cache_pkgs=${cache_pkgs}
     else
 	cache_pkgs='/var/cache/manjaro-tools/pkgs'
+    fi
+    
+    if [[ -n ${displaymanager} ]];then
+	displaymanager=${displaymanager}
+    else
+	displaymanager=$(get_displaymanager)
     fi
     
     return 0

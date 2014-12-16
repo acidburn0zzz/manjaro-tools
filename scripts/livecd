@@ -41,18 +41,6 @@ fi
 # save settings
 alsactl -f /etc/asound.state store &>/dev/null
 
-#echo "enable default mirror" >> /tmp/livecd.log
-
-# enable default mirror
-#cp -f /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-#if [ ! -z "$ping_check" ] ; then
-#   pacman-mirrors -g &>/dev/null
-#fi
-
-# if [ -e "$1/usr/bin/lightdm" ] ; then
-#     fix_lightdm
-# fi
-
 echo "configure system" >> /tmp/livecd.log
 
 # add BROWSER var
@@ -75,10 +63,6 @@ configure_gnome_live
 configure_ping_live
 
 install_localization_live
-
-# # set unique machine-id
-# dbus-uuidgen --ensure=/etc/machine-id
-# dbus-uuidgen --ensure=/var/lib/dbus/machine-id
 
 # depmod extramodules
 depmod $(cat /usr/lib/modules/$EXTRAMODULES/version)

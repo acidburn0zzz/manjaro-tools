@@ -19,7 +19,7 @@ SYSCONFDIR='@sysconfdir@'
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 [[ -r ${LIBDIR}/util.sh ]] && source ${LIBDIR}/util.sh
 [[ -r ${LIBDIR}/util-iso.sh ]] && source ${LIBDIR}/util-iso.sh
-[[ -r ${LIBDIR}/util-livecd.sh ]] && source ${LIBDIR}/util-livecd.sh
+# [[ -r ${LIBDIR}/util-livecd.sh ]] && source ${LIBDIR}/util-livecd.sh
 # [[ -r ${LIBDIR}/util-mount.sh ]] && source ${LIBDIR}/util-mount.sh
 
 display_settings(){

@@ -40,22 +40,36 @@ display_settings(){
     msg "ARGS:"
     msg2 "xorg_overlays: ${xorg_overlays}"
     msg2 "kde_lng_packages: ${kde_lng_packages}"
+    
+
+    
+    msg2 "high_compression: ${high_compression}"
     msg2 "high_compression: ${high_compression}"
     
-    msg "ISO SETTINGS:"
-    msg2 "iso_label: ${iso_label}"
-    msg2 "iso_version: ${iso_version}"
+    msg "IMAGES SETTINGS:"
+    msg2 "clean_first: ${clean_first}"
+    msg2 "cache_pkgs: ${cache_pkgs}"
+    msg2 "cache_lng: ${cache_lng}"
+    msg2 "is_cache_pkgs: ${is_cache_pkgs}"
+    msg2 "is_cache_lng: ${is_cache_lng}"
+    msg2 "images_only: ${images_only}"
     msg2 "manjaro_kernel: ${manjaro_kernel}"
     msg2 "manjaro_kernel_ver: ${manjaro_kernel_ver}"
     msg2 "manjaro_version: ${manjaro_version}"
+    
+    msg "ISO SETTINGS:"
+    msg2 "iso_only: ${iso_only}"
+    msg2 "high_compression: ${high_compression}"
+    msg2 "overwrite: ${overwrite}"
+    msg2 "iso_label: ${iso_label}"
+    msg2 "iso_version: ${iso_version}"
     msg2 "manjaroiso: ${manjaroiso}"
     msg2 "code_name: ${code_name}"
     msg2 "img_name: ${img_name}"
     msg2 "install_dir: ${install_dir}"
     msg2 "plymouth_theme: ${plymouth_theme}"
     msg2 "compression: ${compression}"
-    msg2 "cache_pkgs: ${cache_pkgs}"
-    msg2 "cache_lng: ${cache_lng}"
+
     
     msg "LIVECD:"
     msg2 "username: ${username}"
@@ -65,6 +79,7 @@ display_settings(){
     msg2 "hostname: ${hostname}"
     msg2 "pacman_mirrors: ${mirrors_conf}"
     
+    msg2 "auto_svc_conf: ${auto_svc_conf}"
     if ${auto_svc_conf};then
 	msg2 "startservices_systemd: ${startservices_systemd[*]}"
 	msg2 "startservices_openrc: ${startservices_openrc[*]}"
@@ -201,7 +216,7 @@ fi
 ${pretend} && display_settings && exit 1
 
 if ${iso_only}; then
-    [[ ! -d ${work_dir} ]] && die "You need to breate images first"
+    [[ ! -d ${work_dir} ]] && die "You need to create images first eg buildiso -cI"
     compress_images 
     exit 1
 fi
@@ -253,6 +268,7 @@ compress_images(){
 
 if ${images_only}; then
     make_images
+    warning "Continue with eg. buildiso -Gvzf ..."
     exit 1
 else
     make_images

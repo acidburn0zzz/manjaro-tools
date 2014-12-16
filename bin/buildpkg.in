@@ -37,6 +37,10 @@ display_settings(){
     msg "ARGS:"
     msg2 "mkchrootpkg_args: ${mkchrootpkg_args[*]}"
     msg2 "makepkg_args: ${makepkg_args[*]}"
+    msg2 "clean_first: ${clean_first}"
+    msg2 "wipe_clean: ${wipe_clean}"
+    msg2 "namcap: ${namcap}"
+    msg2 "sign: ${sign}"
     
     msg "PATHS:"
     msg2 "chrootdir: ${chrootdir}"

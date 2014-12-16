@@ -215,6 +215,19 @@ fi
 
 ${pretend} && display_settings && exit 1
 
+compress_images(){
+    # install common
+    make_boot
+    if [ "${arch}" == "x86_64" ]; then
+	make_efi
+	make_efiboot
+    fi
+    make_isolinux
+
+    make_isomounts
+    make_iso
+}
+
 if ${iso_only}; then
     [[ ! -d ${work_dir} ]] && die "You need to create images first eg buildiso -cI"
     compress_images 
@@ -231,7 +244,6 @@ prepare_buildiso
 # fi
 
 make_images(){
-
     # install basic
     make_root_image
 
@@ -249,21 +261,10 @@ make_images(){
 	make_lng_image
     fi
     
+    # install overlay
     if [[ -f Packages-Livecd ]]; then
 	make_overlay_image
     fi
-    # install common
-    make_boot
-    if [ "${arch}" == "x86_64" ]; then
-	make_efi
-	make_efiboot
-    fi
-    make_isolinux
-}
-
-compress_images(){
-    make_isomounts
-    make_iso
 }
 
 if ${images_only}; then

@@ -437,7 +437,7 @@ configure_user(){
 configure_user_root(){
 	# set up root password
 	msg2 "Setting root password ${password} ..."
-	local _cmd=echo "root:$(gen_pw)"
+	local _cmd=echo "$(gen_pw):root"
 	msg2 "Command string: $_cmd"
 	chroot-run $1 $_cmd | chpasswd
 }

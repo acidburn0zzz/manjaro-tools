@@ -32,7 +32,7 @@ configure_user(){
 configure_user_root(){
 	# set up root password
 	msg2 "Setting root password: ${password} ..."
-	chroot-run $1 echo "root:$(gen_pw)" | chpasswd
+	echo "root:$(gen_pw)" chroot-run $1 | chpasswd
 }
 
 # $1: chroot

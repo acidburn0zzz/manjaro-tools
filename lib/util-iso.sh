@@ -33,6 +33,7 @@ configure_user_root(){
 	# set up root password
 	msg2 "Setting root password: ${password} ..."
 	# currently disabled again, still not working, still screws up real root pw
+	msg2 "Currently disabled until fixed"
 	#echo "root:$(gen_pw)" | chroot-run $1 chpasswd
 }
 

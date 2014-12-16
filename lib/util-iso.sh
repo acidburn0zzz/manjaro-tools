@@ -610,7 +610,8 @@ make_overlay_image() {
 
 	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"
 	
-	configure_user_root "${work_dir}/overlay-image"
+	# TODO: fix this, screws up root password on build system
+	#configure_user_root "${work_dir}/overlay-image"
 	
 	configure_user "${work_dir}/overlay-image"
 		

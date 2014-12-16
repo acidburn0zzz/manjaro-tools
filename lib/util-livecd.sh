@@ -436,9 +436,10 @@ configure_user(){
 # $1: chroot
 configure_user_root(){
 	# set up root password
-	local pass=$(gen_pw)
 	msg2 "Setting root password ${password} ..."
-	chroot-run $1 echo "root:${pass}" | chpasswd 
+	local _cmd=echo "$(gen_pw):root"
+	msg2 "Command string: $_cmd"
+	chroot-run $1 $_cmd | chpasswd
 }
 
 # $1: chroot
@@ -526,7 +527,7 @@ configure_displaymanager(){
 	      sed -i -e 's/^.*user-session=.*/user-session=pekwm/' $1/etc/lightdm/lightdm.conf
 	fi
 	
-	chroot-run $1 groupadd autologin
+	
 	
 	if [[ $1 != "${work_dir}/${desktop}-image" ]]; then
 	
@@ -537,6 +538,7 @@ configure_displaymanager(){
 	    #sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
 	    
 	    chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
+	    chroot-run $1 groupadd autologin
 	   
 	   # livecd fix
 	    #mkdir -p $1/var/lib/lightdm-data

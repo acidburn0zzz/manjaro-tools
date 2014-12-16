@@ -48,9 +48,10 @@ alsactl -f /etc/asound.state store &>/dev/null
 #if [ ! -z "$ping_check" ] ; then
 #   pacman-mirrors -g &>/dev/null
 #fi
-if [ -e "$1/usr/bin/lightdm" ] ; then
-    fix_lightdm
-fi
+
+# if [ -e "$1/usr/bin/lightdm" ] ; then
+#     fix_lightdm
+# fi
 
 echo "configure system" >> /tmp/livecd.log
 

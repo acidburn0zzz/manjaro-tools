@@ -148,20 +148,20 @@ clean_up(){
 }
 
 _mkchroot(){
-	local ret
+	#local ret
 	#mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
 	if "${QUIET}"; then
 	    setarch "${ARCH}" \
 		mkchroot -C ${PACCONFIG} \
 		-S ${MIRRORS} \
-		"${work_dir}/${IMAGE_FOLDER}" $@ &> /dev/null || abort "Failed to download all packages."
-	    ret=$?
+		"${work_dir}/${IMAGE_FOLDER}" $@ &> /dev/null || die "Failed to download all packages."
+	    #ret=$?
 	else
 	    setarch "${ARCH}" \
 		mkchroot -C ${PACCONFIG} \
 		-S ${MIRRORS} \
-		"${work_dir}/${IMAGE_FOLDER}" $@ || abort "Failed to download all packages."
-	    ret=$?
+		"${work_dir}/${IMAGE_FOLDER}" $@ || die "Failed to download all packages."
+	    #ret=$?
 	fi
 	
 	if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
@@ -171,9 +171,9 @@ _mkchroot(){
 	 # Cleanup
 	find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
 	
-	if [ $ret -ne 0 ]; then
-	    exit 1
-	fi
+# 	if [ $ret -ne 0 ]; then
+# 	    exit 1
+# 	fi
 }
 
 command_create () {
@@ -183,7 +183,7 @@ command_create () {
 
     if [ ! -z "${PKGLIST}" ]; then
         #msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-	_mkchroot "${PKGLIST}" || abort "Failed to create chroot."
+	_mkchroot "${PKGLIST}" #|| die "Failed to create chroot."
     fi
     
     clean_up
@@ -236,7 +236,7 @@ _imgcommon () {
 
     # Sanity checks
     if [ ! -d "${work_dir}/iso" ]; then
-        error "${work_dir}/iso doesn't exist. What did you do?!"
+        die "${work_dir}/iso doesn't exist. What did you do?!"
     fi
 
     if [ ! -f "${work_dir}/iso/${INSTALL_DIR}/isomounts" ]; then
@@ -249,21 +249,22 @@ _imgcommon () {
             msg2 "Removing existing bootable image..."
             rm -rf "${imgname}"
         else
-            error "Image ${imgname} already exists, aborting."
+            error "Image ${imgname} already exists."
+            abort
         fi
     fi
 
     if ! sed "s|%MANJAROISO_LABEL%|${LABEL}|g;
               s|%INSTALL_DIR%|${INSTALL_DIR}|g;
               s|%ARCH%|${ARCH}|g" -i ${work_dir}/iso/isolinux/*.cfg; then
-        abort "${work_dir}/iso/isolinux/isolinux.cfg, doesn't exist, aborting."
+	die "${work_dir}/iso/isolinux/isolinux.cfg, doesn't exist."
     fi
 
     if [ ! -f "${work_dir}/iso/isolinux/isolinux.bin" ]; then
-         abort "${work_dir}/iso/isolinux/isolinux.bin, doesn't exist, aborting."
+	die "${work_dir}/iso/isolinux/isolinux.bin, doesn't exist."
     fi
     if [ ! -f "${work_dir}/iso/isolinux/isohdpfx.bin" ]; then
-         abort "${work_dir}/iso/isolinux/isohdpfx.bin, doesn't exist, aborting."
+	die "${work_dir}/iso/isolinux/isohdpfx.bin, doesn't exist." 
     fi
 }
 

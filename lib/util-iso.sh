@@ -25,14 +25,14 @@ configure_user(){
 	# set up user and password
 	local pass=$(gen_pw)
 	msg2 "Creating user: ${username} password: ${password} ..."
-	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
+	chroot $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
 }
 
 # $1: chroot
 configure_user_root(){
 	# set up root password
 	msg2 "Setting root password: ${password} ..."
-	echo "root:$(gen_pw)" chroot-run $1 | chpasswd
+	echo "root:$(gen_pw)" | chroot $1 chpasswd
 }
 
 # $1: chroot
@@ -80,6 +80,11 @@ configure_services(){
 }
 
 # $1: chroot
+configure_hosts(){
+      sed -e "s|localhost.localdomain|localhost.localdomain ${hostname}|" -i $1/etc/hosts
+}
+
+# $1: chroot
 configure_displaymanager(){
 
     _displaymanager=''
@@ -119,8 +124,8 @@ configure_displaymanager(){
 	    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
 	    #sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
 	
-	    chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
-	    chroot-run $1 groupadd autologin
+	    chroot $1 gpasswd -a ${username} autologin &> /dev/null
+	    chroot $1 groupadd autologin
 	fi
 	
 	
@@ -538,6 +543,8 @@ make_root_image() {
 	configure_machine_id "${work_dir}/root-image"
 
 	configure_hostname "${work_dir}/root-image"
+	
+	configure_hosts "${work_dir}/root-image"
 	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"

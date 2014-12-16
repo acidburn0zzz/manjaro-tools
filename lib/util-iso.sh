@@ -118,12 +118,16 @@ configure_displaymanager(){
 	    sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
 	    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
 	    #sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
-	    
+	
 	    chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
-	    chroot-run $1 groupadd autologin
-
 	fi
-
+	
+	chroot-run $1 groupadd autologin
+	
+	if [[ -e $1/usr/bin/openrc ]];then
+	    echo "d /run/lightdm 0711 lightdm lightdm" > $1/usr/lib/tmpfiles.d/lightdm.conf
+	fi
+	    
 	_displaymanager='lightdm'
     fi
 
@@ -329,7 +333,10 @@ configure_calamares(){
 	    echo "        destination: \"\"" >> "$UNPACKFS"                
 	fi
 	
-	# TODO maybe add a configuration flag in manjaro-tools.conf for default displymanager
+	# TODO: maybe add a configuration flag in manjaro-tools.conf for default displymanager
+	
+	# TODO: review autodetection for systemd; a flag for DM could end up confusing
+	# intended goal is a auto configuration of services for overlay & desktop image
 	
 	#local DISPLAYMANAGER="$1/etc/calamares/modules/displaymanager.conf"
 	

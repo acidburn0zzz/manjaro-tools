@@ -24,20 +24,20 @@ configure_machine_id(){
 configure_user(){
 	# set up user and password
 	local pass=$(gen_pw)
-	msg2 "Creating user ${username} with password ${password} ..."
+	msg2 "Creating user: ${username} password: ${password} ..."
 	chroot-run $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
 }
 
 # $1: chroot
 configure_user_root(){
 	# set up root password
-	msg2 "Setting root password ${password} ..."
+	msg2 "Setting root password: ${password} ..."
 	chroot-run $1 echo "root:$(gen_pw)" | chpasswd
 }
 
 # $1: chroot
 configure_hostname(){
-	msg2 "Setting hostname ${hostname} ..."
+	msg2 "Setting hostname: ${hostname} ..."
 	if [[ -f $1/usr/bin/openrc ]];then
 	    local _hostname='hostname="'${hostname}'"'
 	    sed -i -e "s|^.*hostname=.*|${_hostname}|" $1/etc/conf.d/hostname
@@ -271,6 +271,8 @@ configure_displaymanager(){
     else
 	chroot-run $1 systemctl enable ${_displaymanager}
     fi
+    
+    msg2 "Configured: ${_displaymanager}"
 }
 
 # $1: chroot
@@ -379,10 +381,10 @@ configure_calamares(){
 
 # $1: source image
 # $2: target image
-copy_userconfig(){	
-    msg2 "Copying $1/etc/skel/. $2/etc/skel"
-    cp -a --no-preserve=ownership $1/etc/skel/. $2/etc/skel
-}
+# copy_userconfig(){	
+#     msg2 "Copying $1/etc/skel/. $2/etc/skel"
+#     cp -a --no-preserve=ownership $1/etc/skel/. $2/etc/skel
+# }
 
 copy_initcpio(){
     cp /usr/lib/initcpio/hooks/miso* ${work_dir}/boot-image/usr/lib/initcpio/hooks
@@ -391,17 +393,17 @@ copy_initcpio(){
 }
 
 copy_overlay(){
-    msg2 "Copying overlay to $1"
+    msg2 "Copying overlay ..."
     cp -a --no-preserve=ownership overlay/* $1
 }
 
 copy_overlay_desktop(){
-    msg2 "Copying ${desktop}-overlay to ${work_dir}/${desktop}-image"
+    msg2 "Copying ${desktop}-overlay ..."
     cp -a --no-preserve=ownership ${desktop}-overlay/* ${work_dir}/${desktop}-image
 }
 
 copy_overlay_livecd(){
-	msg2 "Copying overlay-livecd to $1 ..."
+	msg2 "Copying overlay-livecd ..."
 	cp -a --no-preserve=ownership overlay-livecd/* $1
 }
 
@@ -423,10 +425,10 @@ copy_livecd_helpers(){
     sed -e "s|${LIBDIR}|/opt/livecd|g" -i $1/chroot-run
     
     if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
-	msg2 "Copying ${USER_CONFIG}/manjaro-tools.conf to $1 ..."
+	msg2 "Copying ${USER_CONFIG}/manjaro-tools.conf ..."
 	cp ${USER_CONFIG}/manjaro-tools.conf $1
     else
-	msg2 "Copying ${manjaro_tools_conf} to $1 ..."
+	msg2 "Copying ${manjaro_tools_conf} ..."
 	cp ${manjaro_tools_conf} $1
     fi 
 }
@@ -447,29 +449,27 @@ prepare_buildiso(){
     mkdir -p "${cache_lng}"
 }
 
-check_cache(){
-    if [[ -n $(cat isomounts | grep -F $1) ]]; then 
-	echo true
-    else 
-	echo false
-    fi 
-}
+# check_cache(){
+#     if [[ -n $(cat isomounts | grep -F $1) ]]; then 
+# 	echo true
+#     else 
+# 	echo false
+#     fi 
+# }
 
 clean_cache_lng(){
-    msg "Cleaning ${cache_lng} ..."
-    #rm ${cache_lng}/*
+    msg "Cleaning [${cache_lng}] ..."
     find "${cache_lng}" -name '*.pkg.tar.xz' -delete &>/dev/null
 }
 
 clean_cache_pkgs(){
-    msg "Cleaning ${cache_pkgs} ..."
-    #rm ${cache_pkgs}/*
+    msg "Cleaning [${cache_pkgs}] ..."
     find "${cache_pkgs}" -name '*.pkg.tar.xz' -delete &>/dev/null
 }
 
 clean_up(){
     if [[ -d ${work_dir} ]];then
-	msg "Removing work dir ${work_dir}"
+	msg "Removing [${work_dir}] ..."
 	rm -r ${work_dir}
     fi
 }
@@ -490,19 +490,19 @@ download_to_cache(){
 
 # Build ISO
 make_iso() {
-    msg "Build ISO"
+    msg "Start [Build ISO]"
     touch "${work_dir}/iso/.miso"
     
     mkiso ${iso_args[*]} iso "${work_dir}" "${iso_file}"
     chown -R "${iso_owner}:users" "${target_dir}"
-    msg "Done build ISO"
+    msg "Done [Build ISO]"
 }
 
 # Base installation (root-image)
 make_root_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
     
-	msg "Base installation (root-image)"
+	msg "Prepare [Base installation] (root-image)"
 	
 	mkiso ${create_args[*]} -p "${packages}" -i "root-image" create "${work_dir}"
 	
@@ -546,13 +546,13 @@ make_root_image() {
 	#sed -i -e "s/stable/$branch/" ${work_dir}/root-image/etc/pacman-mirrors.conf
 		
 	: > ${work_dir}/build.${FUNCNAME}
-	msg "Done base installation (root-image)"
+	msg "Done [Base installation] (root-image)"
     fi
 }
 
 make_de_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "${desktop} installation (${desktop}-image)"
+	msg "Prepare [${desktop} installation] (${desktop}-image)"
 	
 	mkdir -p ${work_dir}/${desktop}-image
 	
@@ -583,13 +583,13 @@ make_de_image() {
 	
 	rm -R ${work_dir}/${desktop}-image/.wh*
 	: > ${work_dir}/build.${FUNCNAME}
-	msg "Done ${desktop} installation (${desktop}-image)"
+	msg "Done [${desktop} installation] (${desktop}-image)"
     fi
 }
 
 make_overlay_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare overlay-image"
+	msg "Prepare [overlay-image]"
 	
 	mkdir -p ${work_dir}/overlay-image
 	
@@ -639,12 +639,12 @@ make_overlay_image() {
 	rm -R ${work_dir}/overlay-image/.wh*
 	
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done overlay-image"
+	msg "Done [overlay-image]"
     fi
 }
 
 make_free_overlay(){
-	msg "Prepare pkgs-free-overlay"
+	msg "Prepare [pkgs-free-overlay]"
 	mkdir -p ${work_dir}/pkgs-free-overlay
 	if [ ! -z "$(mount -l | grep pkgs-free-overlay)" ]; then
 	  umount -l ${work_dir}/pkgs-free-overlay
@@ -670,11 +670,11 @@ make_free_overlay(){
 	fi
 
 	rm -R ${work_dir}/pkgs-free-overlay/.wh*
-	msg "Done pkgs-free-overlay"
+	msg "Done [pkgs-free-overlay]"
 }
 
 make_non_free_overlay(){
-	msg "Prepare pkgs-nonfree-overlay"
+	msg "Prepare [pkgs-nonfree-overlay]"
 	mkdir -p ${work_dir}/pkgs-nonfree-overlay
       
 	if [ ! -z "$(mount -l | grep pkgs-nonfree-overlay)" ]; then
@@ -700,38 +700,38 @@ make_non_free_overlay(){
 	fi
 	
 	rm -R ${work_dir}/pkgs-nonfree-overlay/.wh*
-	msg "Done pkgs-nonfree-overlay"
+	msg "Done [pkgs-nonfree-overlay]"
 }
 
 configure_xorg_drivers(){
 	# Disable Catalyst if not present
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep catalyst-utils 2> /dev/null)" ]; then
-	    msg "Disabling Catalyst driver"
+	    msg2 "Disabling Catalyst driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/catalyst/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/catalyst/MHWDCONFIG
 	fi
 	
 	# Disable Nvidia if not present
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null)" ]; then
-	    msg "Disabling Nvidia driver"
+	    msg2 "Disabling Nvidia driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia/MHWDCONFIG
 	fi
 	
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-utils 2> /dev/null)" ]; then
-	    msg "Disabling Nvidia Bumblebee driver"
+	    msg2 "Disabling Nvidia Bumblebee driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/hybrid-intel-nvidia-bumblebee/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/hybrid-intel-nvidia-bumblebee/MHWDCONFIG
 	fi
 	
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-304xx-utils 2> /dev/null)" ]; then
-	    msg "Disabling Nvidia 304xx driver"
+	    msg2 "Disabling Nvidia 304xx driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-304xx/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-304xx/MHWDCONFIG
 	fi
 	
 	if  [ -z "$(ls ${work_dir}/pkgs-image/opt/livecd/pkgs/ | grep nvidia-340xx-utils 2> /dev/null)" ]; then
-	    msg "Disabling Nvidia 340xx driver"
+	    msg2 "Disabling Nvidia 340xx driver"
 	    mkdir -p ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-340xx/
 	    touch ${work_dir}/pkgs-image/var/lib/mhwd/db/pci/graphic_drivers/nvidia-340xx/MHWDCONFIG
 	fi
@@ -739,7 +739,7 @@ configure_xorg_drivers(){
 
 make_pkgs_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare pkgs-image"
+	msg "Prepare [pkgs-image]"
 	mkdir -p ${work_dir}/pkgs-image/opt/livecd/pkgs
 	
 	if [ ! -z "$(mount -l | grep pkgs-image)" ]; then
@@ -782,13 +782,13 @@ make_pkgs_image() {
 	    make_non_free_overlay
 	fi
 	: > ${work_dir}/build.${FUNCNAME}
-	msg "Done pkgs-image"
+	msg "Done [pkgs-image]"
     fi
 }
 
 make_lng_image() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare lng-image"
+	msg "Prepare [lng-image]"
 	mkdir -p ${work_dir}/lng-image/opt/livecd/lng
 	
 	if [ ! -z "$(mount -l | grep lng-image)" ]; then
@@ -834,7 +834,7 @@ make_lng_image() {
 	
 	rm -R ${work_dir}/lng-image/.wh*
 	: > ${work_dir}/build.${FUNCNAME}
-	msg "Done lng-image"
+	msg "Done [lng-image]"
     fi
 }
 
@@ -850,7 +850,7 @@ gen_boot_img(){
 make_boot() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
     
-	msg "Prepare ${install_dir}/boot"
+	msg "Prepare [${install_dir}/boot]"
 	mkdir -p ${work_dir}/iso/${install_dir}/boot/${arch}
         
         cp ${work_dir}/root-image/boot/memtest86+/memtest.bin ${work_dir}/iso/${install_dir}/boot/${arch}/memtest
@@ -882,14 +882,14 @@ make_boot() {
         rm -R ${work_dir}/boot-image
         
 	: > ${work_dir}/build.${FUNCNAME}
-	msg "Done ${install_dir}/boot"
+	msg "Done [${install_dir}/boot]"
     fi
 }
 
 # Prepare /EFI
 make_efi() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare ${install_dir}/boot/EFI"
+	msg "Prepare [${install_dir}/boot/EFI]"
         mkdir -p ${work_dir}/iso/EFI/boot
         cp ${work_dir}/root-image/usr/lib/prebootloader/PreLoader.efi ${work_dir}/iso/EFI/boot/bootx64.efi
         cp ${work_dir}/root-image/usr/lib/prebootloader/HashTool.efi ${work_dir}/iso/EFI/boot/
@@ -914,14 +914,14 @@ make_efi() {
         # EFI Shell 1.0 for non UEFI 2.3+ ( http://sourceforge.net/apps/mediawiki/tianocore/index.php?title=Efi-shell )
         curl -k -o ${work_dir}/iso/EFI/shellx64_v1.efi https://svn.code.sf.net/p/edk2/code/trunk/edk2/EdkShellBinPkg/FullShell/X64/Shell_Full.efi
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done ${install_dir}/boot/EFI"
+	msg "Done [${install_dir}/boot/EFI]"
     fi
 }
 
 # Prepare kernel.img::/EFI for "El Torito" EFI boot mode
 make_efiboot() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare ${install_dir}/iso/EFI"
+	msg "Prepare [${install_dir}/iso/EFI]"
         mkdir -p ${work_dir}/iso/EFI/miso
         truncate -s 31M ${work_dir}/iso/EFI/miso/${img_name}.img
         mkfs.vfat -n MISO_EFI ${work_dir}/iso/EFI/miso/${img_name}.img
@@ -957,14 +957,14 @@ make_efiboot() {
 
         umount ${work_dir}/efiboot
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done ${install_dir}/iso/EFI"
+	msg "Done [${install_dir}/iso/EFI]"
     fi
 }
 
 # Prepare /isolinux
 make_isolinux() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare ${install_dir}/iso/isolinux"
+	msg "Prepare [${install_dir}/iso/isolinux]"
 	mkdir -p ${work_dir}/iso/isolinux
         cp -a --no-preserve=ownership isolinux/* ${work_dir}/iso/isolinux
         if [[ -e isolinux-overlay ]]; then
@@ -997,17 +997,17 @@ make_isolinux() {
                 s|%INSTALL_DIR%|${install_dir}|g;
                 s|%ARCH%|${arch}|g" ${work_dir}/iso/isolinux/isolinux.cfg
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done ${install_dir}/iso/isolinux"
+	msg "Done [${install_dir}/iso/isolinux]"
     fi
 }
 
 # Process isomounts
 make_isomounts() {
     if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Process isomounts"
+	msg "Process [isomounts]"
         sed "s|@ARCH@|${arch}|g" isomounts > ${work_dir}/iso/${install_dir}/isomounts
         : > ${work_dir}/build.${FUNCNAME}
-	msg "Done processing isomounts"
+	msg "Done processing [isomounts]"
     fi
 }
 

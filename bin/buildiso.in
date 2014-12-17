@@ -41,11 +41,6 @@ display_settings(){
     msg2 "xorg_overlays: ${xorg_overlays}"
     msg2 "kde_lng_packages: ${kde_lng_packages}"
     
-
-    
-    msg2 "high_compression: ${high_compression}"
-    msg2 "high_compression: ${high_compression}"
-    
     msg "IMAGES SETTINGS:"
     msg2 "clean_first: ${clean_first}"
     msg2 "cache_pkgs: ${cache_pkgs}"
@@ -56,6 +51,7 @@ display_settings(){
     msg2 "manjaro_kernel: ${manjaro_kernel}"
     msg2 "manjaro_kernel_ver: ${manjaro_kernel_ver}"
     msg2 "manjaro_version: ${manjaro_version}"
+    msg2 "displaymanager: ${displaymanager}"
     
     msg "ISO SETTINGS:"
     msg2 "iso_only: ${iso_only}"

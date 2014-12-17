@@ -110,14 +110,14 @@ load_desktop_definition
 displaymanager=$(cat ${PWD}/displaymanager)
 initsys=$(cat ${PWD}/initsys)
 
-clean_first=true
+clean_first=false
 pretend=false
-high_compression=true
+high_compression=false
 verbose=false
-overwrite=true
+overwrite=false
 xorg_overlays=false
 kde_lng_packages=false
-auto_svc_conf=true
+auto_svc_conf=false
 images_only=false
 iso_only=false
 is_cache_pkgs=false
@@ -139,10 +139,10 @@ usage() {
     echo "                       [default: ${PKGDATADIR}/pacman-${pacman_conf_arch}.conf]"
     echo '    -v                 Verbose'
     echo '    -q                 Query settings and pretend build'
-    echo '    -c                 Disable clean work dir'
-    echo '    -f                 Disable iso image overwrite'
-    echo '    -z                 Disable High compression'
-    echo '    -A                 Disable auto configure livecd services as specified'
+    echo '    -c                 Clean work dir'
+    echo '    -f                 Force iso image overwrite'
+    echo '    -z                 High compression'
+    echo '    -A                 Auto configure livecd services as specified'
     echo '                       in manjaro-tools.conf'
     echo '    -X                 Xorg overlays'
     echo '    -K                 kde lng packages'
@@ -168,13 +168,13 @@ while getopts "${opts}" arg; do
 	r) work_dir="$OPTARG" ;;
 	t) target_dir="$OPTARG" ;;
 	i) pacman_conf="$OPTARG" ;;
-	c) clean_first=false ;;
+	c) clean_first=true ;;
 	v) verbose=true; iso_args+=(-v) ;;
-	f) overwrite=false; iso_args+=(-f) ;;
-	z) high_compression=false; iso_args+=(-x) ;;
+	f) overwrite=true; iso_args+=(-f) ;;
+	z) high_compression=true; iso_args+=(-x) ;;
 	X) xorg_overlays=true ;;
 	K) kde_lng_packages=true ;;
-	A) auto_svc_conf=false ;;
+	A) auto_svc_conf=true ;;
 	B) images_only=true ;;
 	G) iso_only=true ;;
 	P) is_cache_pkgs=true ;;

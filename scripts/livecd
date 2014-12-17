@@ -16,6 +16,7 @@ _kernver=${_kernver%%-*}
 _kernver=${_kernver%%.[00-99].[00-99]}
 EXTRAMODULES=extramodules-${_kernver}-MANJARO
 
+
 echo "update fstab for swap" > /tmp/livecd.log
 
 ## Systemd should do it
@@ -28,26 +29,10 @@ echo "set locale" >> /tmp/livecd.log
 set_locale
 locale-gen
 
-echo "configure alsa" >> /tmp/livecd.log
-
-# configure alsa
-configure_alsa_live
-
-# configure pulse
-if [ -e "/usr/bin/pulseaudio-ctl" ] ; then
-    pulseaudio-ctl normal
-fi
-
-# save settings
-alsactl -f /etc/asound.state store &>/dev/null
-
 echo "configure system" >> /tmp/livecd.log
 
 # add BROWSER var
 configure_env_live
-
-# do_configsforroot
-configure_user_root_live
 
 echo "configure sudoers" >> /tmp/livecd.log
 
@@ -62,16 +47,30 @@ configure_gnome_live
 # fix_ping_installation
 configure_ping_live
 
-install_localization_live
-
 # depmod extramodules
 depmod $(cat /usr/lib/modules/$EXTRAMODULES/version)
 
 # check if we are running inside a virtual machine and unistall kalu
 DESTDIR="/"
-if [ -e "/usr/bin/kalu" ] ; then
-   _rm_kalu
-fi
+
+install_localization_live "${DESTDIR}"
+
+echo "configure root password" >> /tmp/livecd.log
+
+configure_user_root_live "${DESTDIR}"
+cp -a /etc/skel/. /root/
+
+echo "configure alsa" >> /tmp/livecd.log
+
+# configure pulse
+[[ -e "/usr/bin/pulseaudio-ctl" ]] && pulseaudio-ctl normal
+
+configure_alsa_live "${DESTDIR}"
+
+# save settings
+alsactl -f /etc/asound.state store &>/dev/null
+
+[[ -e "/usr/bin/kalu" ]] && _rm_kalu
 
 configure_live_installer_live
 

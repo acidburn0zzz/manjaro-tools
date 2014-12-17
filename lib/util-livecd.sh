@@ -17,7 +17,7 @@ check_ping(){
 
 configure_translation_pkgs_live(){
     # Determind which language we are using
-    local LNG_INST=$(cat ${DESTDIR}/etc/locale.conf | grep LANG= | cut -d= -f2 | cut -d. -f1)
+    local LNG_INST=$(cat $1/etc/locale.conf | grep LANG= | cut -d= -f2 | cut -d. -f1)
 
     [ -n "$LNG_INST" ] || LNG_INST="en"
     case "$LNG_INST" in
@@ -199,9 +199,7 @@ configure_ping_live(){
 configure_gnome_live(){
     glib-compile-schemas /usr/share/glib-2.0/schemas
     gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
-    if [ -e "/usr/bin/dconf" ] ; then
-      dconf update
-    fi
+    [[ -f /usr/bin/gdm ]] && dconf update
     if [ -e "/usr/bin/gnome-keyring-daemon" ] ; then
       setcap cap_ipc_lock=ep /usr/bin/gnome-keyring-daemon &> /dev/null
     fi
@@ -238,15 +236,13 @@ configure_env_live(){
 configure_user_root_live(){
     # set up root password
     msg2 "Setting root password: ${password} ..."
-    echo "root:${password}" | chroot ${DESTDIR} chpasswd
-    cp -a /etc/skel/. /root/
-
+    echo "root:${password}" | chroot $1 chpasswd
 }
 
 configure_alsa_live(){
     #set_alsa
     # amixer binary
-    local alsa_amixer="chroot ${DESTDIR} /usr/bin/amixer"
+    local alsa_amixer="chroot $1 /usr/bin/amixer"
 
     # enable all known (tm) outputs
     $alsa_amixer -c 0 sset "Master" 70% unmute &>/dev/null

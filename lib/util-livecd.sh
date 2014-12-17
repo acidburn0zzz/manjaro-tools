@@ -235,7 +235,6 @@ configure_env_live(){
 
 configure_user_root_live(){
     # set up root password
-    msg2 "Setting root password: ${password} ..."
     echo "root:${password}" | chroot $1 chpasswd
 }
 

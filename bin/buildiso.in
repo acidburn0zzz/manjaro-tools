@@ -35,27 +35,34 @@ display_settings(){
     msg2 "branch: ${branch}"
     msg2 "work_dir: ${work_dir}"
     msg2 "target_dir: ${target_dir}"
-    msg2 "pacman_conf: ${pacman_conf}"
     msg2 "cache_pkgs: ${cache_pkgs}"
     msg2 "cache_lng: ${cache_lng}"
+    msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "pacman_mirrors: ${mirrors_conf}"
 
     msg "ARGS:"
+    msg2 "clean_first: ${clean_first}"
+    msg2 "overwrite: ${overwrite}"
+    msg2 "auto_svc_conf: ${auto_svc_conf}"
+    msg2 "high_compression: ${high_compression}"
     msg2 "xorg_overlays: ${xorg_overlays}"
     msg2 "kde_lng_packages: ${kde_lng_packages}"
-    msg2 "clean_first: ${clean_first}"
     msg2 "is_cache_pkgs: ${is_cache_pkgs}"
     msg2 "is_cache_lng: ${is_cache_lng}"
     msg2 "images_only: ${images_only}"
     msg2 "iso_only: ${iso_only}"
-    msg2 "high_compression: ${high_compression}"
-    msg2 "overwrite: ${overwrite}"
-    msg2 "auto_svc_conf: ${auto_svc_conf}"
     
     msg "IMAGES SETTINGS:"
     msg2 "manjaro_kernel: ${manjaro_kernel}"
     msg2 "manjaro_kernel_ver: ${manjaro_kernel_ver}"
     msg2 "manjaro_version: ${manjaro_version}"
     msg2 "displaymanager: ${displaymanager}"
+    msg2 "plymouth_theme: ${plymouth_theme}"
+    
+    if ${auto_svc_conf};then
+	msg2 "start_systemd: ${start_systemd[*]}"
+	msg2 "start_openrc: ${start_openrc[*]}"
+    fi
     
     msg "ISO SETTINGS:"
     msg2 "iso_label: ${iso_label}"
@@ -64,29 +71,20 @@ display_settings(){
     msg2 "code_name: ${code_name}"
     msg2 "img_name: ${img_name}"
     msg2 "install_dir: ${install_dir}"
-    msg2 "plymouth_theme: ${plymouth_theme}"
     msg2 "compression: ${compression}"
-    
-    if ${auto_svc_conf};then
-	msg2 "start_systemd: ${start_systemd[*]}"
-	msg2 "start_openrc: ${start_openrc[*]}"
-    fi
-    
+    msg2 "iso_file: ${iso_file}"
+
     msg "LIVECD:"
     msg2 "username: ${username}"
     msg2 "password: ${password}"
     msg2 "encrypted password: $(gen_pw)"
     msg2 "addgroups: ${addgroups}"
     msg2 "hostname: ${hostname}"
-    msg2 "pacman_mirrors: ${mirrors_conf}"
     
     if ${auto_svc_conf};then
 	msg2 "start_systemd_live: ${start_systemd_live[*]}"
 	msg2 "start_openrc_live: ${start_openrc_live[*]}"
     fi
-    
-    msg "ISOFILE:"
-    msg2 "iso_file: ${iso_file}"
 }
 
 iso_owner=${SUDO_USER:-$USER}

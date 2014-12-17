@@ -25,9 +25,11 @@ SYSCONFDIR='@sysconfdir@'
 display_settings(){
     msg "manjaro-tools"
     msg2 "version: ${version}"
-    msg2 "manjaro_tools_conf: ${manjaro_tools_conf}"
+    
     if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
 	msg2 "user_config: ${USER_CONFIG}/manjaro-tools.conf"
+    else
+	msg2 "manjaro_tools_conf: ${manjaro_tools_conf}"
     fi
     
     msg "OPTIONS:"
@@ -140,7 +142,7 @@ usage() {
     echo '    -v                 Verbose'
     echo '    -q                 Query settings and pretend build'
     echo '    -c                 Disable clean work dir'
-    echo '    -f                 Disable iso image verwrite'
+    echo '    -f                 Disable iso image overwrite'
     echo '    -z                 Disable High compression'
     echo '    -A                 Disable auto configure livecd services as specified'
     echo '                       in manjaro-tools.conf'
@@ -240,7 +242,7 @@ compress_images(){
 }
 
 if ${iso_only}; then
-    [[ ! -d ${work_dir} ]] && die "You need to create images first eg buildiso -I"
+    [[ ! -d ${work_dir} ]] && die "You need to create images first eg buildiso -B"
     compress_images 
     exit 1
 fi

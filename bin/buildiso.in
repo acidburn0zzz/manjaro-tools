@@ -42,21 +42,22 @@ display_settings(){
     msg "ARGS:"
     msg2 "xorg_overlays: ${xorg_overlays}"
     msg2 "kde_lng_packages: ${kde_lng_packages}"
-    
-    msg "IMAGES SETTINGS:"
     msg2 "clean_first: ${clean_first}"
     msg2 "is_cache_pkgs: ${is_cache_pkgs}"
     msg2 "is_cache_lng: ${is_cache_lng}"
     msg2 "images_only: ${images_only}"
+    msg2 "iso_only: ${iso_only}"
+    msg2 "high_compression: ${high_compression}"
+    msg2 "overwrite: ${overwrite}"
+    msg2 "auto_svc_conf: ${auto_svc_conf}"
+    
+    msg "IMAGES SETTINGS:"
     msg2 "manjaro_kernel: ${manjaro_kernel}"
     msg2 "manjaro_kernel_ver: ${manjaro_kernel_ver}"
     msg2 "manjaro_version: ${manjaro_version}"
     msg2 "displaymanager: ${displaymanager}"
     
     msg "ISO SETTINGS:"
-    msg2 "iso_only: ${iso_only}"
-    msg2 "high_compression: ${high_compression}"
-    msg2 "overwrite: ${overwrite}"
     msg2 "iso_label: ${iso_label}"
     msg2 "iso_version: ${iso_version}"
     msg2 "manjaroiso: ${manjaroiso}"
@@ -65,7 +66,11 @@ display_settings(){
     msg2 "install_dir: ${install_dir}"
     msg2 "plymouth_theme: ${plymouth_theme}"
     msg2 "compression: ${compression}"
-
+    
+    if ${auto_svc_conf};then
+	msg2 "start_systemd: ${start_systemd[*]}"
+	msg2 "start_openrc: ${start_openrc[*]}"
+    fi
     
     msg "LIVECD:"
     msg2 "username: ${username}"
@@ -75,10 +80,9 @@ display_settings(){
     msg2 "hostname: ${hostname}"
     msg2 "pacman_mirrors: ${mirrors_conf}"
     
-    msg2 "auto_svc_conf: ${auto_svc_conf}"
     if ${auto_svc_conf};then
-	msg2 "startservices_systemd: ${startservices_systemd[*]}"
-	msg2 "startservices_openrc: ${startservices_openrc[*]}"
+	msg2 "start_systemd_live: ${start_systemd_live[*]}"
+	msg2 "start_openrc_live: ${start_openrc_live[*]}"
     fi
     
     msg "ISOFILE:"
@@ -132,9 +136,8 @@ usage() {
     echo '    -I                 Build images only'
     echo '    -G                 Generate iso only'
     echo '                       Requires pre built images'
-    echo '                       The custom cache will be cleaned if not set'
-    echo '    -P                 Use custom pkgs cache, no download'
-    echo '    -L                 Use custom lng cache, no download'
+    echo '    -P                 Use custom pkgs cache, useful for image rebuilds'
+    echo '    -L                 Use custom lng cache, useful for image rebuilds'
     echo '    -A                 Auto configure livecd services as specified' 
     echo '                       in the manjaro-tools.conf'
     echo '    -q                 Query settings and pretend build'
@@ -235,11 +238,6 @@ fi
 ${clean_first} && clean_up
 
 prepare_buildiso
-
-# if ! ${images_only}; then
-#     [[ $(check_cache pkgs-image) ]] && clean_cache_pkgs
-#     [[ $(check_cache lng-image) ]] && clean_cache_lng
-# fi
 
 make_images(){
     # install basic

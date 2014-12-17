@@ -35,6 +35,7 @@ configure_user_root(){
     # currently disabled again, still not working, still screws up real root pw
     msg2 "Currently disabled until fixed"
     #echo "root:$(gen_pw)" | chroot $1 chpasswd
+    #echo "root:${password}" | chroot $1 chpasswd
 }
 
 # $1: chroot
@@ -55,10 +56,10 @@ configure_plymouth(){
     fi
 }
 
-configure_services(){
+configure_services_live(){
    if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
       msg2 "Congiguring OpenRC ...."
-      for svc in ${startservices_openrc[@]}; do
+      for svc in ${start_openrc_live[@]}; do
 	  if [[ -f $1/etc/init.d/$svc ]]; then
 	      msg2 "Setting $svc ..."
 	      [[ ! -d  $1/etc/runlevels/default ]] && mkdir -p $1/etc/runlevels/default
@@ -67,7 +68,29 @@ configure_services(){
       done
    else
       msg2 "Congiguring SystemD ...."
-      for svc in ${startservices_systemd[@]}; do
+      for svc in ${start_systemd_live[@]}; do
+	  msg2 "Setting $svc ..."
+	  if [[ -f $1/usr/lib/systemd/system/$svc ]];then
+	      msg2 "Setting $svc ..."
+	      chroot-run $1 systemctl enable $svc
+	  fi
+      done
+   fi
+}
+
+configure_services(){
+   if [[ -f ${work_dir}/root-image/usr/bin/openrc ]];then
+      msg2 "Congiguring OpenRC ...."
+      for svc in ${start_openrc[@]}; do
+	  if [[ -f $1/etc/init.d/$svc ]]; then
+	      msg2 "Setting $svc ..."
+	      [[ ! -d  $1/etc/runlevels/default ]] && mkdir -p $1/etc/runlevels/default
+	      ln -sf /etc/init.d/$svc $1/etc/runlevels/default/$svc
+	  fi
+      done
+   else
+      msg2 "Congiguring SystemD ...."
+      for svc in ${start_systemd[@]}; do
 	  msg2 "Setting $svc ..."
 	  if [[ -f $1/usr/lib/systemd/system/$svc ]];then
 	      msg2 "Setting $svc ..."
@@ -114,7 +137,7 @@ configure_hosts(){
 }
 
 # $1: chroot
-configuredisplaymanager(){
+configure_displaymanager(){
     
     msg2 "Configuring Displaymanager ..."
     
@@ -410,14 +433,6 @@ prepare_buildiso(){
     mkdir -p "${cache_lng}"
 }
 
-# check_cache(){
-#     if [[ -n $(cat isomounts | grep -F $1) ]]; then 
-# 	echo true
-#     else 
-# 	echo false
-#     fi 
-# }
-
 clean_cache_lng(){
     msg "Cleaning [${cache_lng}] ..."
     find "${cache_lng}" -name '*.pkg.tar.xz' -delete &>/dev/null
@@ -487,6 +502,8 @@ make_root_image() {
 	configure_hostname "${work_dir}/root-image"
 	
 	configure_hosts "${work_dir}/root-image"
+	
+	${auto_svc_conf} && configure_services "${work_dir}/root-image"
 	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
@@ -564,11 +581,11 @@ make_overlay_image() {
 	
 	configure_user "${work_dir}/overlay-image"
 		
-	configuredisplaymanager "${work_dir}/overlay-image"
+	configure_displaymanager "${work_dir}/overlay-image"
 	
 	configure_accountsservice "${work_dir}/overlay-image" "${username}"
 	
-	${auto_svc_conf} && configure_services "${work_dir}/overlay-image"
+	${auto_svc_conf} && configure_services_live "${work_dir}/overlay-image"
 		        
       	copy_overlay_livecd "${work_dir}/overlay-image"
 	    

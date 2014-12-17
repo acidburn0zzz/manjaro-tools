@@ -329,19 +329,31 @@ load_config(){
     else
 	addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
     fi
-    
-    if [[ -n ${startservices_systemd} ]];then
-	startservices_systemd=${startservices_systemd}
+
+    if [[ -n ${start_systemd} ]];then
+	start_systemd=${start_systemd}
     else
-	startservices_systemd=('cronie' 'bluez' 'tlp' 'tlp-sleep' 'NetworkManager' 'ModemManager' 'cupsd')
+	start_systemd=('cronie' 'cupsd' 'tlp' 'tlp-sleep')
     fi
     
-    if [[ -n ${startservices_openrc} ]];then
-	startservices_openrc=${startservices_openrc}
+    if [[ -n ${start_openrc} ]];then
+	start_openrc=${start_openrc}
     else
-	startservices_openrc=('cupsd' 'fcron' 'metalog' 'cronie' 'bluetooth' 'connman' 'networkmanager')
+	start_openrc=('cronie' 'cupsd' 'metalog')
     fi
     
+    if [[ -n ${start_systemd_live} ]];then
+	start_systemd_live=${start_systemd_live}
+    else
+	start_systemd_live=('bluez' 'NetworkManager' 'ModemManager')
+    fi
+    
+    if [[ -n ${start_openrc_live} ]];then
+	start_openrc_live=${start_openrc_live}
+    else
+	start_openrc_live=('bluetooth' 'networkmanager' 'connman')
+    fi
+
     if [[ -n ${cache_lng} ]];then
 	cache_lng=${cache_lng}
     else

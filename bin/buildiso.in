@@ -240,7 +240,7 @@ compress_images(){
 }
 
 if ${iso_only}; then
-    [[ ! -d ${work_dir} ]] && die "You need to create images first eg buildiso -cI"
+    [[ ! -d ${work_dir} ]] && die "You need to create images first eg buildiso -I"
     compress_images 
     exit 1
 fi
@@ -275,7 +275,7 @@ make_images(){
 
 if ${images_only}; then
     make_images
-    warning "Continue with eg. buildiso -Gvzf ..."
+    warning "Continue with eg. buildiso -Gv ..."
     exit 1
 else
     make_images

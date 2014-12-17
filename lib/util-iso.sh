@@ -23,9 +23,8 @@ configure_machine_id(){
 # $1: chroot
 configure_user(){
     # set up user and password
-    local pass=$(gen_pw)
     msg2 "Creating user: ${username} password: ${password} ..."
-    chroot $1 useradd -m -g users -G ${addgroups} -p ${pass} ${username}
+    chroot-run $1 useradd -m -g users -G ${addgroups} -p $(gen_pw) ${username}
 }
 
 # $1: chroot
@@ -34,8 +33,8 @@ configure_user_root(){
     msg2 "Setting root password: ${password} ..."
     # currently disabled again, still not working, still screws up real root pw
     msg2 "Currently disabled until fixed"
-    #echo "root:$(gen_pw)" | chroot $1 chpasswd
-    #echo "root:${password}" | chroot $1 chpasswd
+    #echo "root:$(gen_pw)" | chroot-run $1 chpasswd
+    #echo "root:${password}" | chroot-run $1 chpasswd
 }
 
 # $1: chroot
@@ -174,8 +173,8 @@ configure_displaymanager(){
 		sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
 		#sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' /etc/lightdm/lightdm.conf
 	    
-		chroot $1 gpasswd -a ${username} autologin &> /dev/null
-		chroot $1 groupadd autologin
+		chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
+		chroot-run $1 groupadd autologin
 	    fi
 	    
 	    

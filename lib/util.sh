@@ -318,6 +318,54 @@ load_config(){
 	compression=xz
     fi
     
+    if [[ -n ${password} ]];then
+	password=${password}
+    else
+	password="manjaro"
+    fi
+    
+    if [[ -n ${addgroups} ]];then
+	addgroups=${addgroups}
+    else
+	addgroups="video,audio,power,disk,storage,optical,network,lp,scanner"
+    fi
+
+    if [[ -n ${start_systemd} ]];then
+	start_systemd=${start_systemd}
+    else
+	start_systemd=('cronie' 'cupsd' 'tlp' 'tlp-sleep')
+    fi
+    
+    if [[ -n ${start_openrc} ]];then
+	start_openrc=${start_openrc}
+    else
+	start_openrc=('cronie' 'cupsd' 'metalog')
+    fi
+    
+    if [[ -n ${start_systemd_live} ]];then
+	start_systemd_live=${start_systemd_live}
+    else
+	start_systemd_live=('bluez' 'NetworkManager' 'ModemManager')
+    fi
+    
+    if [[ -n ${start_openrc_live} ]];then
+	start_openrc_live=${start_openrc_live}
+    else
+	start_openrc_live=('bluetooth' 'networkmanager' 'connman')
+    fi
+
+    if [[ -n ${cache_lng} ]];then
+	cache_lng=${cache_lng}
+    else
+	cache_lng='/var/cache/manjaro-tools/lng'
+    fi
+    
+    if [[ -n ${cache_pkgs} ]];then
+	cache_pkgs=${cache_pkgs}
+    else
+	cache_pkgs='/var/cache/manjaro-tools/pkgs'
+    fi
+    
     return 0
 }
 
@@ -332,54 +380,4 @@ load_pacman_conf(){
     fi
     
     return 0
-}
-
-load_sets(){
-    local prof temp
-    for item in $(ls ${profiledir}/*.set); do
-	temp=${item##*/}
-	prof=${prof:-}${prof:+|}${temp%.set}
-    done
-    echo $prof
-}
-
-load_desktop_definitions(){
-    if [ -e Packages-Xfce ] ; then
-	pkgsfile="Packages-Xfce"
-    fi
-    if [ -e Packages-Kde ] ; then
-    	pkgsfile="Packages-Kde"
-    fi
-    if [ -e Packages-Gnome ] ; then
-   	pkgsfile="Packages-Gnome" 
-    fi
-    if [ -e Packages-Cinnamon ] ; then
-   	pkgsfile="Packages-Cinnamon" 
-    fi
-    if [ -e Packages-Openbox ] ; then
-  	pkgsfile="Packages-Openbox"  
-    fi
-    if [ -e Packages-Lxde ] ; then
- 	pkgsfile="Packages-Lxde"   
-    fi
-    if [ -e Packages-Lxqt ] ; then
-    	pkgsfile="Packages-Lxqt"
-    fi
-    if [ -e Packages-Mate ] ; then
-    	pkgsfile="Packages-Mate"
-    fi
-    if [ -e Packages-Enlightenment ] ; then
-    	pkgsfile="Packages-Enlightenment"
-    fi
-    if [ -e Packages-Net ] ; then
-   	pkgsfile="Packages-Net" 
-    fi
-    if [ -e Packages-PekWM ] ; then
-	pkgsfile="Packages-PekWM"
-    fi
-    if [ -e Packages-Custom ] ; then
-    	pkgsfile="Packages-Custom"
-    fi
-    desktop=${pkgsfile#*-}
-    desktop=${desktop,,}
 }

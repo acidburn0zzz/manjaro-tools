@@ -11,17 +11,23 @@
 
 version=@version@
 
-[[ -r @libdir@/util-msg.sh ]] && source @libdir@/util-msg.sh
-[[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
-[[ -r @libdir@/util-iso.sh ]] && source @libdir@/util-iso.sh
-# [[ -r @libdir@/util-mount.sh ]] && source @libdir@/util-mount.sh
+BINDIR='@bindir@'
+LIBDIR='@libdir@'
+PKGDATADIR='@pkgdatadir@'
+SYSCONFDIR='@sysconfdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+[[ -r ${LIBDIR}/util.sh ]] && source ${LIBDIR}/util.sh
+[[ -r ${LIBDIR}/util-iso.sh ]] && source ${LIBDIR}/util-iso.sh
+# [[ -r ${LIBDIR}/util-livecd.sh ]] && source ${LIBDIR}/util-livecd.sh
+# [[ -r ${LIBDIR}/util-mount.sh ]] && source ${LIBDIR}/util-mount.sh
 
 display_settings(){
     msg "manjaro-tools"
     msg2 "version: ${version}"
     msg2 "manjaro_tools_conf: ${manjaro_tools_conf}"
-    if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	msg2 "user_config: $USER_HOME/.config/manjaro-tools.conf"
+    if [[ -f ${USER_CONFIG}/manjaro-tools.conf ]]; then
+	msg2 "user_config: ${USER_CONFIG}/manjaro-tools.conf"
     fi
     
     msg "OPTIONS:"
@@ -29,89 +35,60 @@ display_settings(){
     msg2 "branch: ${branch}"
     msg2 "work_dir: ${work_dir}"
     msg2 "target_dir: ${target_dir}"
+    msg2 "cache_pkgs: ${cache_pkgs}"
+    msg2 "cache_lng: ${cache_lng}"
     msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "pacman_mirrors: ${mirrors_conf}"
 
     msg "ARGS:"
+    msg2 "clean_first: ${clean_first}"
+    msg2 "overwrite: ${overwrite}"
+    msg2 "auto_svc_conf: ${auto_svc_conf}"
+    msg2 "high_compression: ${high_compression}"
     msg2 "xorg_overlays: ${xorg_overlays}"
     msg2 "kde_lng_packages: ${kde_lng_packages}"
-    msg2 "high_compression: ${high_compression}"
+    msg2 "is_cache_pkgs: ${is_cache_pkgs}"
+    msg2 "is_cache_lng: ${is_cache_lng}"
+    msg2 "images_only: ${images_only}"
+    msg2 "iso_only: ${iso_only}"
+    
+    msg "IMAGES SETTINGS:"
+    msg2 "manjaro_kernel: ${manjaro_kernel}"
+    msg2 "manjaro_version: ${manjaro_version}"
+    msg2 "displaymanager: ${displaymanager}"
+    msg2 "plymouth_theme: ${plymouth_theme}"
+    
+    if ${auto_svc_conf};then
+	if [[ ${initsys} == "systemd" ]];then
+	    msg2 "start_systemd: ${start_systemd[*]}"
+	else
+	    msg2 "start_openrc: ${start_openrc[*]}"
+	fi
+    fi
     
     msg "ISO SETTINGS:"
     msg2 "iso_label: ${iso_label}"
     msg2 "iso_version: ${iso_version}"
-    msg2 "manjaro_kernel: ${manjaro_kernel}"
-    msg2 "manjaro_kernel_ver: ${manjaro_kernel_ver}"
-    msg2 "manjaro_version: ${manjaro_version}"
     msg2 "manjaroiso: ${manjaroiso}"
     msg2 "code_name: ${code_name}"
     msg2 "img_name: ${img_name}"
-    msg2 "hostname: ${hostname}"
-    msg2 "username: ${username}"
     msg2 "install_dir: ${install_dir}"
-    msg2 "plymouth_theme: ${plymouth_theme}"
     msg2 "compression: ${compression}"
-    
-    msg "ISOFILE:"
     msg2 "iso_file: ${iso_file}"
-}
 
-copy_manjaro_tools_conf(){
-	local livecd=$1
-	
-	[[ ! -d ${livecd} ]] && mkdir ${livecd}
-	if [[ -f $USER_HOME/.config/manjaro-tools.conf ]]; then
-	    msg2 "Copying $USER_HOME/.config/manjaro-tools.conf to ${livecd}/manjaro-tools.conf ..."
-	    cp $USER_HOME/.config/manjaro-tools.conf ${livecd}/manjaro-tools.conf
+    msg "LIVECD:"
+    msg2 "username: ${username}"
+    msg2 "password: ${password}"
+    msg2 "encrypted password: $(gen_pw)"
+    msg2 "addgroups: ${addgroups}"
+    msg2 "hostname: ${hostname}"
+    
+    if ${auto_svc_conf};then
+	if [[ ${initsys} == "systemd" ]];then
+	    msg2 "start_systemd_live: ${start_systemd_live[*]}"
 	else
-	    msg2 "Copying ${manjaro_tools_conf} to ${livecd}/manjaro-tools.conf ..."
-	    cp ${manjaro_tools_conf} ${livecd}/manjaro-tools.conf
+	    msg2 "start_openrc_live: ${start_openrc_live[*]}"
 	fi
-}
-
-copy_livecd(){
-    local livecd=$1
-    
-    msg2 "Copying $1/livecd to ${work_dir}/overlay/opt ..."
-    [[ ! -d ${work_dir}/overlay/opt ]] && mkdir -p ${work_dir}/overlay/opt
-    cp -a --no-preserve=ownership $1/livecd ${work_dir}/overlay/opt
-    
-    msg2 "Fixing livecd script permissions ..."
-    chmod 755 ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
-    chmod +x ${work_dir}/overlay/opt/livecd/{livecd,mhwd,lg,km,ejectcd,disable-dpms,pulseaudio-ctl-normal,setup,setup-0.8,setup-0.9,update-setup}
-}
-
-copy_util_sh(){
-    local util=$1
-    msg2 "Copying @libdir@/util.sh to $1/util-config.sh ..."
-    cp @libdir@/util.sh $1/util-config.sh
-}
-
-# Prepare overlay-image
-make_overlay() {
-    if [[ ! -e ${work_dir}/build.${FUNCNAME} ]]; then
-	msg "Prepare overlay-image"
-	
-        mkdir -p ${work_dir}/overlay/etc/pacman.d
-      
-	msg2 "Copying overlay-livecd to ${work_dir}/overlay ..."
-        cp -a --no-preserve=ownership overlay-livecd/* ${work_dir}/overlay
-        
-	copy_livecd '@pkgdatadir@'
-	        
-        #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist
-        
-	# copy over manjaro-tools.conf
-	copy_manjaro_tools_conf "${work_dir}/overlay/opt/livecd"
-        
-        # copy over the config loader lib to load manjaro-tools.conf vars
-        copy_util_sh "${work_dir}/overlay/opt/livecd"
-        
-        cp ${work_dir}/root-image/etc/pacman.d/mirrorlist ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/#Server/Server/g" ${work_dir}/overlay/etc/pacman.d/mirrorlist
-        sed -i "s/^.*TITLE=.*/  TITLE=\"Manjaro Linux Installation Framework (v${iso_version})\"/g" ${work_dir}/overlay/opt/livecd/setup
-        #chmod -R 755 ${work_dir}/overlay/home
-        : > ${work_dir}/build.${FUNCNAME}
-	msg "Done"
     fi
 }
 
@@ -123,36 +100,57 @@ else
     USER_HOME=$HOME
 fi
 
-load_config "$USER_HOME/.config/manjaro-tools.conf"  
-load_config '@sysconfdir@/manjaro-tools.conf'
+USER_CONFIG="$USER_HOME/.config"
 
-load_desktop_definitions
+load_config "${USER_CONFIG}/manjaro-tools.conf"  
+load_config "${SYSCONFDIR}/manjaro-tools.conf"
 
-clean_first=false
+load_desktop_definition
+
+displaymanager=$(cat ${PWD}/displaymanager)
+initsys=$(cat ${PWD}/initsys)
+
+clean_first=true
 pretend=false
-high_compression=false
+high_compression=true
 verbose=false
-overwrite=false
+overwrite=true
 xorg_overlays=false
 kde_lng_packages=false
+auto_svc_conf=true
+images_only=false
+iso_only=false
+is_cache_pkgs=false
+is_cache_lng=false
 
 pacman_conf_arch='default'
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -a <arch>          Set arch [default: ${arch}]"
-    echo "    -b <branch>        Set branch [default: ${branch}]"
-    echo "    -r <dir>           Work directory [default: ${work_dir}]"
-    echo "    -t <dir>           Target iso directory [default: ${target_dir}]"
+    echo '    -a <arch>          Set arch'
+    echo "                       [default: ${arch}]"
+    echo '    -b <branch>        Set branch'
+    echo "                       [default: ${branch}]"
+    echo '    -r <dir>           Work directory'
+    echo "                       [default: ${work_dir}]"
+    echo '    -t <dir>           Target iso directory'
+    echo "                       [default: ${target_dir}]"
     echo "    -i <file>          Config file for pacman"
-    echo "                       [default: @pkgdatadir@/pacman-${pacman_conf_arch}.conf]"
-    echo '    -c                 Clean work dir'
+    echo "                       [default: ${PKGDATADIR}/pacman-${pacman_conf_arch}.conf]"
     echo '    -v                 Verbose'
-    echo '    -f                 Overwrite'
-    echo '    -z                 High compression'
-    echo '    -x                 Xorg overlays'
-    echo '    -k                 kde lng packages'
     echo '    -q                 Query settings and pretend build'
+    echo '    -c                 Disable clean work dir'
+    echo '    -f                 Disable iso image verwrite'
+    echo '    -z                 Disable High compression'
+    echo '    -A                 Disable auto configure livecd services as specified'
+    echo '                       in manjaro-tools.conf'
+    echo '    -X                 Xorg overlays'
+    echo '    -K                 kde lng packages'
+    echo '    -B                 Build images only'
+    echo '    -G                 Generate iso only'
+    echo '    -P                 Use custom pkgs cache, useful for image rebuilds'
+    echo '    -L                 Use custom lng cache, useful for image rebuilds'
+    echo '                       Requires pre built images'
     echo '    -h                 This help'
     echo ''
     echo ''
@@ -161,7 +159,7 @@ usage() {
 
 orig_argv=("$@")
 
-opts='a:b:r:t:i:cvfzqxkh'
+opts='a:b:r:t:i:cvfzqXKABGPLh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -169,13 +167,18 @@ while getopts "${opts}" arg; do
 	b) branch="$OPTARG" ;;
 	r) work_dir="$OPTARG" ;;
 	t) target_dir="$OPTARG" ;;
-	c) clean_first=true ;;
-	v) verbose=true; iso_args+=(-v) ;;
-	f) overwrite=true; iso_args+=(-f) ;;
-	z) high_compression=true; iso_args+=(-x) ;;
-	x) xorg_overlays=true ;;
-	k) kde_lng_packages=true ;;
 	i) pacman_conf="$OPTARG" ;;
+	c) clean_first=false ;;
+	v) verbose=true; iso_args+=(-v) ;;
+	f) overwrite=false; iso_args+=(-f) ;;
+	z) high_compression=false; iso_args+=(-x) ;;
+	X) xorg_overlays=true ;;
+	K) kde_lng_packages=true ;;
+	A) auto_svc_conf=false ;;
+	B) images_only=true ;;
+	G) iso_only=true ;;
+	P) is_cache_pkgs=true ;;
+	L) is_cache_lng=true ;;
 	q) pretend=true ;;
 	h) usage ;;
     esac
@@ -190,82 +193,92 @@ if [[ "$arch" == 'x86_64' ]]; then
 fi
 
 load_pacman_conf "${pacman_conf}"
-load_pacman_conf "@pkgdatadir@/pacman-${pacman_conf_arch}.conf" 
+load_pacman_conf "${PKGDATADIR}/pacman-${pacman_conf_arch}.conf" 
+mirrors_conf="${PKGDATADIR}/pacman-mirrors-${branch}.conf"
 
-create_args+=(-v -a ${arch} -D ${install_dir} -C ${pacman_conf})
+create_args+=(-v -a ${arch} -D ${install_dir} -C ${pacman_conf} -M ${mirrors_conf})
 
 iso_args+=(-a ${arch} -D ${install_dir} -L ${iso_label} -c ${compression})
 
 iso_file="${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}.iso"
 
+iso_profile=${PWD##*/}
+
 check_root "$0" "${orig_argv[@]}"
 
-if [ "${arch}" == "i686" ]; then
-    packages=$(sed "s|#.*||g" Packages | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-elif [ "${arch}" == "x86_64" ]; then
-    packages=$(sed "s|#.*||g" Packages | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-fi
+get_pkglist
 
 if [ -e Packages-Xorg ] ; then
-    if [ "${arch}" == "i686" ]; then
-	xorg_packages=$(sed "s|#.*||g" Packages-Xorg | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|>free_x64.*||g" | sed "s|>free_uni||g" | sed "s|>nonfree_x64.*||g" | sed "s|>nonfree_uni||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-	xorg_free_overlay=$(sed "s|#.*||g" Packages-Xorg | sed "s| ||g" | sed "s|>dvd.*||g" | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|>free_x64.*||g" | sed "s|>free_uni||g" | sed "s|>nonfree_x64.*||g" | sed "s|>nonfree_uni.*||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-	xorg_nonfree_overlay=$(sed "s|#.*||g" Packages-Xorg | sed "s| ||g" | sed "s|>dvd.*||g" | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|>free_x64.*||g" | sed "s|>free_uni.*||g" | sed "s|>nonfree_x64.*||g" | sed "s|>nonfree_uni||g" | sed "s|^.*catalyst-legacy.*||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-    elif [ "${arch}" == "x86_64" ]; then
-	xorg_packages=$(sed "s|#.*||g" Packages-Xorg | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|>free_x64||g" | sed "s|>free_uni||g" | sed "s|>nonfree_uni||g" | sed "s|>nonfree_x64||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-	xorg_free_overlay=$(sed "s|#.*||g" Packages-Xorg | sed "s| ||g" | sed "s|>dvd.*||g" | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|>free_x64||g" | sed "s|>free_uni||g" | sed "s|>nonfree_uni.*||g" | sed "s|>nonfree_x64.*||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-	xorg_nonfree_overlay=$(sed "s|#.*||g" Packages-Xorg | sed "s| ||g" | sed "s|>dvd.*||g" | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|>free_x64.*||g" | sed "s|>free_uni.*||g" | sed "s|>nonfree_uni||g" | sed "s|>nonfree_x64||g" | sed "s|^.*catalyst-legacy.*||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-    fi
-    xorg_packages_cleanup=$(sed "s|#.*||g" Packages-Xorg | grep cleanup | sed "s|>cleanup||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
+    get_pkglist_xorg
 fi
 
 if [ -e Packages-Lng ] ; then
-    if [ "${arch}" == "i686" ]; then
-	lng_packages=$(sed "s|#.*||g" Packages-Lng | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|>kde.*||g" | sed ':a;N;$!ba;s/\n/ /g')
-    elif [ "${arch}" == "x86_64" ]; then
-	lng_packages=$(sed "s|#.*||g" Packages-Lng | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>cleanup.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|>kde.*||g" | sed ':a;N;$!ba;s/\n/ /g')
-    fi
-    lng_packages_cleanup=$(sed "s|#.*||g" Packages-Lng | grep cleanup | sed "s|>cleanup||g")
-    lng_packages_kde=$(sed "s|#.*||g" Packages-Lng | grep kde | sed "s|>kde||g" | sed ':a;N;$!ba;s/\n/ /g')
+    get_pkglist_lng
 fi
 
 if [ -e "${pkgsfile}" ] ; then
-    if [ "${arch}" == "i686" ]; then
-	de_packages=$(sed "s|#.*||g" "${pkgsfile}" | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>x86_64.*||g" | sed "s|>i686||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-    elif [ "${arch}" == "x86_64" ]; then
-	de_packages=$(sed "s|#.*||g" "${pkgsfile}" | sed "s| ||g" | sed "s|>dvd.*||g"  | sed "s|>blacklist.*||g" | sed "s|>i686.*||g" | sed "s|>x86_64||g" | sed "s|KERNEL|$manjaro_kernel|g" | sed ':a;N;$!ba;s/\n/ /g')
-    fi
+    get_pkglist_de
+fi
+
+if [[ -f Packages-Livecd ]]; then
+    get_pkglist_overlay
 fi
 
 ${pretend} && display_settings && exit 1
 
+compress_images(){
+    # install common
+    make_boot
+    if [ "${arch}" == "x86_64" ]; then
+	make_efi
+	make_efiboot
+    fi
+    make_isolinux
+
+    make_isomounts
+    make_iso
+}
+
+if ${iso_only}; then
+    [[ ! -d ${work_dir} ]] && die "You need to create images first eg buildiso -cI"
+    compress_images 
+    exit 1
+fi
+
 ${clean_first} && clean_up
 
-prepare_targetdir
+prepare_buildiso
 
-# install basic
-make_root_image
+make_images(){
+    # install basic
+    make_root_image
 
-# install DE(s)
-if [ -e "${pkgsfile}" ] ; then
-    make_de_image
+    # install DE(s)
+    if [ -e "${pkgsfile}" ] ; then
+	make_de_image
+    fi
+
+    # install xorg-drivers
+    if [ -e Packages-Xorg ] ; then
+	make_pkgs_image
+    fi
+    # install translations
+    if [ -e Packages-Lng ] ; then
+	make_lng_image
+    fi
+    
+    # install overlay
+    if [[ -f Packages-Livecd ]]; then
+	make_overlay_image
+    fi
+}
+
+if ${images_only}; then
+    make_images
+    warning "Continue with eg. buildiso -Gvzf ..."
+    exit 1
+else
+    make_images
 fi
 
-# install xorg-drivers
-if [ -e Packages-Xorg ] ; then
-    make_pkgs_image
-fi
-# install translations
-if [ -e Packages-Lng ] ; then
-    make_lng_image
-fi
-# install common
-make_boot
-if [ "${arch}" == "x86_64" ]; then
-    make_efi
-    make_efiboot
-fi
-make_isolinux
-make_overlay
-make_isomounts
-make_iso
+compress_images

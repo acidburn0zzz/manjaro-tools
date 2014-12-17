@@ -15,18 +15,18 @@ version=@version@
 [[ -r @libdir@/util.sh ]] && source @libdir@/util.sh
 
 PKGLIST=""
-QUIET="y"
-FORCE="n"
+QUIET=true
+FORCE=false
 PACCONFIG="/etc/pacman.conf"
 export LABEL="MANJARO_$(date +%Y%m)"
 PUBLISHER="Manjaro Linux <http://www.manjaro.org>"
 APPLICATION="Manjaro Linux Live/Rescue CD"
 COMPRESSION="xz"
-CREATE_DEFAULT="n"
+CREATE_DEFAULT=false
 INSTALL_DIR="manjaro"
 IMAGE_FOLDER="root-image"
-
 APPNAME=$(basename "${0}")
+MIRRORS=''
 
 # usage: usage <exitvalue>
 usage ()
@@ -51,6 +51,7 @@ usage ()
     echo "                      Default $IMAGE_FOLDER"
     echo "    -d                Create default user directory /home/manjaro"
     echo "    -v                Enable verbose output"
+    echo "    -M                Pass pacman-morrors.conf"
     echo "    -h                This message"
     echo " commands:"
     echo "   create <dir>"
@@ -63,7 +64,7 @@ usage ()
 
 orig_argv=("$@")
 
-while getopts 'p:C:L:P:A:a:c:D:i:dfvhx' arg; do
+while getopts 'p:C:L:P:A:a:c:M:D:i:dfvhx' arg; do
     case "${arg}" in
         p) PKGLIST="${PKGLIST} ${OPTARG}" ;;
         C) PACCONFIG="${OPTARG}" ;;
@@ -74,10 +75,11 @@ while getopts 'p:C:L:P:A:a:c:D:i:dfvhx' arg; do
         c) COMPRESSION="${OPTARG}" ;;
         D) INSTALL_DIR="${OPTARG}" ;;
         i) IMAGE_FOLDER="${OPTARG}" ;;
-        d) CREATE_DEFAULT="y" ;;
-        f) FORCE="y" ;;
+        d) CREATE_DEFAULT=true ;;
+        f) FORCE=true ;;
         x) HIGHCOMP=" -b 256K -Xbcj x86" ;;
-        v) QUIET="n" ;;
+        v) QUIET=false ;;
+        M) MIRRORS="${OPTARG}" ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
     esac
@@ -108,77 +110,83 @@ case "${command_name}" in
     *) error "Invalid command name ${command_name}" && usage 1 ;;
 esac
 
-if [ -z "${ARCH}" ] ; then
-	error "You need to specify an architecture:\ni686\nx86_64" && usage 1
-fi
-
-[ "x${imgname}" = "x" ] && msg "Image name must be specified" && usage 1
-[ "x${work_dir}" = "x" ] && msg "Please specify a working directory" && usage 1
+[[ -z "${ARCH}" ]] && error "You need to specify an architecture:\ni686\nx86_64" && usage 1
+[[ -z "${imgname}" ]] && msg "Image name must be specified" && usage 1
+[[ -z "${work_dir}" ]] && msg "Please specify a working directory" && usage 1
 
 msg "${APPNAME} : Configuration Settings"
 msg2 "working directory: ${work_dir}"
 msg2 "image name: ${imgname}"
+msg2 "pacman_mirrors: ${MIRRORS}"
 
-# usage: _pacman <packages>...
-_pacman ()
-{
-    local ret
-    mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
-    if [ "${QUIET}" = "y" ]; then
-        setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $* &> /dev/null
-        ret=$?
-    else
-        setarch ${ARCH} basestrap -GMcd "${work_dir}/${IMAGE_FOLDER}" --config "$PACCONFIG" $*
-        ret=$?
+clean_up(){
+    msg2 "Cleaning up what we can"
+    if [ -d "${work_dir}/${IMAGE_FOLDER}/boot/" ]; then
+	# remove the initcpio images that were generated for the host system
+	find "${work_dir}/${IMAGE_FOLDER}/boot" -name '*.img' -delete
     fi
 
-    if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
-        cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
+    if ${CREATE_DEFAULT}; then
+	if [ -d "${work_dir}/${IMAGE_FOLDER}/home/" ]; then
+	    msg2 "Creating default home directory"
+	    install -d -o1000 -g100 -m0755 "${work_dir}/${IMAGE_FOLDER}/home/${username}"
+	fi
     fi
 
-    # Cleanup
-    find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+    # Delete pacman database sync cache files (*.tar.gz)
+    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman" -maxdepth 1 -type f -delete &>/dev/null
+    # Delete pacman database sync cache
+    find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman/sync" -delete &>/dev/null
+    # Delete pacman package cache
+    find "${work_dir}/${IMAGE_FOLDER}/var/cache/pacman/pkg" -type f -delete &>/dev/null
+    # Delete all log files, keeps empty dirs.
+    find "${work_dir}/${IMAGE_FOLDER}/var/log" -type f -delete &>/dev/null
+    # Delete all temporary files and dirs
+    find "${work_dir}/${IMAGE_FOLDER}/var/tmp" -mindepth 1 -delete &>/dev/null
+    # Delete all temporary files and dirs
+    find "${work_dir}/${IMAGE_FOLDER}/tmp" -mindepth 1 -delete &>/dev/null
+}
 
-    if [ $ret -ne 0 ]; then
-        exit 1
-    fi
+_mkchroot(){
+	#local ret
+	#mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
+	if "${QUIET}"; then
+	    setarch "${ARCH}" \
+		mkchroot -C ${PACCONFIG} \
+		-S ${MIRRORS} \
+		"${work_dir}/${IMAGE_FOLDER}" $@ &> /dev/null || die "Failed to download all packages."
+	    #ret=$?
+	else
+	    setarch "${ARCH}" \
+		mkchroot -C ${PACCONFIG} \
+		-S ${MIRRORS} \
+		"${work_dir}/${IMAGE_FOLDER}" $@ || die "Failed to download all packages."
+	    #ret=$?
+	fi
+	
+	if [ -e "${work_dir}/root-image/etc/locale.gen" ]; then
+	    cp ${work_dir}/root-image/etc/locale.gen ${work_dir}/root-image/etc/locale.gen.bak
+	fi
+	
+	 # Cleanup
+	find "${work_dir}" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+	
+# 	if [ $ret -ne 0 ]; then
+# 	    exit 1
+# 	fi
 }
 
 command_create () {
-    msg "Creating working directory: ${work_dir}"
+    #msg "Creating working directory: ${work_dir}"
     mkdir -p "${work_dir}/iso/${INSTALL_DIR}/${ARCH}"
-    mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
+    #mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
 
     if [ ! -z "${PKGLIST}" ]; then
-        msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
-        _pacman "${PKGLIST}"
-
-        msg2 "Cleaning up what we can"
-        if [ -d "${work_dir}/${IMAGE_FOLDER}/boot/" ]; then
-            # remove the initcpio images that were generated for the host system
-            find "${work_dir}/${IMAGE_FOLDER}/boot" -name '*.img' -delete
-        fi
-
-        if [ ${CREATE_DEFAULT} == "y" ]; then
-            if [ -d "${work_dir}/${IMAGE_FOLDER}/home/" ]; then
-                msg2 "Creating default home directory"
-                install -d -o1000 -g100 -m0755 "${work_dir}/${IMAGE_FOLDER}/home/manjaro"
-            fi
-        fi
-
-        # Delete pacman database sync cache files (*.tar.gz)
-        find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman" -maxdepth 1 -type f -delete >/dev/null
-        # Delete pacman database sync cache
-        find "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman/sync" -delete >/dev/null
-        # Delete pacman package cache
-        find "${work_dir}/${IMAGE_FOLDER}/var/cache/pacman/pkg" -type f -delete >/dev/null
-        # Delete all log files, keeps empty dirs.
-        find "${work_dir}/${IMAGE_FOLDER}/var/log" -type f -delete >/dev/null
-        # Delete all temporary files and dirs
-        find "${work_dir}/${IMAGE_FOLDER}/var/tmp" -mindepth 1 -delete >/dev/null
-        # Delete all temporary files and dirs
-        find "${work_dir}/${IMAGE_FOLDER}/tmp" -mindepth 1 -delete >/dev/null
+        #msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
+	_mkchroot "${PKGLIST}" #|| die "Failed to create chroot."
     fi
+    
+    clean_up
 }
 
 # _mksquash dirname
@@ -205,7 +213,7 @@ _mksquash () {
 
     msg2 "Creating SquashFS image. This may take some time..."
     start=$(date +%s)
-    if [ "${QUIET}" = "y" ]; then
+    if "${QUIET}"; then
         mksquashfs "${1}" "${sqimg}" -noappend -comp "${COMPRESSION}" ${HIGHCOMP} >/dev/null
     else
         mksquashfs "${1}" "${sqimg}" -noappend -comp "${COMPRESSION}" ${HIGHCOMP}
@@ -228,34 +236,35 @@ _imgcommon () {
 
     # Sanity checks
     if [ ! -d "${work_dir}/iso" ]; then
-        error "${work_dir}/iso doesn't exist. What did you do?!"
+        die "${work_dir}/iso doesn't exist. What did you do?!"
     fi
 
     if [ ! -f "${work_dir}/iso/${INSTALL_DIR}/isomounts" ]; then
         error "The isomounts file doesn't exist. This image won't do anything"
-        abort "Protecting you from yourself and erroring out here..."
+        die "Protecting you from yourself and erroring out here..."
     fi
 
     if [ -e "${imgname}" ]; then
-        if [ "${FORCE}" = "y" ]; then
+        if "${FORCE}"; then
             msg2 "Removing existing bootable image..."
             rm -rf "${imgname}"
         else
-            error "Image ${imgname} already exists, aborting."
+            error "Image ${imgname} already exists."
+            abort
         fi
     fi
 
     if ! sed "s|%MANJAROISO_LABEL%|${LABEL}|g;
               s|%INSTALL_DIR%|${INSTALL_DIR}|g;
               s|%ARCH%|${ARCH}|g" -i ${work_dir}/iso/isolinux/*.cfg; then
-        abort "${work_dir}/iso/isolinux/isolinux.cfg, doesn't exist, aborting."
+	die "${work_dir}/iso/isolinux/isolinux.cfg, doesn't exist."
     fi
 
     if [ ! -f "${work_dir}/iso/isolinux/isolinux.bin" ]; then
-         abort "${work_dir}/iso/isolinux/isolinux.bin, doesn't exist, aborting."
+	die "${work_dir}/iso/isolinux/isolinux.bin, doesn't exist."
     fi
     if [ ! -f "${work_dir}/iso/isolinux/isohdpfx.bin" ]; then
-         abort "${work_dir}/iso/isolinux/isohdpfx.bin, doesn't exist, aborting."
+	die "${work_dir}/iso/isolinux/isohdpfx.bin, doesn't exist." 
     fi
 }
 
@@ -273,7 +282,7 @@ command_iso () {
     msg "Creating ISO image..."
     ## Generate the BIOS+ISOHYBRID CD image using xorriso (extra/libisoburn package) in mkisofs emulation mode
     _qflag=""
-    if [ ${QUIET} == "y" ]; then
+    if ${QUIET}; then
         _qflag="-quiet"
     fi
     xorriso -as mkisofs ${_qflag} \

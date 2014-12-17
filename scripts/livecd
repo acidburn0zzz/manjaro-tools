@@ -1,0 +1,79 @@
+#!/bin/sh
+
+[[ -r /opt/livecd/util.sh ]] && source /opt/livecd/util.sh
+
+load_config "/opt/livecd/manjaro-tools.conf"  
+
+[[ -r /opt/livecd/util-lng.sh ]] && source /opt/livecd/util-lng.sh
+[[ -r /opt/livecd/util-livecd.sh ]] && source /opt/livecd/util-livecd.sh
+
+CONSOLEFONT="$(kernel_cmdline vconsole.font)"
+CONSOLEMAP="$(kernel_cmdline vconsole.font.map)"
+PACMAN_LNG="pacman --config /opt/livecd/pacman-lng.conf --noconfirm --noprogressbar"
+arch=$(uname -m)
+_kernver=$(uname -r)
+_kernver=${_kernver%%-*}
+_kernver=${_kernver%%.[00-99].[00-99]}
+EXTRAMODULES=extramodules-${_kernver}-MANJARO
+
+
+echo "update fstab for swap" > /tmp/livecd.log
+
+## Systemd should do it
+# scan_swap
+configure_swap_live
+
+echo "set locale" >> /tmp/livecd.log
+
+# set_locale
+set_locale
+locale-gen
+
+echo "configure system" >> /tmp/livecd.log
+
+# add BROWSER var
+configure_env_live
+
+echo "configure sudoers" >> /tmp/livecd.log
+
+# do_fix_perms
+configure_sudo_live
+
+echo "configure applications" >> /tmp/livecd.log
+
+# fix_gnome_apps
+configure_gnome_live
+
+# fix_ping_installation
+configure_ping_live
+
+# depmod extramodules
+depmod $(cat /usr/lib/modules/$EXTRAMODULES/version)
+
+# check if we are running inside a virtual machine and unistall kalu
+DESTDIR="/"
+
+install_localization_live "${DESTDIR}"
+
+echo "configure root password" >> /tmp/livecd.log
+
+configure_user_root_live "${DESTDIR}"
+cp -a /etc/skel/. /root/
+
+echo "configure alsa" >> /tmp/livecd.log
+
+# configure pulse
+[[ -e "/usr/bin/pulseaudio-ctl" ]] && pulseaudio-ctl normal
+
+configure_alsa_live "${DESTDIR}"
+
+# save settings
+alsactl -f /etc/asound.state store &>/dev/null
+
+[[ -e "/usr/bin/kalu" ]] && _rm_kalu
+
+configure_live_installer_live
+
+configure_thus_live
+
+configure_calamares_live

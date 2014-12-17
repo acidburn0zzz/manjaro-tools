@@ -25,7 +25,7 @@ fi
 
 if [[ -e /run/openrc ]];then
     if [[ -f /etc/X11/mhwd.d/virtualbox.conf ]];then
-	VBoxService
+	VBoxService  &> /dev/null
     fi
 fi
 echo "MHWD DONE" > /tmp/mhwd.task

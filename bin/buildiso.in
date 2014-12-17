@@ -107,6 +107,9 @@ load_config "${SYSCONFDIR}/manjaro-tools.conf"
 
 load_desktop_definition
 
+displaymanager=$(cat ${PWD}/displaymanager)
+initsys=$(cat ${PWD}/initsys)
+
 clean_first=true
 pretend=false
 high_compression=true

@@ -366,12 +366,6 @@ load_config(){
 	cache_pkgs='/var/cache/manjaro-tools/pkgs'
     fi
     
-    if [[ -n ${displaymanager} ]];then
-	displaymanager=${displaymanager}
-    else
-	displaymanager=$(cat ${PWD}/displaymanager)
-    fi
-    
     return 0
 }
 

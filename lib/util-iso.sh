@@ -28,16 +28,6 @@ configure_user(){
 }
 
 # $1: chroot
-configure_user_root(){
-    # set up root password
-    msg2 "Setting root password: ${password} ..."
-    # currently disabled again, still not working, still screws up real root pw
-    msg2 "Currently disabled until fixed"
-    #echo "root:$(gen_pw)" | chroot-run $1 chpasswd
-    #echo "root:${password}" | chroot-run $1 chpasswd
-}
-
-# $1: chroot
 configure_hostname(){
     msg2 "Setting hostname: ${hostname} ..."
     if [[ -f $1/usr/bin/openrc ]];then
@@ -574,9 +564,6 @@ make_overlay_image() {
 	mkiso ${create_args[*]} -i "overlay-image" -p "${overlay_packages}" create "${work_dir}"
 
 	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"
-	
-	# TODO: fix this, screws up root password on build system
-	#configure_user_root "${work_dir}/overlay-image"
 	
 	configure_user "${work_dir}/overlay-image"
 		

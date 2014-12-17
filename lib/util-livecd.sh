@@ -235,6 +235,14 @@ configure_env_live(){
     fi
 }
 
+configure_user_root_live(){
+    # set up root password
+    msg2 "Setting root password: ${password} ..."
+    echo "root:${password}" | chroot ${DESTDIR} chpasswd
+    cp -a /etc/skel/. /root/
+
+}
+
 configure_alsa_live(){
     #set_alsa
     # amixer binary

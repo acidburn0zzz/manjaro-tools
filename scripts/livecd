@@ -47,7 +47,7 @@ echo "configure system" >> /tmp/livecd.log
 configure_env_live
 
 # do_configsforroot
-cp -a /etc/skel/. /root/
+configure_user_root_live
 
 echo "configure sudoers" >> /tmp/livecd.log
 

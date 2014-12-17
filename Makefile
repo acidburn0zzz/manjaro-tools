@@ -45,15 +45,15 @@ LIBS = \
 	lib/util-iso.sh
 
 CPIOHOOKS = \
-	hooks/miso \
-	hooks/miso_loop_mnt \
-	hooks/miso_pxe_nbd
+	initcpio/hooks/miso \
+	initcpio/hooks/miso_loop_mnt \
+	initcpio/hooks/miso_pxe_nbd
 	
 CPIOINST = \
-	inst/miso \
-	inst/miso_loop_mnt \
-	inst/miso_pxe_nbd \
-	inst/miso_kms
+	initcpio/inst/miso \
+	initcpio/inst/miso_loop_mnt \
+	initcpio/inst/miso_pxe_nbd \
+	initcpio/inst/miso_kms
 	
 SCRIPTS = \
 	scripts/mhwd \

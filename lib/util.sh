@@ -161,14 +161,6 @@ load_vars() {
     return 0
 }
 
-get_displaymanager(){
-    if [[ -f ${work_dir}/displaymanager ]];then
-	echo $(cat ${work_dir}/displaymanager)
-    else
-	echo "none"
-    fi
-}
-
 load_config(){
 
     [[ -f $1 ]] || return 1
@@ -365,7 +357,7 @@ load_config(){
     if [[ -n ${displaymanager} ]];then
 	displaymanager=${displaymanager}
     else
-	displaymanager=$(get_displaymanager)
+	displaymanager=$(cat ${PWD}/displaymanager)
     fi
     
     return 0

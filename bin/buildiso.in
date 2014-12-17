@@ -36,6 +36,8 @@ display_settings(){
     msg2 "work_dir: ${work_dir}"
     msg2 "target_dir: ${target_dir}"
     msg2 "pacman_conf: ${pacman_conf}"
+    msg2 "cache_pkgs: ${cache_pkgs}"
+    msg2 "cache_lng: ${cache_lng}"
 
     msg "ARGS:"
     msg2 "xorg_overlays: ${xorg_overlays}"
@@ -43,8 +45,6 @@ display_settings(){
     
     msg "IMAGES SETTINGS:"
     msg2 "clean_first: ${clean_first}"
-    msg2 "cache_pkgs: ${cache_pkgs}"
-    msg2 "cache_lng: ${cache_lng}"
     msg2 "is_cache_pkgs: ${is_cache_pkgs}"
     msg2 "is_cache_lng: ${is_cache_lng}"
     msg2 "images_only: ${images_only}"

@@ -297,9 +297,9 @@ configure_alsa_live(){
 
 configure_live_image () {
     _conf_file="$1" # Configuration file passed as first argument
+
     if [ -e "$_conf_file" ] ; then
 	sed -i "s|_root-image_|/bootmnt/${install_dir}/_ARCH_/root-image.sqfs|g" $_conf_file
-	sed -i "s|_kernel_|$manjaro_kernel|g" "/usr/share/calamares/modules/initcpio.conf"
 
 	if [ -e "/bootmnt/${install_dir}/${arch}/xfce-image.sqfs" ] ; then
 	    sed -i "s|_desktop-image_|/bootmnt/${install_dir}/_ARCH_/xfce-image.sqfs|g" $_conf_file
@@ -348,14 +348,7 @@ configure_live_installer_live(){
     fi
     release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d= -f2)
     sed -i "s|_version_|$release|g" $conf_file
-    configure_live_image $conf_file
-}
-
-configure_calamares_live(){
-    if [ -e "/usr/share/calamares/settings.conf" ] ; then
-	echo "configure calamares" >> /tmp/livecd.log
-	conf_file="/usr/share/calamares/modules/unpackfs.conf"
-    fi
+    sed -i "s|_kernel_|$manjaro_kernel|g" $conf_file
     configure_live_image $conf_file
 }
 
@@ -366,6 +359,16 @@ configure_thus_live(){
     fi
     release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d= -f2)
     sed -i "s|_version_|$release|g" $conf_file
+    sed -i "s|_kernel_|$manjaro_kernel|g" $conf_file
+    configure_live_image $conf_file
+}
+
+configure_calamares_live(){
+    if [ -e "/usr/share/calamares/settings.conf" ] ; then
+	echo "configure calamares" >> /tmp/livecd.log
+	conf_file="/usr/share/calamares/modules/unpackfs.conf"
+    fi
+    sed -i "s|_kernel_|$manjaro_kernel|g" "/usr/share/calamares/modules/initcpio.conf"
     configure_live_image $conf_file
 }
 

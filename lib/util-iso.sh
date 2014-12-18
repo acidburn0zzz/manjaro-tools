@@ -156,27 +156,8 @@ configure_displaymanager(){
 	    if [ -e "$1/usr/bin/pekwm" ] ; then
 		  sed -i -e 's/^.*user-session=.*/user-session=pekwm/' $1/etc/lightdm/lightdm.conf
 	    fi
-	    
-# 	    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
-
-# 	    if [[ "$1" != "${work_dir}/${desktop}-image" ]]; then
-# 		
-# 		sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
-# 		
-# 		chroot-run $1 groupadd autologin
-# 		chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
-# 		
-# 	    fi
-	    
-	    if [[ -e $1/usr/bin/openrc ]];then
-		echo "d /run/lightdm 0711 lightdm lightdm" > $1/usr/lib/tmpfiles.d/lightdm.conf
-	    fi
 	;;
 	'kdm')
-# 	    chroot-run $1 xdg-icon-resource forceupdate --theme hicolor &> /dev/null
-# 	    if [ -e "$1/usr/bin/update-desktop-database" ] ; then
-# 		chroot-run $1 update-desktop-database -q
-# 	    fi
 	    sed -i -e "s/^.*AutoLoginUser=.*/AutoLoginUser=${username}/" $1/usr/share/config/kdm/kdmrc
 	    sed -i -e "s/^.*AutoLoginPass=.*/AutoLoginPass=${username}/" $1/usr/share/config/kdm/kdmrc
 	;;
@@ -438,6 +419,28 @@ clean_up(){
     fi
 }
 
+# $1: chroot
+configure_overlay_image(){
+
+    configure_displaymanager "$1"
+    
+    configure_accountsservice "$1"
+    
+    configure_user "$1"
+    
+    configure_calamares "$1"
+    
+    ${auto_svc_conf} && configure_services_live "$1"
+    
+    configure_machine_id "$1"
+    
+    configure_hostname "$1"
+    
+    configure_hosts "$1"
+    
+    configure_plymouth "$1"
+}
+
 make_repo(){
     repo-add ${work_dir}/pkgs-image/opt/livecd/pkgs/gfx-pkgs.db.tar.gz ${work_dir}/pkgs-image/opt/livecd/pkgs/*pkg*z
 }
@@ -485,14 +488,6 @@ make_root_image() {
 	
 	copy_overlay "${work_dir}/root-image"
 	
-	configure_machine_id "${work_dir}/root-image"
-
-	configure_hostname "${work_dir}/root-image"
-	
-	configure_hosts "${work_dir}/root-image"
-	
-	${auto_svc_conf} && configure_services "${work_dir}/root-image"
-	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/root-image/etc/pacman.d/gnupg"
 	
@@ -527,9 +522,7 @@ make_de_image() {
 	    copy_overlay_desktop
 	fi
 	
-	configure_displaymanager "${work_dir}/${desktop}-image"
-	
-	configure_plymouth "${work_dir}/${desktop}-image"
+	${auto_svc_conf} && configure_services "${work_dir}/${desktop}-image"
 	
 	# Clean up GnuPG keys
 	rm -rf "${work_dir}/${desktop}-image/etc/pacman.d/gnupg"
@@ -564,17 +557,9 @@ make_overlay_image() {
 
 	pacman -Qr "${work_dir}/overlay-image" > "${work_dir}/overlay-image/overlay-image-pkgs.txt"
 	
-	configure_user "${work_dir}/overlay-image"
-		
-	configure_displaymanager "${work_dir}/overlay-image"
+	copy_overlay_livecd "${work_dir}/overlay-image"
 	
-	configure_accountsservice "${work_dir}/overlay-image" "${username}"
-	
-	${auto_svc_conf} && configure_services_live "${work_dir}/overlay-image"
-		        
-      	copy_overlay_livecd "${work_dir}/overlay-image"
-	    
-	configure_calamares "${work_dir}/overlay-image"
+	configure_overlay_image "${work_dir}/overlay-image"
 	
         #wget -O ${work_dir}/overlay/etc/pacman.d/mirrorlist http://git.manjaro.org/packages-sources/basis/blobs/raw/master/pacman-mirrorlist/mirrorlist    
         

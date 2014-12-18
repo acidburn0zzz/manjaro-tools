@@ -157,26 +157,26 @@ configure_displaymanager(){
 		  sed -i -e 's/^.*user-session=.*/user-session=pekwm/' $1/etc/lightdm/lightdm.conf
 	    fi
 	    
-	    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
-	    sed -i -e 's/^.*autologin-in-background=.*/autologin-in-background=true/' $1/etc/lightdm/lightdm.conf
-	
-	    if [[ "$1" != "${work_dir}/${desktop}-image" ]]; then
-		
-		sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
-		
-		chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
-		chroot-run $1 groupadd autologin
-	    fi
+# 	    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' $1/etc/lightdm/lightdm.conf
+
+# 	    if [[ "$1" != "${work_dir}/${desktop}-image" ]]; then
+# 		
+# 		sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" $1/etc/lightdm/lightdm.conf
+# 		
+# 		chroot-run $1 groupadd autologin
+# 		chroot-run $1 gpasswd -a ${username} autologin &> /dev/null
+# 		
+# 	    fi
 	    
 	    if [[ -e $1/usr/bin/openrc ]];then
 		echo "d /run/lightdm 0711 lightdm lightdm" > $1/usr/lib/tmpfiles.d/lightdm.conf
 	    fi
 	;;
 	'kdm')
-	    chroot-run $1 xdg-icon-resource forceupdate --theme hicolor &> /dev/null
-	    if [ -e "$1/usr/bin/update-desktop-database" ] ; then
-		chroot-run $1 update-desktop-database -q
-	    fi
+# 	    chroot-run $1 xdg-icon-resource forceupdate --theme hicolor &> /dev/null
+# 	    if [ -e "$1/usr/bin/update-desktop-database" ] ; then
+# 		chroot-run $1 update-desktop-database -q
+# 	    fi
 	    sed -i -e "s/^.*AutoLoginUser=.*/AutoLoginUser=${username}/" $1/usr/share/config/kdm/kdmrc
 	    sed -i -e "s/^.*AutoLoginPass=.*/AutoLoginPass=${username}/" $1/usr/share/config/kdm/kdmrc
 	;;

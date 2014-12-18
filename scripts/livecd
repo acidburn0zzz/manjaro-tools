@@ -55,6 +55,9 @@ DESTDIR="/"
 
 install_localization_live "${DESTDIR}"
 
+[[ -f /usr/bin/lightdm ]] && fix_lightdm
+[[ -f /usr/bin/kdm ]] && fix_kdm
+
 echo "configure root password" >> /tmp/livecd.log
 
 configure_user_root_live "${DESTDIR}"

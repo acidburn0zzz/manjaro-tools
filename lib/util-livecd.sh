@@ -412,3 +412,19 @@ configure_thus_live(){
 	fi
     fi
 }
+
+fix_kdm(){
+    xdg-icon-resource forceupdate --theme hicolor &> /dev/null
+    if [ -e "/usr/bin/update-desktop-database" ] ; then
+	update-desktop-database -q
+    fi
+}
+
+fix_lightdm(){
+    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' /etc/lightdm/lightdm.conf
+    sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" /etc/lightdm/lightdm.conf
+    
+    groupadd autologin
+    gpasswd -a ${username} autologin &> /dev/null
+    
+}

@@ -421,12 +421,6 @@ fix_kdm(){
 }
 
 fix_lightdm(){
-
-    if [[ -e /run/openrc ]];then
-	echo "d /run/lightdm 0711 lightdm lightdm" > /usr/lib/tmpfiles.d/lightdm.conf
-    fi
-    mkdir -p /run/lightdm > /dev/null
-    mkdir -p /var/lib/lightdm-data
     
     groupadd -r autologin
     gpasswd -a ${username} autologin &> /dev/null
@@ -434,11 +428,21 @@ fix_lightdm(){
     getent group lightdm > /dev/null 2>&1 || groupadd -g 620 lightdm
     getent passwd lightdm > /dev/null 2>&1 || useradd -c 'LightDM Display Manager' -u 620 -g lightdm -d /var/run/lightdm -s /usr/bin/nologin lightdm
     passwd -l lightdm > /dev/null
-    chown -R lightdm:lightdm /var/run/lightdm > /dev/null
     
-    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=0/' /etc/lightdm/lightdm.conf
+    mkdir -p /run/lightdm > /dev/null
+    
+    mkdir -p /var/lib/lightdm-data
+    
+    chown -R lightdm:lightdm /var/run/lightdm > /dev/null
+    #chown lightdm:lightdm /var/lib/lightdm-data
+    chown lightdm:lightdm /run/lightdm
+    
+    
+    sed -i -e 's/^.*autologin-user-timeout=.*/autologin-user-timeout=1/' /etc/lightdm/lightdm.conf
     sed -i -e "s/^.*autologin-user=.*/autologin-user=${username}/" /etc/lightdm/lightdm.conf
     
-    
+#     if [[ -d /run/openrc ]];then
+# 	echo "d /run/lightdm 0711 lightdm lightdm" > /usr/lib/tmpfiles.d/lightdm.conf
+#     fi
     
 }

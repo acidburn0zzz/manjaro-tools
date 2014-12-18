@@ -416,7 +416,8 @@ clean_up(){
 
 # $1: chroot
 configure_overlay_image(){
-
+    msg "Configuring [$1]"
+    
     configure_displaymanager "$1"
     
     configure_accountsservice "$1" "${username}"
@@ -434,6 +435,8 @@ configure_overlay_image(){
     configure_hosts "$1"
     
     configure_plymouth "$1"
+    
+    msg "Done configuring [$1]"
 }
 
 make_repo(){

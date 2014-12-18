@@ -344,29 +344,29 @@ configure_live_image () {
 
 configure_live_installer_live(){
     if [ -e "/etc/live-installer/install.conf" ] ; then
-      _conf_file="/etc/live-installer/install.conf"
+	conf_file="/etc/live-installer/install.conf"
     fi
     release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d= -f2)
-    sed -i "s|_version_|$release|g" $_conf_file
-    configure_live_image $_conf_file
+    sed -i "s|_version_|$release|g" $conf_file
+    configure_live_image $conf_file
 }
 
 configure_calamares_live(){
     if [ -e "/usr/share/calamares/settings.conf" ] ; then
 	echo "configure calamares" >> /tmp/livecd.log
-	_conf_file="/usr/share/calamares/modules/unpackfs.conf"
+	conf_file="/usr/share/calamares/modules/unpackfs.conf"
     fi
-    configure_live_image $_conf_file
+    configure_live_image $conf_file
 }
 
 configure_thus_live(){
     if [ -e "/etc/thus.conf" ] ; then
         echo "configure thus" >> /tmp/livecd.log
-        _conf_file="/etc/thus.conf"
+        conf_file="/etc/thus.conf"
     fi
     release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d= -f2)
-    sed -i "s|_version_|$release|g" $_conf_file
-    configure_live_image $_conf_file
+    sed -i "s|_version_|$release|g" $conf_file
+    configure_live_image $conf_file
 }
 
 fix_kdm(){

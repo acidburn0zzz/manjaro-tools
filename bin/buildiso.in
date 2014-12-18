@@ -50,6 +50,7 @@ display_settings(){
     msg2 "is_cache_lng: ${is_cache_lng}"
     msg2 "images_only: ${images_only}"
     msg2 "iso_only: ${iso_only}"
+    msg2 ""
     
     msg "IMAGES SETTINGS:"
     msg2 "manjaro_kernel: ${manjaro_kernel}"
@@ -109,13 +110,14 @@ load_desktop_definition
 displaymanager=$(cat ${PWD}/displaymanager)
 initsys=$(cat ${PWD}/initsys)
 
-clean_first=false
-pretend=false
+clean_first=true
+auto_svc_conf=true
 high_compression=true
+
+pretend=false
 verbose=false
 xorg_overlays=false
 kde_lng_packages=false
-auto_svc_conf=false
 images_only=false
 iso_only=false
 is_cache_pkgs=false
@@ -135,12 +137,11 @@ usage() {
     echo "                       [default: ${target_dir}]"
     echo "    -i <file>          Config file for pacman"
     echo "                       [default: ${PKGDATADIR}/pacman-${pacman_conf_arch}.conf]"
-    echo '    -v                 Verbose'
+    echo '    -v                 Verbose iso compression'
     echo '    -q                 Query settings and pretend build'
-    echo '    -c                 Clean work dir'
-    echo '    -z                 High compression'
-    echo '    -A                 Auto configure livecd services as specified'
-    echo '                       in manjaro-tools.conf'
+    echo '    -c                 Disable clean work dir and target dir iso'
+    echo '    -z                 Disable high compression'
+    echo '    -A                 Disable auto configure livecd services'
     echo '    -X                 Xorg overlays'
     echo '    -K                 kde lng packages'
     echo '    -B                 Build images only'
@@ -165,12 +166,12 @@ while getopts "${opts}" arg; do
 	r) work_dir="$OPTARG" ;;
 	t) target_dir="$OPTARG" ;;
 	i) pacman_conf="$OPTARG" ;;
-	c) clean_first=true; iso_args+=(-f) ;;
-	v) verbose=true; iso_args+=(-v) ;;
+	c) clean_first=false ;;
 	z) high_compression=false ;;
+	A) auto_svc_conf=false ;;
+	v) verbose=true; iso_args+=(-v) ;;
 	X) xorg_overlays=true ;;
 	K) kde_lng_packages=true ;;
-	A) auto_svc_conf=true ;;
 	B) images_only=true ;;
 	G) iso_only=true ;;
 	P) is_cache_pkgs=true ;;
@@ -201,6 +202,7 @@ iso_file="${target_dir}/${img_name}-${desktop}-${iso_version}-${arch}.iso"
 iso_profile=${PWD##*/}
 
 ${high_compression} && iso_args+=(-x)
+${clean_first} && iso_args+=(-f)
 
 check_root "$0" "${orig_argv[@]}"
 

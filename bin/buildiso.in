@@ -50,7 +50,6 @@ display_settings(){
     msg2 "is_cache_lng: ${is_cache_lng}"
     msg2 "images_only: ${images_only}"
     msg2 "iso_only: ${iso_only}"
-    msg2 ""
     
     msg "IMAGES SETTINGS:"
     msg2 "manjaro_kernel: ${manjaro_kernel}"
@@ -113,7 +112,6 @@ initsys=$(cat ${PWD}/initsys)
 clean_first=true
 auto_svc_conf=true
 high_compression=true
-
 pretend=false
 verbose=false
 xorg_overlays=false
@@ -262,6 +260,7 @@ make_images(){
     if [ -e Packages-Xorg ] ; then
 	make_pkgs_image
     fi
+    
     # install translations
     if [ -e Packages-Lng ] ; then
 	make_lng_image

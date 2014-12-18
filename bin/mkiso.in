@@ -149,7 +149,6 @@ clean_up(){
 
 _mkchroot(){
 	#local ret
-	#mkdir -p "${work_dir}/${IMAGE_FOLDER}/var/lib/pacman"
 	if "${QUIET}"; then
 	    setarch "${ARCH}" \
 		mkchroot -C ${PACCONFIG} \
@@ -177,12 +176,9 @@ _mkchroot(){
 }
 
 command_create () {
-    #msg "Creating working directory: ${work_dir}"
     mkdir -p "${work_dir}/iso/${INSTALL_DIR}/${ARCH}"
-    #mkdir -p "${work_dir}/${IMAGE_FOLDER}/"
 
     if [ ! -z "${PKGLIST}" ]; then
-        #msg2 "Installing packages to '${work_dir}/${IMAGE_FOLDER}/'"
 	_mkchroot "${PKGLIST}" #|| die "Failed to create chroot."
     fi
     

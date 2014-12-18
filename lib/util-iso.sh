@@ -402,14 +402,9 @@ prepare_buildiso(){
     mkdir -p "${cache_lng}"
 }
 
-clean_cache_lng(){
-    msg "Cleaning [${cache_lng}] ..."
-    find "${cache_lng}" -name '*.pkg.tar.xz' -delete &>/dev/null
-}
-
-clean_cache_pkgs(){
-    msg "Cleaning [${cache_pkgs}] ..."
-    find "${cache_pkgs}" -name '*.pkg.tar.xz' -delete &>/dev/null
+clean_cache(){
+    msg "Cleaning [$1] ..."
+    find "$1" -name '*.pkg.tar.xz' -delete &>/dev/null
 }
 
 clean_up(){
@@ -692,12 +687,8 @@ make_pkgs_image() {
 	    mount -t aufs -o remount,append:${work_dir}/${desktop}-image=ro none ${work_dir}/pkgs-image
 	fi
 	
-	if ! ${is_cache_pkgs};then
-	    download_to_cache "${work_dir}/pkgs-image" "${cache_pkgs}" "${xorg_packages}"
-	    copy_cache_pkgs	
-	else
-	    copy_cache_pkgs
-	fi
+	download_to_cache "${work_dir}/pkgs-image" "${cache_pkgs}" "${xorg_packages}"
+	copy_cache_pkgs	
 	
 	if [ ! -z "${xorg_packages_cleanup}" ]; then
 	    for xorg_clean in ${xorg_packages_cleanup}; do  
@@ -742,19 +733,11 @@ make_lng_image() {
 	fi
 
 	if ${kde_lng_packages}; then
-	    if ! ${is_cache_lng};then
-		download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages} ${lng_packages_kde}"
-		copy_cache_lng
-	    else
-		copy_cache_lng
-	    fi
+	    download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages} ${lng_packages_kde}"
+	    copy_cache_lng
 	else
-	    if ! ${is_cache_lng};then
-		download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages}"
-		copy_cache_lng
-	    else
-		copy_cache_lng
-	    fi
+	    download_to_cache "${work_dir}/lng-image" "${cache_lng}" "${lng_packages}"
+	    copy_cache_lng
 	fi
 	
 	if [ ! -z "${lng_packages_cleanup}" ]; then

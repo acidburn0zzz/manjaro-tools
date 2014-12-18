@@ -424,7 +424,7 @@ configure_overlay_image(){
 
     configure_displaymanager "$1"
     
-    configure_accountsservice "$1"
+    configure_accountsservice "$1" "${username}"
     
     configure_user "$1"
     

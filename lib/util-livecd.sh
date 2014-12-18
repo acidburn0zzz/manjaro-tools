@@ -344,7 +344,8 @@ configure_live_image () {
 
 configure_live_installer_live(){
     if [ -e "/etc/live-installer/install.conf" ] ; then
-	conf_file="/etc/live-installer/install.conf"
+        echo "configure live-installer" >> /tmp/livecd.log
+        conf_file="/etc/live-installer/install.conf"
     fi
     release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d= -f2)
     sed -i "s|_version_|$release|g" $conf_file
@@ -365,8 +366,8 @@ configure_thus_live(){
 
 configure_calamares_live(){
     if [ -e "/usr/share/calamares/settings.conf" ] ; then
-	echo "configure calamares" >> /tmp/livecd.log
-	conf_file="/usr/share/calamares/modules/unpackfs.conf"
+        echo "configure calamares" >> /tmp/livecd.log
+        conf_file="/usr/share/calamares/modules/unpackfs.conf"
     fi
     sed -i "s|_kernel_|$manjaro_kernel|g" "/usr/share/calamares/modules/initcpio.conf"
     configure_live_image $conf_file

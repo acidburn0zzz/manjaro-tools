@@ -95,6 +95,9 @@ configure_accountsservice(){
     msg2 "Configuring AcooutsService ..."
     if [ -d "$1/var/lib/AccountsService/users" ] ; then
 	echo "[User]" > $1/var/lib/AccountsService/users/$2
+	if [ -e "$1/usr/bin/openbox-session" ] ; then
+	    echo "XSession=openbox" >> $1/var/lib/AccountsService/users/$2
+	fi
 	if [ -e "$1/usr/bin/startxfce4" ] ; then
 	    echo "XSession=xfce" >> $1/var/lib/AccountsService/users/$2
 	fi
@@ -106,9 +109,6 @@ configure_accountsservice(){
 	fi
 	if [ -e "$1/usr/bin/enlightenment_start" ] ; then
 	    echo "XSession=enlightenment" >> $1/var/lib/AccountsService/users/$2
-	fi
-	if [ -e "$1/usr/bin/openbox-session" ] ; then
-	    echo "XSession=openbox" >> $1/var/lib/AccountsService/users/$2
 	fi
 	if [ -e "$1/usr/bin/startlxde" ] ; then
 	    echo "XSession=LXDE" >> $1/var/lib/AccountsService/users/$2
@@ -132,6 +132,9 @@ configure_displaymanager(){
     
     case ${displaymanager} in
 	'lightdm')
+	    if [ -e "$1/usr/bin/openbox-session" ] ; then
+		  sed -i -e 's/^.*user-session=.*/user-session=openbox/' $1/etc/lightdm/lightdm.conf
+	    fi
 	    if [ -e "$1/usr/bin/startxfce4" ] ; then
 	      sed -i -e 's/^.*user-session=.*/user-session=xfce/' $1/etc/lightdm/lightdm.conf
 	    fi
@@ -143,9 +146,6 @@ configure_displaymanager(){
 	    fi
 	    if [ -e "$1/usr/bin/enlightenment_start" ] ; then
 		  sed -i -e 's/^.*user-session=.*/user-session=enlightenment/' $1/etc/lightdm/lightdm.conf
-	    fi
-	    if [ -e "$1/usr/bin/openbox-session" ] ; then
-		  sed -i -e 's/^.*user-session=.*/user-session=openbox/' $1/etc/lightdm/lightdm.conf
 	    fi
 	    if [ -e "$1/usr/bin/startlxde" ] ; then
 		  sed -i -e 's/^.*user-session=.*/user-session=LXDE/' $1/etc/lightdm/lightdm.conf
@@ -216,6 +216,9 @@ configure_displaymanager(){
 	;;
 	'lxdm')
 	    sed -i -e "s/^.*autologin=.*/autologin=${username}/" $1/etc/lxdm/lxdm.conf
+	    if [ -e "$1/usr/bin/openbox-session" ] ; then
+		sed -i -e 's|^.*session=.*|session=/usr/bin/openbox-session|' $1/etc/lxdm/lxdm.conf
+	    fi
 	    if [ -e "$1/usr/bin/startxfce4" ] ; then
 		sed -i -e 's|^.*session=.*|session=/usr/bin/startxfce4|' $1/etc/lxdm/lxdm.conf
 	    fi
@@ -227,9 +230,6 @@ configure_displaymanager(){
 	    fi
 	    if [ -e "$1/usr/bin/enlightenment_start" ] ; then
 		sed -i -e 's|^.*session=.*|session=/usr/bin/enlightenment_start|' $1/etc/lxdm/lxdm.conf
-	    fi
-	    if [ -e "$1/usr/bin/openbox-session" ] ; then
-		sed -i -e 's|^.*session=.*|session=/usr/bin/openbox-session|' $1/etc/lxdm/lxdm.conf
 	    fi
 	    if [ -e "$1/usr/bin/startlxde" ] ; then
 		sed -i -e 's|^.*session=.*|session=/usr/bin/lxsession|' $1/etc/lxdm/lxdm.conf
